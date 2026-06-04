@@ -1,0 +1,183 @@
+export const en = {
+  common: {
+    about: 'About',
+    features: 'Features',
+    stats: 'Market Stats',
+    signIn: 'Sign In',
+    signOut: 'Sign Out',
+    getStarted: 'Get Started',
+    myFarm: 'My Farm',
+    myCart: 'My Cart',
+    dashboard: 'Dashboard',
+    loading: 'Loading...',
+    roleFarmer: 'Farmer',
+    roleBuyer: 'Wholesale Buyer',
+    roleAdmin: 'Administrator',
+    close: 'Close',
+  },
+  hero: {
+    badge: 'Direct Farm-to-Buyer Marketplace',
+    titleLine1: 'Connect Directly.',
+    titleLine2: 'Trade Fresh.',
+    titleLine3: 'Grow Smart.',
+    subtitle: 'Skip the middlemen. AgroMart links local, verified farmers directly with food distributors, restaurants, and bulk grocery buyers. Experience secure trade with built-in crop protection.',
+    searchPlaceholder: 'Try searching Organic Potatoes, Wheat, Apples...',
+    searchBtn: 'Search',
+    popular: 'Popular',
+    farmerBtn: 'I am a Farmer - Sell Crops',
+    buyerBtn: 'I am a Buyer - Browse Produce',
+    trustEscrow: '100% Escrow Protection',
+    trustLogistics: 'Temperature Controlled',
+    trustMarkup: 'Zero Agency Markups',
+  },
+  about: {
+    badge: 'Our Mission',
+    title: 'Bridging the Gap from Soil to Scale',
+    subtitle: 'AgroMart was founded on a simple belief: the farmers who feed the world deserve to get paid fairly for it. We replace fragmented broker layers with an open, direct trading network.',
+    problemHeader: 'The Old Way',
+    problemSub: 'Traditional Agriculture Supply Chain',
+    problems: [
+      'Multiple brokers mark up crop prices by up to 150%, squeezing farmer margins.',
+      'Payment delays of 30 to 60 days force small farmers into high-interest debt cycles.',
+      'Fragmented logistics result in up to 30% of fresh food rotting before it hits the shelf.',
+    ],
+    solutionHeader: 'The AgroMart Way',
+    solutionSub: 'Direct Agri-Commerce Platform',
+    solutions: [
+      'Direct peer-to-peer connection: Farmers set their prices and keep 100% of the value.',
+      'Escrow payments: Buyers fund deals upfront; payouts are released instantly on delivery verification.',
+      'Smart routing logistics: Integrated cooling fleet minimizes cargo loss and carbon output.',
+    ],
+    pillars: {
+      farmerTitle: 'Empowering Farmers',
+      farmerDesc: 'We give agriculturalists access to direct global demand, pricing algorithms, and trading dashboards.',
+      traceTitle: '100% Traceability',
+      traceDesc: 'Every batch is barcoded, letting buyers view soil data, harvest date, and chemical spray logs.',
+      wasteTitle: 'Zero Waste Delivery',
+      wasteDesc: 'Using dynamic shipping routes and digital manifests, we eliminate unnecessary storage transfers.',
+      fairTitle: 'Fair-Trade Financials',
+      fairDesc: 'By partner-integrating banking networks, we enable crop-backed credit for agricultural inputs.',
+    }
+  },
+  features: {
+    badge: 'Platform Capabilities',
+    title: 'Tailored Features for Both Sides of the Market',
+    subtitle: 'AgroMart packs premium enterprise tools into a simple, accessible mobile interface to make agricultural trade stress-free.',
+    forFarmers: 'For Farmers',
+    forBuyers: 'For Wholesale Buyers',
+    farmerList: [
+      {
+        title: 'Easy Harvest Listings',
+        desc: 'Upload your crops in seconds. Take a photo, input your quantity, set your target price, and publish.',
+        tag: 'Supabase Storage Enabled',
+        details: ['High-resolution image hosting', 'Batch quantity controls', 'Custom location pinning']
+      },
+      {
+        title: 'Smart Pricing Insights',
+        desc: 'See local market prices, harvest volume trends, and buyer demand forecasts to maximize your crop revenue.',
+        tag: 'AI price prediction',
+        details: ['Historical wholesale indexes', 'Regional supply tracker', 'Optimal crop sell alerts']
+      },
+      {
+        title: 'Escrow Secured Payments',
+        desc: 'Never worry about missing payments. Buyers fund deals upfront, held securely until cargo drops.',
+        tag: 'Safe Finance',
+        details: ['Upfront escrow deposits', 'Instant bank transfers on check', 'Dispute protection service']
+      }
+    ],
+    buyerList: [
+      {
+        title: 'Direct Farmer Procurement',
+        desc: 'Skip multiple middle distributors. Browse verified farmer listings and negotiate bulk contracts directly.',
+        tag: 'Verified Producers Only',
+        details: ['Farm profile reviews', 'Soil & pesticide logs', 'Sample request triggers']
+      },
+      {
+        title: 'Cold-Chain Delivery Tracking',
+        desc: 'Track your shipment live. Monitor temperature, humidity, and location coordinates from farm gate to warehouse.',
+        tag: 'Smart Logistics',
+        details: ['Real-time location sharing', 'Temperature sensors alerts', 'Optimized bulk dispatch']
+      },
+      {
+        title: 'Quality Guarantee Escrow',
+        desc: 'Verify quality before funds release. Inspect produce on arrival, and trigger payment approval via mobile.',
+        tag: 'Zero Risk Trade',
+        details: ['Mandatory inspection windows', 'Partial payout capability', 'Automated cargo return deals']
+      }
+    ]
+  },
+  stats: {
+    badge: 'Market Stats',
+    title: 'AgroMart by the Numbers',
+    subtitle: 'We measure our success by the amount of capital returned directly to farming communities and the freshness of food delivered.',
+    metricFarmers: 'Growers Registered',
+    metricVolume: 'Total Crop Trade Value',
+    metricTons: 'Metric Tons Dispatched',
+    metricDelivery: 'Logistics Cooling Efficiency',
+    liveIndex: 'Live Market Index',
+    liveIndexSub: 'National direct wholesale price average',
+    cropWheat: 'Organic Durum Wheat',
+    cropPotato: 'Russet Baking Potatoes',
+    cropTomato: 'Vine-Ripened Tomatoes',
+    changeMonth: 'this month',
+    changeWeek: 'this week'
+  },
+  cta: {
+    farmerTag: 'For Growers',
+    farmerTitle: 'Ready to Sell Your Harvest?',
+    farmerDesc: 'Connect directly with thousands of verified bulk buyers, food processors, and supermarket chains. List your crops, set your price, and secure escrow payments.',
+    farmerBtn: 'Register as a Farmer',
+    farmerFeatures: '✓ Free registration • List unlimited crops • Escrow protected',
+    buyerTag: 'For Bulk Buyers',
+    buyerTitle: 'Looking for Vetted Bulk Produce?',
+    buyerDesc: 'Procure crops directly from farms. Filter by soil composition, harvest dates, and logistics speed. Pay securely via escrow, released on arrival verification.',
+    buyerBtn: 'Register as a Buyer',
+    buyerFeatures: '✓ Direct sourcing contracts • Cold-chain logistics • Quality assurance'
+  },
+  footer: {
+    secureTitle: 'Direct & Secure Trade',
+    secureDesc: 'Escrow-backed payments and verified farmer profiles ensure completely safe marketplace deals.',
+    logisticsTitle: 'Integrated Farm Logistics',
+    logisticsDesc: 'Cold-chain logistics partners coordinate harvest-to-warehouse delivery with live location tracking.',
+    pricingTitle: 'Real-time Crop Pricing',
+    pricingDesc: 'AI-driven market insights and localized price charts protect margins and maximize farmer profit.',
+    aboutUs: 'Empowering farmers with smart trade infrastructure, direct buyer access, and real-time market data to shape the future of farming.',
+    newsletterTitle: 'Subscribe to Market Reports',
+    newsletterPlaceholder: 'Enter email for weekly insights',
+    newsletterBtn: 'Join',
+    copyright: 'All rights reserved. Connecting farms globally.',
+    privacy: 'Privacy Policy',
+    terms: 'Terms of Service',
+    cookies: 'Cookie Settings'
+  },
+  auth: {
+    loginTitle: 'Welcome Back',
+    loginSubtitle: 'Sign in securely using a one-time passcode (OTP). No password required.',
+    registerTitle: 'Create Account',
+    registerSubtitle: 'Join AgroMart. Register and verify your identity with a secure passcode.',
+    verifyTitle: 'Verify Identity',
+    verifySubtitle: 'Enter the 6-digit code sent to',
+    fullNameLabel: 'Full Name / Farm Name',
+    fullNamePlaceholder: 'John Doe or Sunny Farms',
+    joinAsLabel: 'I want to join as a:',
+    farmerCardTitle: 'Farmer',
+    farmerCardSub: 'Sell my harvest',
+    buyerCardTitle: 'Wholesale Buyer',
+    buyerCardSub: 'Procure crops',
+    emailMethod: 'Email Registration',
+    phoneMethod: 'Phone Registration',
+    emailLabel: 'Email Address',
+    phoneLabel: 'Mobile Number',
+    phoneCodeTip: 'Include country code (e.g. +1 for US, +91 for India)',
+    sendOtpBtn: 'Send Verification OTP',
+    signUpOtpBtn: 'Sign Up & Send OTP',
+    verifyBtn: 'Verify & Continue',
+    resendBtn: 'Resend Code',
+    resendTip: 'Resend in',
+    expiredTip: 'Code expired',
+    newToAgroMart: 'New to AgroMart?',
+    alreadyHaveAccount: 'Already have an account?',
+    createAccountLink: 'Create an Account',
+    signInLink: 'Sign In'
+  }
+};

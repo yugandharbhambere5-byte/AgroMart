@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="basketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#064e3b" flood-opacity="0.15" />
+    </filter>
+  </defs>
+  
+  <!-- Background Circle (for maskable icon support) -->
+  <circle cx="256" cy="256" r="240" fill="#0c110e" />
+  
+  <!-- Sprout/Leaf and Marketplace Basket Graphic -->
+  <g filter="url(#shadow)">
+    <!-- Shield / Basket Base -->
+    <path d="M160 220 H352 C352 320 256 380 256 380 C256 380 160 320 160 220 Z" fill="url(#basketGrad)" opacity="0.9" />
+    
+    <!-- Sprout stem and leaves growing up -->
+    <path d="M256 300 V160" stroke="#ffffff" stroke-width="12" stroke-linecap="round" />
+    
+    <!-- Left Leaf -->
+    <path d="M256 220 C210 220 180 180 180 140 C210 140 256 180 256 220 Z" fill="url(#leafGrad)" />
+    
+    <!-- Right Leaf -->
+    <path d="M256 190 C302 190 332 150 332 110 C302 110 256 150 256 190 Z" fill="url(#leafGrad)" />
+    
+    <!-- Woven Basket lines details -->
+    <path d="M185 250 H327 M205 290 H307 M225 330 H287" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.5" />
+  </g>
+</svg>
