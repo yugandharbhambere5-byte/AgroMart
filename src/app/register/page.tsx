@@ -38,6 +38,7 @@ function RegisterForm() {
   const [contactMethod, setContactMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
 
   // Location fields
   const [stateName, setStateName] = useState('');
@@ -230,7 +231,11 @@ function RegisterForm() {
     setLoading(true);
     setErrorMsg(null);
 
-    const contactVal = contactMethod === 'email' ? email.trim() : phone.trim();
+    const contactVal = contactMethod === 'email' ? email.trim() : `${countryCode}${phone.trim()}`;
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('agro-mart-temp-role', role);
+    }
 
     try {
       // Build user metadata for storage
@@ -448,17 +453,43 @@ function RegisterForm() {
                 <label htmlFor="wizard-phone" className="text-sm font-bold text-foreground">
                   {t.auth.phoneLabel}
                 </label>
-                <div className="relative flex items-center">
-                  <Phone className="absolute left-4 w-5 h-5 text-earth-450 pointer-events-none" />
-                  <input
-                    id="wizard-phone"
-                    type="tel"
-                    placeholder="+911234567890"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
-                    required
-                  />
+                <div className="flex gap-2">
+                  <div className="relative flex items-center min-w-[100px]">
+                    <select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      disabled={loading}
+                      className="w-full py-4 pl-3 pr-8 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-sm cursor-pointer appearance-none"
+                    >
+                      <option value="+91">🇮🇳 +91</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+971">🇦🇪 +971</option>
+                      <option value="+966">🇸🇦 +966</option>
+                      <option value="+977">🇳🇵 +977</option>
+                      <option value="+880">🇧🇩 +880</option>
+                      <option value="+94">🇱🇰 +94</option>
+                      <option value="+92">🇵🇰 +92</option>
+                      <option value="+61">🇦🇺 +61</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-earth-500">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="relative flex-1 flex items-center">
+                    <Phone className="absolute left-4 w-5 h-5 text-earth-450 pointer-events-none" />
+                    <input
+                      id="wizard-phone"
+                      type="tel"
+                      placeholder="9876543210"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                      required
+                    />
+                  </div>
                 </div>
                 <span className="text-xs font-bold text-earth-500 pl-1">
                   {t.auth.phoneCodeTip}

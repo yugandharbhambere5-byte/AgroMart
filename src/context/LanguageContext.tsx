@@ -29,6 +29,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       const saved = localStorage.getItem('agromart_language') as Language;
       if (saved && (saved === 'en' || saved === 'mr' || saved === 'hi')) {
         setLanguageState(saved);
+        document.documentElement.lang = saved;
       }
     }
   }, []);
@@ -37,6 +38,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(lang);
     if (typeof window !== 'undefined') {
       localStorage.setItem('agromart_language', lang);
+      document.documentElement.lang = lang;
     }
   };
 

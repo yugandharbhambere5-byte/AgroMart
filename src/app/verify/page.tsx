@@ -4,8 +4,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
-import { Check, ShieldCheck, ArrowRight, ShieldAlert, Loader2, RotateCw } from 'lucide-react';
-import { useTranslation } from '@/context/LanguageContext';
+import { Check, ShieldCheck, ArrowRight, ShieldAlert, Loader2, RotateCw, Globe } from 'lucide-react';
+import { useTranslation, Language } from '@/context/LanguageContext';
 
 function VerifyForm() {
   const { t } = useTranslation();
@@ -74,8 +74,7 @@ function VerifyForm() {
 
       // Redirect to correct dashboard
       setTimeout(() => {
-        router.push(`/dashboard/${role}`);
-        router.refresh();
+        window.location.href = `/dashboard/${role}`;
       }, 1500);
 
     } catch (err: any) {
@@ -202,18 +201,37 @@ function VerifyForm() {
 }
 
 export default function VerifyPage() {
+  const { language, setLanguage } = useTranslation();
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-gradient-to-b from-primary-50/20 to-background dark:from-primary-950/10">
       
-      {/* Brand logo */}
-      <Link href="/" className="mb-8 flex items-center gap-2 group">
-        <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center text-white">
-          <ShieldCheck className="w-5 h-5" />
+      {/* Brand logo & Language selector header */}
+      <div className="mb-8 flex items-center justify-between w-full max-w-md">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center text-white">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <span className="text-lg font-black tracking-tight text-foreground">
+            AgroMart Secure
+          </span>
+        </Link>
+
+        {/* Language Selector Dropdown */}
+        <div className="relative flex items-center select-none">
+          <Globe className="absolute left-3 w-4 h-4 text-earth-455 pointer-events-none" />
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value as Language)}
+            className="pl-9 pr-7 py-2.5 rounded-xl border border-border bg-card hover:bg-earth-100 dark:hover:bg-earth-800 text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer appearance-none"
+          >
+            <option value="en">EN</option>
+            <option value="mr">मराठी</option>
+            <option value="hi">हिंदी</option>
+          </select>
+          <span className="absolute right-2.5 text-earth-455 pointer-events-none text-[8px] font-black">▼</span>
         </div>
-        <span className="text-lg font-black tracking-tight text-foreground">
-          AgroMart Secure
-        </span>
-      </Link>
+      </div>
 
       <Suspense fallback={
         <div className="w-full max-w-md bg-card border border-border rounded-3xl p-8 sm:p-10 shadow-xl flex items-center justify-center min-h-[300px]">

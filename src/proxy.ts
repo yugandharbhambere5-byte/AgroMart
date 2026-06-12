@@ -6,28 +6,42 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const urlEnv = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  let user = null;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  if (urlEnv?.includes('placeholder') || anonKey?.includes('placeholder')) {
+    const mockCookie = request.cookies.get('agro-mart-mock-user')?.value;
+    if (mockCookie) {
+      try {
+        user = JSON.parse(decodeURIComponent(mockCookie));
+      } catch {}
+    }
+  } else {
+    const supabase = createServerClient(
+      urlEnv!,
+      anonKey!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+            supabaseResponse = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  }
+
   const url = request.nextUrl.clone();
 
   // 1. Role-based Dashboard Route Protection

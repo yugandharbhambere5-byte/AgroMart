@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, Menu, X, ShoppingCart, User, Sprout, ArrowRight, Globe } from 'lucide-react';
+import { Sun, Moon, Menu, X, ShoppingCart, User, Sprout, ArrowRight, Globe, TrendingUp } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useTranslation, Language } from '@/context/LanguageContext';
@@ -29,7 +29,7 @@ export function Navbar() {
     checkUser();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setUser(session?.user ?? null);
     });
 
@@ -106,9 +106,10 @@ export function Navbar() {
               {t.common.features}
             </Link>
             <Link
-              href="#stats"
-              className="text-base font-semibold text-earth-600 hover:text-primary-500 dark:text-earth-300 dark:hover:text-primary-400 transition-colors"
+              href="/market-rates"
+              className="flex items-center gap-1.5 text-base font-semibold text-earth-600 hover:text-primary-500 dark:text-earth-300 dark:hover:text-primary-400 transition-colors"
             >
+              <TrendingUp className="w-4 h-4" />
               {t.common.stats}
             </Link>
           </nav>
@@ -231,10 +232,11 @@ export function Navbar() {
             {t.common.features}
           </Link>
           <Link
-            href="#stats"
+            href="/market-rates"
             onClick={() => setMobileMenuOpen(false)}
-            className="text-lg font-bold text-earth-700 dark:text-earth-200 hover:text-primary-500 py-2 border-b border-earth-100 dark:border-earth-800"
+            className="flex items-center gap-2 text-lg font-bold text-earth-700 dark:text-earth-200 hover:text-primary-500 py-2 border-b border-earth-100 dark:border-earth-800"
           >
+            <TrendingUp className="w-5 h-5 text-primary-500" />
             {t.common.stats}
           </Link>
         </div>

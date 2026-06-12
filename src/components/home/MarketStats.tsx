@@ -20,7 +20,7 @@ export function MarketStats() {
   const cropMarketData: Record<string, CropPriceData> = {
     wheat: {
       name: t.stats.cropWheat,
-      currentPrice: '$285.50 / Ton',
+      currentPrice: '₹24,500 / Ton',
       change: `+14.2% ${t.stats.changeMonth}`,
       changeType: 'up',
       points: [40, 60, 45, 75, 90, 85, 110],
@@ -28,7 +28,7 @@ export function MarketStats() {
     },
     potato: {
       name: t.stats.cropPotato,
-      currentPrice: '$180.20 / Ton',
+      currentPrice: '₹15,200 / Ton',
       change: `+6.8% ${t.stats.changeMonth}`,
       changeType: 'up',
       points: [80, 75, 85, 95, 90, 105, 120],
@@ -36,7 +36,7 @@ export function MarketStats() {
     },
     tomato: {
       name: t.stats.cropTomato,
-      currentPrice: '$420.00 / Ton',
+      currentPrice: '₹35,000 / Ton',
       change: `-3.1% ${t.stats.changeWeek}`,
       changeType: 'down',
       points: [110, 100, 115, 130, 120, 95, 90],
@@ -106,7 +106,7 @@ export function MarketStats() {
                   <TrendingUp className="w-5 h-5" />
                   <span className="text-xs font-black uppercase tracking-wider">{t.stats.metricVolume}</span>
                 </div>
-                <div className="text-3xl sm:text-4xl font-black text-foreground">$24.8M+</div>
+                <div className="text-3xl sm:text-4xl font-black text-foreground">₹200 Cr+</div>
               </div>
 
               <div className="flex flex-col gap-2">
