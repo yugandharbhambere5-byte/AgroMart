@@ -29,7 +29,7 @@ export interface VoiceAssistantProps {
 
 // ─── Crop Name Dictionary (Marathi / Hindi / English) ────────────────────────
 
-const CROP_DICT: Record<string, string> = {
+export const CROP_DICT: Record<string, string> = {
   // Marathi
   'सोयाबीन': 'Soybean', 'सोया': 'Soybean',
   'गहू': 'Wheat', 'ज्वारी': 'Jowar', 'बाजरी': 'Bajra',

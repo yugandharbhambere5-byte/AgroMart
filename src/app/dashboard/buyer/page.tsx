@@ -7,11 +7,19 @@ import {
   Search, Filter, Heart, ArrowRight, ShieldCheck, TrendingUp, Info, MapPin, Tag,
   ShoppingCart, Send, LayoutDashboard, Star, CheckCircle, Clock, X, Check,
   AlertTriangle, IndianRupee, LogOut, ArrowDownRight, Compass, MessageSquare, Sparkles, Globe,
-  PlusCircle, Bell
+  PlusCircle, Bell, Timer, Gavel
 } from 'lucide-react';
 import { useTranslation, Language } from '@/context/LanguageContext';
 import MapComponent, { MapMarker } from '@/components/MapComponent';
 import { LiveMarketRates } from '@/components/market/LiveMarketRates';
+import { TransactionHistory } from '@/components/finance/TransactionHistory';
+import { SmartSearch } from '@/components/search/SmartSearch';
+import { UpcomingBookings } from '@/components/scheduling/UpcomingBookings';
+import { BuyerProfileCard } from '@/components/profile/BuyerProfileCard';
+import { BuyerProfileEditModal } from '@/components/profile/BuyerProfileEditModal';
+import { BuyerProfile } from '@/types/buyer';
+import { Transaction } from '@/types/transaction';
+import { FileText } from 'lucide-react';
 
 interface ActiveListing {
   id: string;
@@ -36,6 +44,19 @@ interface ActiveListing {
   is_gst_verified?: boolean;
   is_kyc_verified?: boolean;
   trust_score?: number;
+  is_auction?: boolean;
+  auction_end_time?: string;
+  bids?: AuctionBid[];
+  highest_bid?: number;
+}
+
+export interface AuctionBid {
+  id: string;
+  buyer_id: string;
+  buyer_name: string;
+  amount: number;
+  time: string;
+  status: 'pending' | 'accepted' | 'rejected';
 }
 
 interface OfferItem {
@@ -353,6 +374,35 @@ export const mockCrops: ActiveListing[] = [
     trust_score: 100
   },
   {
+    id: '4',
+    farmer_id: 'mock-farmer',
+    name: 'Premium Soybeans',
+    category: 'Grains',
+    quantity: 100,
+    unit: 'Quintals',
+    expected_price: 4500,
+    description: 'High protein content soybeans, newly harvested.',
+    harvest_date: '2026-06-11',
+    quality_type: 'Grade A',
+    location: 'Latur, Maharashtra',
+    status: 'Available',
+    images: ['https://images.unsplash.com/photo-1599839619722-39751411ea63?w=600&auto=format&fit=crop'],
+    farmer_name: 'Anil Pawar',
+    rating: 4.7,
+    is_verified: true,
+    is_otp_verified: true,
+    is_gst_verified: true,
+    is_kyc_verified: true,
+    trust_score: 100,
+    is_auction: true,
+    auction_end_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    bids: [
+      { id: 'ab1', buyer_id: 'b-1', buyer_name: 'AgriCorp', amount: 4500, time: new Date(Date.now() - 5*60000).toISOString(), status: 'pending' },
+      { id: 'ab2', buyer_id: 'b-2', buyer_name: 'SoyProcessors Ltd', amount: 4650, time: new Date(Date.now() - 2*60000).toISOString(), status: 'pending' },
+    ],
+    highest_bid: 4650,
+  },
+  {
     id: 'crop-4',
     farmer_id: 'farmer-4',
     name: 'Golden Sweet Corn',
@@ -525,6 +575,93 @@ export default function BuyerDashboard() {
     return () => window.removeEventListener('storage', handleStorageNotifs);
   }, []);
 
+  // Auction Countdown Ticker & Auto-close
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCrops(prev => {
+        let changed = false;
+        const now = Date.now();
+        const upd = prev.map(l => {
+          if (l.is_auction && l.auction_end_time && new Date(l.auction_end_time).getTime() <= now && l.status === 'Available') {
+            changed = true;
+            return { ...l, status: 'Sold' as const };
+          }
+          return l;
+        });
+        return changed ? upd : prev;
+      });
+    }, 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Listen for auction bids via localStorage
+  useEffect(() => {
+    const handleAuctionBid = (e: StorageEvent) => {
+      if (e.key !== 'agromart_auction_bids') return;
+      const allBids: { listingId: string; bid: AuctionBid }[] = e.newValue ? JSON.parse(e.newValue) : [];
+      if (allBids.length === 0) return;
+      
+      const latest = allBids[0];
+      setCrops(prev => prev.map(l => {
+        if (l.id === latest.listingId && l.is_auction) {
+          const newBids = [latest.bid, ...(l.bids || [])];
+          return {
+            ...l,
+            bids: newBids,
+            highest_bid: Math.max(l.highest_bid || l.expected_price, latest.bid.amount)
+          };
+        }
+        return l;
+      }));
+    };
+    window.addEventListener('storage', handleAuctionBid);
+    return () => window.removeEventListener('storage', handleAuctionBid);
+  }, []);
+
+  const handlePlaceBid = (listing: ActiveListing) => {
+    const amount = Number(bidInputs[listing.id] || 0);
+    if (!amount || isNaN(amount)) return;
+    const currentHigh = listing.highest_bid || listing.expected_price;
+    if (amount <= currentHigh) {
+      triggerToast(`err-${Date.now()}`, 'error', `Bid must be higher than ₹${currentHigh.toLocaleString()}`);
+      return;
+    }
+
+    const newBid: AuctionBid = {
+      id: `ab-${Date.now()}`,
+      buyer_id: user?.id || 'mock-buyer-1',
+      buyer_name: user?.user_metadata?.fullName || 'Premium Agro Buyers',
+      amount,
+      time: new Date().toISOString(),
+      status: 'pending'
+    };
+
+    // Update local state
+    setCrops(prev => prev.map(l => {
+      if (l.id === listing.id) {
+        return {
+          ...l,
+          bids: [newBid, ...(l.bids || [])],
+          highest_bid: amount
+        };
+      }
+      return l;
+    }));
+    
+    // Clear input
+    setBidInputs(prev => ({ ...prev, [listing.id]: '' }));
+
+    // Sync via storage
+    const stored = localStorage.getItem('agromart_auction_bids');
+    const allBids = stored ? JSON.parse(stored) : [];
+    const updated = [{ listingId: listing.id, bid: newBid }, ...allBids];
+    localStorage.setItem('agromart_auction_bids', JSON.stringify(updated));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_auction_bids', newValue: JSON.stringify(updated) }));
+
+    triggerToast(`bid-${Date.now()}`, 'success', `Successfully bid ₹${amount.toLocaleString()} for ${listing.name}`);
+    pushNotification('new_offer', `You placed a bid of ₹${amount.toLocaleString()} for ${listing.name}.`, 'buyer');
+  };
+
   const handleMarkAllRead = () => {
     const logStr = localStorage.getItem('agromart_notifications_log');
     if (logStr) {
@@ -556,7 +693,7 @@ export default function BuyerDashboard() {
   };
 
   // Navigation Tabs
-  const [activeTab, setActiveTab] = useState<'marketplace' | 'offers' | 'saved' | 'trends' | 'chat' | 'recommendations' | 'demands' | 'profile'>('marketplace');
+  const [activeTab, setActiveTab] = useState<'marketplace' | 'offers' | 'saved' | 'trends' | 'chat' | 'recommendations' | 'demands' | 'profile' | 'transactions'>('marketplace');
 
   // Verification States
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
@@ -592,9 +729,12 @@ export default function BuyerDashboard() {
   // User details & location
   const [user, setUser] = useState<any>(null);
   const [userLocation, setUserLocation] = useState('');
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
+  const [buyerProfile, setBuyerProfile] = useState<BuyerProfile | null>(null);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
+  const [parsedLocation, setParsedLocation] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [priceFilter, setPriceFilter] = useState('All');
   const [gradeFilter, setGradeFilter] = useState('All');
@@ -681,6 +821,7 @@ export default function BuyerDashboard() {
   const [bidError, setBidError] = useState<string | null>(null);
   const [bidSuccess, setBidSuccess] = useState(false);
   const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
+  const [bidInputs, setBidInputs] = useState<Record<string, string>>({});
 
   // Chat Inbox States
   const [threads, setThreads] = useState<ChatThread[]>([]);
@@ -968,6 +1109,69 @@ export default function BuyerDashboard() {
   const kycDocTypeSelected = user?.user_metadata?.kyc_doc_type || '';
 
   const trustScore = (isOtpVerified ? 30 : 0) + (isGstVerified ? 35 : 0) + (isKycVerified ? 35 : 0);
+
+  // Sync / Load Buyer Profile
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storageKey = `agromart_buyer_profile_${user?.id || 'default'}`;
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        setBuyerProfile(JSON.parse(stored));
+      } else {
+        const initialProfile: BuyerProfile = {
+          id: user?.id || 'buyer-1',
+          shopName: 'Premium Agro Traders',
+          ownerName: user?.user_metadata?.fullName || 'Premium Agro Buyers',
+          profilePhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80',
+          bannerImage: 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
+          contactNumber: user?.phone || '+91 98765 43210',
+          address: 'Shop No. 42, Krushi Utpanna Bazar Samiti, Pune',
+          googleMapsUrl: 'https://maps.google.com/?q=Pune',
+          businessType: 'Wholesaler',
+          gstNumber: gstNumber || '27AABCU9603R1ZX',
+          isVerified: isKycVerified && isGstVerified,
+          ratings: 4.8,
+          reviewsCount: 156,
+          workingDays: 'Monday - Saturday',
+          timings: '06:00 AM - 08:00 PM',
+          memberSince: '2023-01-15T00:00:00.000Z',
+          reviews: [
+            {
+              id: 'rev-1',
+              reviewerName: 'Ramesh Patil',
+              reviewerRole: 'Farmer',
+              rating: 5,
+              comment: 'Very professional buyer. Timely payments and transparent weight measurement. Highly recommended!',
+              date: '2026-05-10T12:00:00.000Z'
+            },
+            {
+              id: 'rev-2',
+              reviewerName: 'Suresh Deshmukh',
+              reviewerRole: 'Farmer',
+              rating: 4,
+              comment: 'Good communication. Picked up the potato harvest directly from my farm. Payment took 1 day extra but overall very smooth.',
+              date: '2026-06-01T09:30:00.000Z'
+            }
+          ]
+        };
+        localStorage.setItem(storageKey, JSON.stringify(initialProfile));
+        setBuyerProfile(initialProfile);
+      }
+    }
+  }, [user, gstNumber, isKycVerified, isGstVerified]);
+
+  const handleSaveProfile = (updatedProfile: BuyerProfile) => {
+    setBuyerProfile(updatedProfile);
+    if (typeof window !== 'undefined') {
+      const storageKey = `agromart_buyer_profile_${user?.id || 'default'}`;
+      localStorage.setItem(storageKey, JSON.stringify(updatedProfile));
+    }
+    pushNotification(
+      'listing_approved',
+      'Your shop profile details have been updated successfully and are now visible to farmers.',
+      'buyer'
+    );
+  };
 
   const handleSendOtp = () => {
     setSmsSent(true);
@@ -1311,6 +1515,11 @@ export default function BuyerDashboard() {
     : null;
   const userCoords = metadataCoords || getCoordinates(userLocation);
 
+  const handleSmartSearch = (query: string, parsedCrop?: string, parsedLoc?: string) => {
+    setSearchQuery(parsedCrop || query);
+    setParsedLocation(parsedLoc || null);
+  };
+
   const getCropDistance = (crop: ActiveListing) => {
     const startCoords = userCoords;
     const cropCoords = crop.latitude && crop.longitude
@@ -1353,6 +1562,24 @@ export default function BuyerDashboard() {
     }
     return 0;
   });
+  const dummyBuyerProfile: BuyerProfile = {
+    id: user?.id || 'buyer-1',
+    shopName: 'Premium Agro Traders',
+    ownerName: user?.user_metadata?.fullName || 'Premium Agro Buyers',
+    profilePhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80',
+    bannerImage: 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
+    contactNumber: user?.phone || '+91 98765 43210',
+    address: 'Shop No. 42, Krushi Utpanna Bazar Samiti, Pune',
+    googleMapsUrl: 'https://maps.google.com/?q=Pune',
+    businessType: 'Wholesaler',
+    gstNumber: gstNumber || '27AABCU9603R1ZX',
+    isVerified: isKycVerified && isGstVerified,
+    ratings: 4.8,
+    reviewsCount: 156,
+    workingDays: 'Monday - Saturday',
+    timings: '06:00 AM - 08:00 PM',
+    memberSince: '2023-01-15T00:00:00.000Z'
+  };
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in-up relative">
@@ -1524,6 +1751,18 @@ export default function BuyerDashboard() {
           <ShieldCheck className="w-4 h-4" />
           <span>{t.verification.title}</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('transactions')}
+          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
+            activeTab === 'transactions'
+              ? 'bg-primary-600 text-white shadow-md'
+              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>{language === 'mr' ? 'व्यवहार' : language === 'hi' ? 'लेन-देन' : 'Transactions'}</span>
+        </button>
       </div>
 
       {/* TAB 1: Marketplace Browse */}
@@ -1534,14 +1773,10 @@ export default function BuyerDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-5 rounded-2xl bg-card border border-border">
             
             {/* Search Input */}
-            <div className="relative flex items-center">
-              <Search className="absolute left-3.5 w-4 h-4 text-earth-455 pointer-events-none" />
-              <input
-                type="text"
-                placeholder={language === 'mr' ? 'पीक किंवा ठिकाण शोधा...' : language === 'hi' ? 'फसल या स्थान खोजें...' : 'Search crops or location...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-sm"
+            <div className="relative flex items-center md:col-span-1">
+              <SmartSearch 
+                initialValue={searchQuery}
+                onSearch={handleSmartSearch}
               />
             </div>
 
@@ -1736,6 +1971,20 @@ export default function BuyerDashboard() {
                       </span>
                     </div>
 
+                    {crop.is_auction && (
+                      <div className="absolute top-0 left-0 w-full bg-amber-500/90 backdrop-blur-md px-3 py-1.5 flex items-center justify-between text-white border-b border-amber-600/50 shadow-md z-10">
+                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
+                          <Gavel className="w-3.5 h-3.5" /> LIVE AUCTION
+                        </span>
+                        <span className="text-[10px] font-black flex items-center gap-1" suppressHydrationWarning>
+                          <Timer className="w-3 h-3" />
+                          {new Date(crop.auction_end_time || '').getTime() > Date.now() 
+                            ? new Date(crop.auction_end_time || '').toLocaleTimeString()
+                            : 'Closed'}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Content */}
                     <div className="p-6 flex flex-col flex-grow gap-4">
                       <div className="flex flex-col gap-1">
@@ -1802,13 +2051,37 @@ export default function BuyerDashboard() {
 
                       {/* Action trigger */}
                       <div className="flex gap-1.5 w-full mt-auto flex-wrap">
-                        <button
-                          onClick={() => openBidModal(crop)}
-                          className="flex-grow py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs shadow-md shadow-primary-600/10 flex items-center justify-center gap-1 transition-all cursor-pointer"
-                        >
-                          <ShoppingCart className="w-3.5 h-3.5" />
-                          <span>{language === 'mr' ? 'ऑफर खरेदी करा' : language === 'hi' ? 'ऑफर खरीदें' : 'Buy Offer'}</span>
-                        </button>
+                        {crop.is_auction ? (
+                          new Date(crop.auction_end_time || '').getTime() > Date.now() ? (
+                            <div className="w-full flex gap-1.5">
+                              <input 
+                                type="number"
+                                placeholder={`Min: ₹${(crop.highest_bid || crop.expected_price).toLocaleString()}`}
+                                value={bidInputs[crop.id] || ''}
+                                onChange={(e) => setBidInputs(prev => ({ ...prev, [crop.id]: e.target.value }))}
+                                className="flex-grow min-w-0 w-1/2 py-2 px-3 rounded-xl border border-border bg-background text-foreground text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                              />
+                              <button
+                                onClick={() => handlePlaceBid(crop)}
+                                className="flex-grow w-1/2 py-2 px-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-[11px] uppercase shadow flex items-center justify-center gap-1 transition-all cursor-pointer whitespace-nowrap"
+                              >
+                                <Gavel className="w-3 h-3" /> Place Bid
+                              </button>
+                            </div>
+                          ) : (
+                            <button disabled className="flex-grow py-3 px-4 rounded-xl bg-earth-300 dark:bg-earth-800 text-white font-extrabold text-xs flex items-center justify-center gap-1 opacity-70 cursor-not-allowed w-full">
+                              <Timer className="w-3.5 h-3.5" /> Auction Ended
+                            </button>
+                          )
+                        ) : (
+                          <button
+                            onClick={() => openBidModal(crop)}
+                            className="flex-grow py-3 px-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs shadow-md shadow-primary-600/10 flex items-center justify-center gap-1 transition-all cursor-pointer"
+                          >
+                            <ShoppingCart className="w-3.5 h-3.5" />
+                            <span>{language === 'mr' ? 'ऑफर खरेदी करा' : language === 'hi' ? 'ऑफर खरीदें' : 'Buy Offer'}</span>
+                          </button>
+                        )}
                         
                         <button
                           onClick={() => {
@@ -2666,62 +2939,12 @@ export default function BuyerDashboard() {
       )}
 
       {activeTab === 'profile' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in text-left">
-          {/* Left Column: Personal details */}
-          <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
-            <div>
-              <h3 className="text-xl font-black text-foreground">
-                {language === 'mr' ? 'माहिती आणि स्थान' : language === 'hi' ? 'विवरण और स्थान' : 'Profile & Identity'}
-              </h3>
-              <p className="text-xs font-bold text-earth-500 mt-1">
-                {language === 'mr' ? 'नोंदणीकृत खाते तपशील' : language === 'hi' ? 'पंजीकृत खाता विवरण' : 'Your registered marketplace details'}
-              </p>
-            </div>
+        <div className="flex flex-col gap-8 animate-fade-in text-left">
+          {/* Top: Public Profile Card */}
+          <BuyerProfileCard profile={buyerProfile || dummyBuyerProfile} onEdit={() => setIsProfileEditOpen(true)} />
 
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1 border-b border-border/40 pb-3">
-                <span className="text-[10px] font-black uppercase text-earth-455">{language === 'mr' ? 'पूर्ण नाव' : language === 'hi' ? 'पूरा नाम' : 'Full Name'}</span>
-                <span className="text-sm font-extrabold text-foreground">{user?.user_metadata?.fullName || 'Premium Agro Buyers'}</span>
-              </div>
-
-              <div className="flex flex-col gap-1 border-b border-border/40 pb-3">
-                <span className="text-[10px] font-black uppercase text-earth-455">{language === 'mr' ? 'भूमिका' : language === 'hi' ? 'भूमिका' : 'Marketplace Role'}</span>
-                <span className="text-sm font-extrabold text-foreground">
-                  {user?.user_metadata?.role === 'buyer' 
-                    ? (language === 'mr' ? 'घाऊक खरेदीदार (Wholesale Buyer)' : language === 'hi' ? 'थोक खरीदार (Wholesale Buyer)' : 'Wholesale Buyer') 
-                    : (language === 'mr' ? 'शेतकरी (Farmer)' : language === 'hi' ? 'किसान (Farmer)' : 'Farmer')}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-1 border-b border-border/40 pb-3">
-                <span className="text-[10px] font-black uppercase text-earth-455">{language === 'mr' ? 'ईमेल पत्ता' : language === 'hi' ? 'ईमेल पता' : 'Email Address'}</span>
-                <span className="text-sm font-extrabold text-foreground">{user?.email || 'buyer@agromart.com'}</span>
-              </div>
-
-              <div className="flex flex-col gap-1 border-b border-border/40 pb-3">
-                <span className="text-[10px] font-black uppercase text-earth-455">{language === 'mr' ? 'नोंदणीकृत जिल्हा / राज्य' : language === 'hi' ? 'पंजीकृत जिला / राज्य' : 'Registered Region'}</span>
-                <span className="text-sm font-extrabold text-foreground">
-                  {[user?.user_metadata?.district, user?.user_metadata?.state].filter(Boolean).join(', ') || 'Pune, Maharashtra'}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-black uppercase text-earth-455">{language === 'mr' ? 'जीपीएस समन्वय (GPS Coordinates)' : language === 'hi' ? 'जीपीएस निर्देशांक (GPS)' : 'GPS Coordinates'}</span>
-                <span className="text-sm font-extrabold text-foreground font-mono">
-                  {user?.user_metadata?.latitude && user?.user_metadata?.longitude ? (
-                    <span className="text-emerald-500">
-                      Latitude: {Number(user.user_metadata.latitude).toFixed(4)}°, Longitude: {Number(user.user_metadata.longitude).toFixed(4)}°
-                    </span>
-                  ) : (
-                    <span className="text-earth-455 italic">Location coordinates not detected</span>
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Trust Index HUD */}
-          <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
+          {/* Bottom: Verification Settings */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-xl font-black text-foreground">{t.verification.title}</h3>
@@ -2736,7 +2959,6 @@ export default function BuyerDashboard() {
             {/* Circular HUD Tracker */}
             <div className="p-6 rounded-2xl bg-earth-50/50 dark:bg-earth-950/20 border border-border flex flex-col sm:flex-row items-center gap-6">
               <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
-                {/* SVG Progress Circle */}
                 <svg className="w-24 h-24 transform -rotate-90 absolute">
                   <circle cx="48" cy="48" r="40" className="stroke-earth-200 dark:stroke-earth-850" strokeWidth="8" fill="transparent" />
                   <circle cx="48" cy="48" r="40" className="stroke-emerald-500 transition-all duration-500" strokeWidth="8" fill="transparent"
@@ -3510,6 +3732,14 @@ export default function BuyerDashboard() {
         </div>
       )}
 
+      {/* TRANSACTIONS TAB */}
+      {activeTab === 'transactions' && (
+        <div className="flex flex-col gap-6">
+          <UpcomingBookings userRole="buyer" userId={user?.id || 'mock-buyer-1'} />
+          <TransactionHistory userRole="buyer" userId={user?.id || 'mock-buyer-1'} />
+        </div>
+      )}
+
       {/* Floating In-App Toasts Stack */}
       <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
         {activeToasts.map((toast) => (
@@ -3538,6 +3768,16 @@ export default function BuyerDashboard() {
           </div>
         ))}
       </div>
+
+      {/* Edit Profile Modal */}
+      {buyerProfile && (
+        <BuyerProfileEditModal
+          profile={buyerProfile}
+          isOpen={isProfileEditOpen}
+          onClose={() => setIsProfileEditOpen(false)}
+          onSave={handleSaveProfile}
+        />
+      )}
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes shrink-width {

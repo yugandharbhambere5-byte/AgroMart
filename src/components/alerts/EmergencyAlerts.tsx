@@ -488,7 +488,9 @@ export default function EmergencyAlerts({ userLocation = '', bannerOnly = false,
 
       {/* ── Alerts Drawer ──────────────────────────────────────────────────── */}
       {isDrawerOpen && (
-        <div className="fixed right-0 top-0 h-full w-full max-w-lg z-[210] flex flex-col bg-card border-l border-border shadow-2xl animate-slide-in overflow-hidden">
+        <div className={`fixed right-0 top-0 bottom-0 h-[100dvh] w-full ${adminMode ? 'max-w-4xl' : 'max-w-lg'} z-[210] flex flex-col md:flex-row bg-card border-l border-border shadow-2xl animate-slide-in overflow-hidden`}>
+          
+          <div className="flex flex-col flex-1 min-w-0 h-full">
 
           {/* Drawer Header */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-gradient-to-r from-red-600/5 to-orange-500/5 shrink-0">
@@ -545,7 +547,7 @@ export default function EmergencyAlerts({ userLocation = '', bannerOnly = false,
           </div>
 
           {/* Alert List */}
-          <div className="flex-grow overflow-y-auto p-4 flex flex-col gap-3">
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 pb-24 flex flex-col gap-3">
             {filteredAlerts.length === 0 && (
               <div className="py-16 text-center flex flex-col items-center gap-3">
                 <ShieldCheck className="w-12 h-12 text-emerald-500 opacity-60" />
@@ -648,10 +650,11 @@ export default function EmergencyAlerts({ userLocation = '', bannerOnly = false,
               );
             })}
           </div>
+          </div>
 
           {/* ── Admin Broadcast Panel (only in adminMode) ──────────────────── */}
           {adminMode && (
-            <div className="border-t border-border p-5 shrink-0 bg-earth-50/50 dark:bg-earth-950/30 flex flex-col gap-4">
+            <div className="md:w-96 p-6 shrink-0 bg-earth-50/50 dark:bg-earth-950/30 flex flex-col gap-4 overflow-y-auto border-t md:border-t-0 md:border-l border-border z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none">
               <div className="flex items-center gap-2">
                 <Radio className="w-4 h-4 text-red-500" />
                 <h3 className="text-sm font-black text-foreground">Broadcast Emergency Alert</h3>

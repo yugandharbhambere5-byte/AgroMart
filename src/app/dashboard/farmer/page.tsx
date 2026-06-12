@@ -8,17 +8,25 @@ import {
   MessageSquare, Bell, X, Check, Eye, MapPin, TrendingUp, User,
   Send, Search, Tag, Clock, IndianRupee, CheckCircle, ShieldCheck,
   AlertTriangle, Globe, Star, Phone, Fingerprint, FileText, ChevronRight,
-  LayoutDashboard, Inbox, MessageCircle, UserCheck, Filter, Landmark, Bug
+  LayoutDashboard, Inbox, MessageCircle, UserCheck, Filter, Landmark, Bug, Wallet, Timer, Gavel
 } from 'lucide-react';
 import { useTranslation } from '@/context/LanguageContext';
 import VoiceAssistant, { VoiceIntent } from '@/components/voice/VoiceAssistant';
 import EmergencyAlerts from '@/components/alerts/EmergencyAlerts';
 import GovernmentSchemes from '@/components/schemes/GovernmentSchemes';
 import PestDiseaseAlerts from '@/components/alerts/PestDiseaseAlerts';
+import ExpenseTracker from '@/components/finance/ExpenseTracker';
+import ProfitCalculator from '@/components/finance/ProfitCalculator';
 import {
   initialDemandsSeed, initialChatsSeed, mockCrops, getSimulatedReply,
   CropDemand, ChatThread, Message
 } from '../buyer/page';
+import { TransactionHistory } from '@/components/finance/TransactionHistory';
+import { Transaction } from '@/types/transaction';
+import { SmartSearch } from '@/components/search/SmartSearch';
+import { UpcomingBookings } from '@/components/scheduling/UpcomingBookings';
+import { BuyerProfileModal } from '@/components/profile/BuyerProfileModal';
+import { BuyerProfile } from '@/types/buyer';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -42,6 +50,19 @@ interface ActiveListing {
   is_gst_verified?: boolean;
   is_kyc_verified?: boolean;
   trust_score?: number;
+  is_auction?: boolean;
+  auction_end_time?: string;
+  bids?: AuctionBid[];
+  highest_bid?: number;
+}
+
+export interface AuctionBid {
+  id: string;
+  buyer_id: string;
+  buyer_name: string;
+  amount: number;
+  time: string;
+  status: 'pending' | 'accepted' | 'rejected';
 }
 
 interface BuyerBid {
@@ -100,7 +121,77 @@ export default function FarmerDashboard() {
   const { language, t } = useTranslation();
 
   // ── Navigation ──
-  const [activeTab, setActiveTab] = useState<'overview' | 'demands' | 'chat' | 'crop_health' | 'schemes' | 'profile'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'demands' | 'chat' | 'crop_health' | 'finance' | 'schemes' | 'profile' | 'transactions'>('overview');
+
+  // ── Buyer Profile Preview State ──
+  const [selectedBuyerProfile, setSelectedBuyerProfile] = useState<BuyerProfile | null>(null);
+
+  const handleOpenBuyerProfile = (buyerName: string) => {
+    // Determine business type & details based on name
+    let busType: BuyerProfile['businessType'] = 'Wholesaler';
+    let address = 'Shop No. 12, APMC Market Yard, Pune, Maharashtra';
+    let gst = '27AAPFU0939F1ZV';
+    let rating = 4.8;
+    let reviewsCount = 142;
+
+    if (buyerName.toLowerCase().includes('export')) {
+      busType = 'Exporter';
+      address = 'Plot 45, MIDC Industrial Area, Vashi, Navi Mumbai';
+      gst = '27AABCU9603R1ZX';
+      rating = 4.9;
+      reviewsCount = 88;
+    } else if (buyerName.toLowerCase().includes('process') || buyerName.toLowerCase().includes('food')) {
+      busType = 'Processor';
+      address = 'Industrial Estate Phase 2, Baramati, Pune';
+      gst = '27ABDCU1234E1Z0';
+      rating = 4.6;
+      reviewsCount = 64;
+    } else if (buyerName.toLowerCase().includes('retail') || buyerName.toLowerCase().includes('super')) {
+      busType = 'Retailer';
+      address = 'MG Road Camp, Pune, Maharashtra';
+      gst = '27KKAPU9876C1Z3';
+      rating = 4.5;
+      reviewsCount = 37;
+    }
+
+    const mockProfile: BuyerProfile = {
+      id: `mock-buyer-${buyerName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+      shopName: buyerName,
+      ownerName: buyerName.includes('Patil') || buyerName.includes('Traders') ? 'Rajesh Patil' : 'Amit Gupta',
+      profilePhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80',
+      bannerImage: 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
+      contactNumber: '+91 98765 43210',
+      address,
+      googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(address)}`,
+      businessType: busType,
+      gstNumber: gst,
+      isVerified: true,
+      ratings: rating,
+      reviewsCount,
+      workingDays: 'Monday - Saturday',
+      timings: '08:00 AM - 08:00 PM',
+      memberSince: '2023-01-15T00:00:00.000Z',
+      reviews: [
+        {
+          id: 'rev-1',
+          reviewerName: 'Baburao Patil',
+          reviewerRole: 'Farmer',
+          rating: 5,
+          comment: 'Very reliable buyer. Always gives competitive rates and immediate payment via UPI.',
+          date: '2026-04-20T10:00:00.000Z'
+        },
+        {
+          id: 'rev-2',
+          reviewerName: 'Tukaram Shinde',
+          reviewerRole: 'Farmer',
+          rating: 4,
+          comment: 'Good trader, clear weighing process. Fair dealings.',
+          date: '2026-05-15T14:20:00.000Z'
+        }
+      ]
+    };
+    setSelectedBuyerProfile(mockProfile);
+  };
 
   // ── User & Session ──
   const [user, setUser] = useState<any>(null);
@@ -128,6 +219,20 @@ export default function FarmerDashboard() {
       description: 'Handpicked fresh sweet corn ears, moisture level under 14%.',
       harvest_date: '2026-06-10', quality_type: 'Grade A', location: 'Nashik, Maharashtra',
       status: 'Available', views: 240, offers: 0,
+    },
+    {
+      id: '4', farmer_id: 'mock-farmer', name: 'Premium Soybeans',
+      category: 'Grains', quantity: 100, unit: 'Quintals', expected_price: 4500,
+      description: 'High protein content soybeans, newly harvested.',
+      harvest_date: '2026-06-11', quality_type: 'Grade A', location: 'Latur, Maharashtra',
+      status: 'Available', views: 85, offers: 2,
+      is_auction: true,
+      auction_end_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      bids: [
+        { id: 'ab1', buyer_id: 'b-1', buyer_name: 'AgriCorp', amount: 4500, time: new Date(Date.now() - 5*60000).toISOString(), status: 'pending' },
+        { id: 'ab2', buyer_id: 'b-2', buyer_name: 'SoyProcessors Ltd', amount: 4650, time: new Date(Date.now() - 2*60000).toISOString(), status: 'pending' },
+      ],
+      highest_bid: 4650,
     },
   ]);
 
@@ -164,6 +269,8 @@ export default function FarmerDashboard() {
   const [cropQualityType, setCropQualityType] = useState('Grade A');
   const [cropLocation, setCropLocation] = useState('');
   const [cropStatus, setCropStatus] = useState<'Available' | 'Reserved' | 'Sold'>('Available');
+  const [cropIsAuction, setCropIsAuction] = useState(false);
+  const [cropAuctionHours, setCropAuctionHours] = useState('24');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // ── Verification ──
@@ -187,6 +294,7 @@ export default function FarmerDashboard() {
   // ── Demands ──
   const [demands, setDemands] = useState<CropDemand[]>([]);
   const [demandSearch, setDemandSearch] = useState('');
+  const [parsedDemandLocation, setParsedDemandLocation] = useState<string | null>(null);
   const [demandCategoryFilter, setDemandCategoryFilter] = useState('All');
   const [isRespondModalOpen, setIsRespondModalOpen] = useState(false);
   const [selectedDemand, setSelectedDemand] = useState<CropDemand | null>(null);
@@ -300,6 +408,51 @@ export default function FarmerDashboard() {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
+  // Auction Countdown Ticker & Auto-close
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setListings(prev => {
+        let changed = false;
+        const now = Date.now();
+        const upd = prev.map(l => {
+          if (l.is_auction && l.auction_end_time && new Date(l.auction_end_time).getTime() <= now && l.status === 'Available') {
+            changed = true;
+            // Optionally trigger a notification
+            pushNotification('market_update', `Auction for ${l.name} has closed.`, 'farmer');
+            return { ...l, status: 'Sold' as const };
+          }
+          return l;
+        });
+        return changed ? upd : prev;
+      });
+    }, 10000); // Check every 10 seconds
+    return () => clearInterval(timer);
+  }, []);
+
+  // Listen for auction bids from buyers via localStorage
+  useEffect(() => {
+    const handleAuctionBid = (e: StorageEvent) => {
+      if (e.key !== 'agromart_auction_bids') return;
+      const allBids: { listingId: string; bid: AuctionBid }[] = e.newValue ? JSON.parse(e.newValue) : [];
+      if (allBids.length === 0) return;
+      
+      const latest = allBids[0];
+      setListings(prev => prev.map(l => {
+        if (l.id === latest.listingId && l.is_auction) {
+          const newBids = [latest.bid, ...(l.bids || [])];
+          return {
+            ...l,
+            bids: newBids,
+            highest_bid: Math.max(l.highest_bid || l.expected_price, latest.bid.amount)
+          };
+        }
+        return l;
+      }));
+    };
+    window.addEventListener('storage', handleAuctionBid);
+    return () => window.removeEventListener('storage', handleAuctionBid);
+  }, []);
+
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -331,7 +484,10 @@ export default function FarmerDashboard() {
   const resetForm = () => {
     setCropName(''); setCropCategory('Grains'); setCropQty(''); setCropUnit('Quintals');
     setCropPrice(''); setCropDescription(''); setCropHarvestDate(''); setCropQualityType('Grade A');
-    setCropLocation(userLocation || ''); setCropStatus('Available'); setFormErrors({}); setEditingCrop(null);
+    setCropLocation(userLocation || ''); setCropStatus('Available');
+    setCropIsAuction(false);
+    setCropAuctionHours('24');
+    setFormErrors({}); setEditingCrop(null);
   };
 
   const handleEditClick = (crop: ActiveListing) => {
@@ -364,13 +520,61 @@ export default function FarmerDashboard() {
   const handleAcceptBid = (bidId: string, cropNameStr: string, offerAmt: string) => {
     const price = parseInt(offerAmt.replace(/[^\d]/g, '')) || 0;
     setEarnings(prev => prev + price);
-    const bid = buyerBids.find(b => b.id === bidId);
-    setBuyerBids(prev => prev.filter(b => b.id !== bidId));
-    setTotalOffers(prev => Math.max(0, prev - 1));
+    
+    // Check if it's an auction bid
+    let isAuctionBid = false;
+    let cropDetails: any = null;
+    let acceptedBidDetails: any = null;
+    
+    setListings(prev => prev.map(l => {
+      const b = l.bids?.find(b => b.id === bidId);
+      if (b) {
+        isAuctionBid = true;
+        cropDetails = l;
+        acceptedBidDetails = b;
+        return { ...l, status: 'Sold' as const };
+      }
+      return l;
+    }));
+
+    if (!isAuctionBid) {
+      const bid = buyerBids.find(b => b.id === bidId);
+      if (bid) {
+        cropDetails = { name: cropNameStr, quantity: parseInt(bid.qty) || 1, unit: 'Tons' };
+        acceptedBidDetails = { buyer_id: 'mock-buyer', buyer_name: bid.buyerName };
+      }
+      setBuyerBids(prev => prev.filter(b => b.id !== bidId));
+      setTotalOffers(prev => Math.max(0, prev - 1));
+    }
+    
     const farmerNotif = pushNotification('offer_accepted', `Deal accepted! Escrow payout created for ${cropNameStr}.`, 'farmer');
     if (farmerNotif) triggerToast(farmerNotif.id, 'offer_accepted', `Accepted: ${cropNameStr}`);
     // Notify buyer
     pushNotification('offer_accepted', `Your offer for ${cropNameStr} was accepted by the farmer!`, 'buyer');
+
+    // Create transaction record
+    if (cropDetails && acceptedBidDetails) {
+      const newTxn: Transaction = {
+        id: `txn-${Date.now()}`,
+        cropId: cropDetails.id || `crop-${Date.now()}`,
+        cropName: cropDetails.name,
+        farmerId: user?.id || 'mock-farmer',
+        farmerName: user?.user_metadata?.fullName || 'Mock Farmer',
+        buyerId: acceptedBidDetails.buyer_id,
+        buyerName: acceptedBidDetails.buyer_name,
+        quantity: cropDetails.quantity,
+        unit: cropDetails.unit,
+        pricePerUnit: price / cropDetails.quantity,
+        totalAmount: price,
+        date: new Date().toISOString(),
+        status: 'Completed'
+      };
+      
+      const stored = localStorage.getItem('agromart_transactions');
+      const txns = stored ? JSON.parse(stored) : [];
+      localStorage.setItem('agromart_transactions', JSON.stringify([newTxn, ...txns]));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_transactions' }));
+    }
   };
 
   const handleRejectBid = (bidId: string, cropNameStr: string) => {
@@ -393,6 +597,10 @@ export default function FarmerDashboard() {
       name: cropName.trim(), category: cropCategory, quantity: Number(cropQty), unit: cropUnit,
       expected_price: Number(cropPrice), description: cropDescription.trim() || null,
       harvest_date: cropHarvestDate, quality_type: cropQualityType, location: cropLocation.trim(), status: cropStatus,
+      is_auction: cropIsAuction,
+      auction_end_time: cropIsAuction ? new Date(Date.now() + Number(cropAuctionHours) * 60 * 60 * 1000).toISOString() : undefined,
+      bids: cropIsAuction ? [] : undefined,
+      highest_bid: cropIsAuction ? Number(cropPrice) : undefined,
     };
 
     if (editingCrop) {
@@ -588,10 +796,17 @@ export default function FarmerDashboard() {
   };
 
   // ─── Filters ──────────────────────────────────────────────────────────────────
+  const handleSmartSearchDemands = (query: string, parsedCrop?: string, parsedLoc?: string) => {
+    setDemandSearch(parsedCrop || query);
+    setParsedDemandLocation(parsedLoc || null);
+  };
+
   const filteredDemands = demands.filter(d => {
-    const matchSearch = d.crop_name.toLowerCase().includes(demandSearch.toLowerCase()) ||
-      d.buyer_name.toLowerCase().includes(demandSearch.toLowerCase()) ||
-      d.location.toLowerCase().includes(demandSearch.toLowerCase());
+    const matchSearch = 
+      (d.crop_name.toLowerCase().includes(demandSearch.toLowerCase()) ||
+       d.buyer_name.toLowerCase().includes(demandSearch.toLowerCase()) ||
+       d.location.toLowerCase().includes(demandSearch.toLowerCase())) &&
+      (parsedDemandLocation ? d.location.toLowerCase().includes(parsedDemandLocation.toLowerCase()) : true);
     const matchCat = demandCategoryFilter === 'All' || d.category === demandCategoryFilter;
     return matchSearch && matchCat && d.status === 'Open';
   });
@@ -673,6 +888,8 @@ export default function FarmerDashboard() {
           { id: 'demands', icon: Inbox, label: language === 'mr' ? 'मागण्या' : language === 'hi' ? 'मांगें' : 'Demands' },
           { id: 'chat', icon: MessageCircle, label: language === 'mr' ? 'चर्चा' : language === 'hi' ? 'बातचीत' : 'Chats' },
           { id: 'crop_health', icon: Bug, label: language === 'mr' ? 'पीक आरोग्य' : language === 'hi' ? 'फसल स्वास्थ्य' : 'Crop Health' },
+          { id: 'finance', icon: Wallet, label: language === 'mr' ? 'खर्च' : language === 'hi' ? 'व्यय' : 'Expenses' },
+          { id: 'transactions', icon: FileText, label: language === 'mr' ? 'व्यवहार' : language === 'hi' ? 'लेन-देन' : 'Transactions' },
           { id: 'schemes', icon: Landmark, label: language === 'mr' ? 'योजना' : language === 'hi' ? 'योजनाएं' : 'Schemes' },
           { id: 'profile', icon: UserCheck, label: language === 'mr' ? 'प्रोफाइल' : language === 'hi' ? 'प्रोफाइल' : 'Profile & Trust' },
         ] as const).map(tab => (
@@ -843,6 +1060,64 @@ export default function FarmerDashboard() {
                       </div>
                     </div>
 
+                    {list.is_auction && (
+                      <div className="flex flex-col gap-3 mt-2 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-500/30">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-widest">
+                            <Timer className="w-4 h-4 animate-pulse" />
+                            <span suppressHydrationWarning>
+                              {new Date(list.auction_end_time || '').getTime() > Date.now() 
+                                ? `Ends: ${new Date(list.auction_end_time || '').toLocaleTimeString()}`
+                                : 'Auction Closed'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm font-black text-foreground">
+                            Highest Bid: <span className="text-emerald-600 dark:text-emerald-500 text-base">₹{list.highest_bid?.toLocaleString() ?? list.expected_price}</span>
+                          </div>
+                        </div>
+                        {list.bids && list.bids.length > 0 && (
+                          <div className="flex flex-col gap-2 mt-2">
+                            <p className="text-[10px] font-bold text-earth-500 uppercase">Recent Bids</p>
+                            {list.bids.map(bid => (
+                              <div key={bid.id} className="flex items-center justify-between p-2 rounded-lg bg-background border border-border text-xs font-bold">
+                                <span>{bid.buyer_name}</span>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-foreground">₹{bid.amount.toLocaleString()}</span>
+                                  {new Date(list.auction_end_time || '').getTime() > Date.now() ? (
+                                    <button 
+                                      onClick={() => handleAcceptBid(bid.id, list.name, bid.amount.toString())}
+                                      className="text-[10px] bg-primary-600 text-white px-2 py-1 rounded hover:bg-primary-700"
+                                    >
+                                      Accept Early
+                                    </button>
+                                  ) : (
+                                    bid.amount === list.highest_bid && (
+                                      <button 
+                                        onClick={() => handleAcceptBid(bid.id, list.name, bid.amount.toString())}
+                                        className="text-[10px] bg-emerald-600 text-white px-2 py-1 rounded hover:bg-emerald-700"
+                                      >
+                                        Approve Winner
+                                      </button>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {new Date(list.auction_end_time || '').getTime() > Date.now() && (
+                          <button 
+                            onClick={() => {
+                              setListings(prev => prev.map(l => l.id === list.id ? { ...l, auction_end_time: new Date().toISOString() } : l));
+                            }}
+                            className="mt-1 w-full py-1.5 rounded-lg border border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 text-[10px] font-black uppercase tracking-widest transition-colors"
+                          >
+                            End Auction Now
+                          </button>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border/40 text-xs font-bold text-earth-500">
                       <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{list.location}</span>
                       <div className="flex gap-2">
@@ -869,9 +1144,12 @@ export default function FarmerDashboard() {
                   <div key={bid.id} className="p-5 rounded-2xl bg-earth-50 dark:bg-earth-950 border border-border flex flex-col gap-4">
                     <div className="flex justify-between items-start gap-4">
                       <div>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-primary-500 flex items-center gap-1 mb-1">
+                        <button 
+                          onClick={() => handleOpenBuyerProfile(bid.buyerName)}
+                          className="text-[10px] font-black uppercase tracking-wider text-primary-600 dark:text-primary-450 hover:underline flex items-center gap-1 mb-1 cursor-pointer"
+                        >
                           <User className="w-3.5 h-3.5" />{bid.buyerName}
-                        </span>
+                        </button>
                         <h4 className="font-extrabold text-foreground text-sm">{bid.crop}</h4>
                         <span className="text-xs text-earth-500 font-bold flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3.5 h-3.5" />{bid.location}
@@ -917,14 +1195,11 @@ export default function FarmerDashboard() {
               <p className="text-xs font-semibold text-earth-500 mt-1">Browse open demands from verified buyers</p>
             </div>
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-earth-400" />
-                <input
-                  type="text"
-                  placeholder={language === 'mr' ? 'शोधा...' : language === 'hi' ? 'खोजें...' : 'Search demands...'}
-                  value={demandSearch}
-                  onChange={e => setDemandSearch(e.target.value)}
-                  className="pl-9 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500"
+              <div className="relative md:w-64">
+                <SmartSearch 
+                  initialValue={demandSearch}
+                  onSearch={handleSmartSearchDemands}
+                  placeholder={language === 'mr' ? 'मागण्या शोधा...' : language === 'hi' ? 'मांगें खोजें...' : 'Search demands...'}
                 />
               </div>
               <select
@@ -955,7 +1230,12 @@ export default function FarmerDashboard() {
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-[10px] font-black uppercase tracking-wider text-primary-500">{demand.category}</span>
                           <span className="text-[10px] font-bold text-earth-400">•</span>
-                          <span className="text-[10px] font-bold text-earth-500">{demand.buyer_name}</span>
+                          <button 
+                            onClick={() => handleOpenBuyerProfile(demand.buyer_name)}
+                            className="text-[10px] font-extrabold text-earth-600 dark:text-earth-300 hover:text-primary-600 dark:hover:text-primary-400 hover:underline cursor-pointer"
+                          >
+                            {demand.buyer_name}
+                          </button>
                           {demand.is_otp_verified && (
                             <span className="flex items-center gap-0.5 text-[9px] font-black text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 px-1.5 py-0.5 rounded-full">
                               <ShieldCheck className="w-2.5 h-2.5" />Verified
@@ -1066,6 +1346,12 @@ export default function FarmerDashboard() {
                       <div className="text-[10px] font-bold text-earth-500">{activeThread.cropName}</div>
                     </div>
                   </div>
+                  <button 
+                    onClick={() => handleOpenBuyerProfile(activeThread.buyerName)}
+                    className="px-3.5 py-1.5 rounded-lg border border-primary-500/20 text-primary-600 dark:text-primary-400 font-extrabold text-xs hover:bg-primary-50 dark:hover:bg-primary-950/20 cursor-pointer transition-colors"
+                  >
+                    View Profile
+                  </button>
                 </div>
 
                 {/* Messages */}
@@ -1124,6 +1410,26 @@ export default function FarmerDashboard() {
             language={language}
             userLocation={userLocation}
             userCrops={listings.map(l => l.name)}
+          />
+        </div>
+      )}
+
+      {/* ── FINANCE TAB ──────────────────────────────────────────────────────── */}
+      {activeTab === 'finance' && (
+        <div className="flex flex-col gap-6">
+          <ExpenseTracker 
+            language={language}
+            crops={listings.map(l => ({ id: l.id, name: l.name }))}
+          />
+          <ProfitCalculator
+            language={language}
+            crops={listings.map(l => ({ 
+              id: l.id, 
+              name: l.name, 
+              quantity: l.quantity, 
+              expected_price: l.expected_price, 
+              unit: l.unit 
+            }))}
           />
         </div>
       )}
@@ -1246,6 +1552,14 @@ export default function FarmerDashboard() {
         </div>
       )}
 
+      {/* ── TRANSACTIONS TAB ─────────────────────────────────────────────────── */}
+      {activeTab === 'transactions' && (
+        <div className="flex flex-col gap-6">
+          <UpcomingBookings userRole="farmer" userId={user?.id || 'mock-farmer'} />
+          <TransactionHistory userRole="farmer" userId={user?.id || 'mock-farmer'} />
+        </div>
+      )}
+
       {/* ─── MODALS ──────────────────────────────────────────────────────────── */}
 
       {/* Add/Edit Listing Modal */}
@@ -1320,6 +1634,32 @@ export default function FarmerDashboard() {
                     <label className="text-xs font-bold text-foreground">Listing Status</label>
                     <select value={cropStatus} onChange={e => setCropStatus(e.target.value as any)} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
                       {['Available', 'Reserved', 'Sold'].map(s => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-3 p-4 rounded-xl border border-border bg-earth-50/50 dark:bg-earth-900/10">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative">
+                    <input type="checkbox" className="sr-only" checked={cropIsAuction} onChange={e => setCropIsAuction(e.target.checked)} />
+                    <div className={`w-10 h-6 rounded-full transition-colors ${cropIsAuction ? 'bg-primary-600' : 'bg-earth-200 dark:bg-earth-800'}`} />
+                    <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${cropIsAuction ? 'translate-x-4' : ''}`} />
+                  </div>
+                  <span className="text-xs font-black text-foreground flex items-center gap-1.5 group-hover:text-primary-600 transition-colors">
+                    <Gavel className="w-4 h-4" />
+                    {language === 'mr' ? 'लिलाव मोड (Auction Mode) सक्षम करा' : 'Enable Auction Mode'}
+                  </span>
+                </label>
+                {cropIsAuction && (
+                  <div className="flex flex-col gap-1.5 pl-12">
+                    <label className="text-[10px] font-bold text-earth-500 uppercase tracking-widest">
+                      {language === 'mr' ? 'लिलाव कालावधी' : 'Auction Duration'}
+                    </label>
+                    <select value={cropAuctionHours} onChange={e => setCropAuctionHours(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
+                      <option value="2">2 Hours</option>
+                      <option value="12">12 Hours</option>
+                      <option value="24">24 Hours</option>
+                      <option value="48">48 Hours</option>
                     </select>
                   </div>
                 )}
@@ -1474,6 +1814,14 @@ export default function FarmerDashboard() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Buyer Profile Detail Modal Preview */}
+      {selectedBuyerProfile && (
+        <BuyerProfileModal
+          profile={selectedBuyerProfile}
+          onClose={() => setSelectedBuyerProfile(null)}
+        />
       )}
 
       {/* Notification Slide-out Panel */}
