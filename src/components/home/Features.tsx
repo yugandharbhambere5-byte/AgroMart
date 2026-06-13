@@ -69,42 +69,45 @@ export function Features() {
 
         {/* Feature Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {currentFeatures.map((feat, index) => (
-            <div
-              key={index}
-              className="p-8 rounded-3xl bg-card border border-border hover:border-primary-500/30 shadow-sm hover:shadow-lg hover-lift flex flex-col justify-between transition-all duration-300"
-            >
-              <div className="flex flex-col gap-6">
-                
-                {/* Feature Icon block */}
-                <div className="w-14 h-14 rounded-2xl bg-primary-100 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 flex items-center justify-center shadow-xs">
-                  {currentIcons[index]}
-                </div>
-
-                {/* Info */}
-                <div className="flex flex-col gap-2">
-                  <div className="inline-block text-xs font-black text-primary-600 dark:text-primary-400 uppercase tracking-wider">
-                    {feat.tag}
+          {currentFeatures.map((feat, index) => {
+            const delayClass = index === 1 ? 'animate-fade-in-up-delay-1' : index === 2 ? 'animate-fade-in-up-delay-2' : 'animate-fade-in-up';
+            return (
+              <div
+                key={`${activeTab}-${index}`}
+                className={`p-8 rounded-3xl bg-card border border-border hover:border-primary-500/30 shadow-sm hover:shadow-lg hover-lift flex flex-col justify-between transition-all duration-300 ${delayClass}`}
+              >
+                <div className="flex flex-col gap-6">
+                  
+                  {/* Feature Icon block */}
+                  <div className="w-14 h-14 rounded-2xl bg-primary-100 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 flex items-center justify-center shadow-xs">
+                    {currentIcons[index]}
                   </div>
-                  <h3 className="text-xl font-extrabold text-foreground">{feat.title}</h3>
-                  <p className="text-earth-550 dark:text-earth-300 text-sm font-medium mt-1 leading-relaxed">
-                    {feat.desc}
-                  </p>
+
+                  {/* Info */}
+                  <div className="flex flex-col gap-2">
+                    <div className="inline-block text-xs font-black text-primary-600 dark:text-primary-400 uppercase tracking-wider">
+                      {feat.tag}
+                    </div>
+                    <h3 className="text-xl font-extrabold text-foreground">{feat.title}</h3>
+                    <p className="text-earth-550 dark:text-earth-300 text-sm font-medium mt-1 leading-relaxed">
+                      {feat.desc}
+                    </p>
+                  </div>
+
+                  {/* Sub-details list */}
+                  <ul className="flex flex-col gap-2.5 mt-2 border-t border-earth-100 dark:border-earth-900 pt-4">
+                    {feat.details.map((detail, idx) => (
+                      <li key={idx} className="flex items-center gap-2.5 text-xs font-semibold text-earth-600 dark:text-earth-450">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" />
+                        <span>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
+
                 </div>
-
-                {/* Sub-details list */}
-                <ul className="flex flex-col gap-2.5 mt-2 border-t border-earth-100 dark:border-earth-900 pt-4">
-                  {feat.details.map((detail, idx) => (
-                    <li key={idx} className="flex items-center gap-2.5 text-xs font-semibold text-earth-600 dark:text-earth-450">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" />
-                      <span>{detail}</span>
-                    </li>
-                  ))}
-                </ul>
-
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>

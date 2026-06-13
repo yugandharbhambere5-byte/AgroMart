@@ -65,10 +65,14 @@ export function Navbar() {
     return (
       <button
         onClick={toggleTheme}
-        className="p-3 rounded-xl bg-earth-100 hover:bg-primary-100 text-earth-700 hover:text-primary-700 dark:bg-earth-800 dark:hover:bg-primary-900/30 dark:text-earth-300 dark:hover:text-primary-400 transition-all focus:ring-2 focus:ring-primary-500 cursor-pointer"
+        className="p-3 rounded-xl bg-earth-100 hover:bg-primary-100 text-earth-700 hover:text-primary-700 dark:bg-earth-800 dark:hover:bg-primary-900/30 dark:text-earth-300 dark:hover:text-primary-400 transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-primary-500 cursor-pointer group/theme"
         aria-label="Toggle dark mode"
       >
-        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        {theme === 'dark' ? (
+          <Sun className="w-5 h-5 group-hover/theme:rotate-90 transition-transform duration-500" />
+        ) : (
+          <Moon className="w-5 h-5 group-hover/theme:-rotate-12 transition-transform duration-500" />
+        )}
       </button>
     );
   };
@@ -83,8 +87,8 @@ export function Navbar() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform">
-              <Sprout className="w-5.5 h-5.5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform duration-300">
+              <Sprout className="w-5.5 h-5.5 text-white group-hover:rotate-12 transition-transform duration-300" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground">
               Agro<span className="text-primary-500">Mart</span>
@@ -136,10 +140,10 @@ export function Navbar() {
 
             <Link
               href="#cart"
-              className="p-3 rounded-xl bg-earth-100 hover:bg-primary-100 text-earth-700 hover:text-primary-700 dark:bg-earth-800 dark:hover:bg-primary-900/30 dark:text-earth-300 dark:hover:text-primary-400 transition-all relative"
+              className="p-3 rounded-xl bg-earth-100 hover:bg-primary-100 text-earth-700 hover:text-primary-700 dark:bg-earth-800 dark:hover:bg-primary-900/30 dark:text-earth-300 dark:hover:text-primary-400 transition-all hover:scale-105 active:scale-95 relative group/cart"
               aria-label="View Cart"
             >
-              <ShoppingCart className="w-5 h-5" />
+              <ShoppingCart className="w-5 h-5 group-hover/cart:-translate-y-0.5 transition-transform duration-300" />
               <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-harvest-500 rounded-full" />
             </Link>
 

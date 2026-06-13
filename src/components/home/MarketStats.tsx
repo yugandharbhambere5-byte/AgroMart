@@ -190,7 +190,7 @@ export function MarketStats() {
 
             {/* Interactive SVG Chart */}
             <div className="relative h-40 w-full mt-4 bg-earth-50/50 dark:bg-earth-950/20 rounded-2xl overflow-hidden border border-border/40">
-              <svg className="absolute inset-0 w-full h-full" viewBox="0 0 500 160" preserveAspectRatio="none">
+              <svg key={selectedCrop} className="absolute inset-0 w-full h-full" viewBox="0 0 500 160" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
@@ -200,6 +200,7 @@ export function MarketStats() {
                 <path
                   d={generateSvgAreaPath(activeCrop.points)}
                   fill="url(#chartGrad)"
+                  className="animate-fade-in"
                 />
                 <path
                   d={generateSvgPath(activeCrop.points)}
@@ -208,6 +209,7 @@ export function MarketStats() {
                   strokeWidth="3.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                  className="animate-draw-line"
                 />
               </svg>
             </div>

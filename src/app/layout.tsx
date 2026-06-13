@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { RegisterSW } from '@/components/RegisterSW';
 import { LanguageProvider } from '@/context/LanguageContext';
 import { LanguageSelectionModal } from '@/components/LanguageSelectionModal';
+import { LiveBackground } from '@/components/layout/LiveBackground';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -52,30 +53,31 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
-      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">
-        <LanguageProvider>
-          <ThemeProvider>
-            <RegisterSW />
-            <LanguageSelectionModal />
-            <div className="relative flex min-h-screen flex-col">
-              {children}
-            </div>
-          </ThemeProvider>
-        </LanguageProvider>
-      </body>
-    </html>
-  );
-}
+ };
+ 
+ export default function RootLayout({
+   children,
+ }: Readonly<{
+   children: React.ReactNode;
+ }>) {
+   return (
+     <html
+       lang="en"
+       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+       suppressHydrationWarning
+     >
+       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">
+         <LanguageProvider>
+           <ThemeProvider>
+             <RegisterSW />
+             <LanguageSelectionModal />
+             <LiveBackground />
+             <div className="relative flex min-h-screen flex-col z-10">
+               {children}
+             </div>
+           </ThemeProvider>
+         </LanguageProvider>
+       </body>
+     </html>
+   );
+ }

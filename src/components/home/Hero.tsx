@@ -92,30 +92,29 @@ export function Hero() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
           {/* Left Column: Headline and Call-to-actions */}
-          <div className="lg:col-span-7 flex flex-col gap-8 text-left animate-fade-in-up">
+          <div className="lg:col-span-7 flex flex-col gap-8 text-left">
             
             {/* Direct Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-750 dark:text-primary-405 font-bold text-sm max-w-fit shadow-xs">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-750 dark:text-primary-405 font-bold text-sm max-w-fit shadow-xs animate-fade-in-up">
               <Sprout className="w-4 h-4 text-primary-500" />
               <span>{t.hero.badge}</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1] animate-fade-in-up-delay-1">
               {t.hero.titleLine1} <br />
               <span className="text-primary-500">{t.hero.titleLine2}</span> <br />
               {t.hero.titleLine3}
             </h1>
 
             {/* Sub-text */}
-            <p className="text-lg sm:text-xl text-earth-600 dark:text-earth-300 max-w-2xl font-medium">
+            <p className="text-lg sm:text-xl text-earth-600 dark:text-earth-300 max-w-2xl font-medium animate-fade-in-up-delay-2">
               {t.hero.subtitle}
             </p>
 
             {/* Interactive Search Bar */}
-            <form id="explore" onSubmit={handleSearchSubmit} className="relative max-w-xl w-full scroll-mt-28">
+            <form id="explore" onSubmit={handleSearchSubmit} className="relative max-w-xl w-full scroll-mt-28 animate-fade-in-up-delay-3">
               <div className="relative flex items-center">
                 <Search className="absolute left-4.5 w-5.5 h-5.5 text-earth-450 pointer-events-none" />
                 <input
@@ -132,18 +131,18 @@ export function Hero() {
                 <div className="absolute right-2 flex items-center gap-2">
                   {/* Voice Search Button */}
                   <button
-                    type="button"
-                    onClick={toggleVoiceSearch}
-                    className={`p-2.5 sm:p-3 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
-                      isListening
-                        ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-md shadow-red-500/20'
-                        : 'bg-earth-100 dark:bg-earth-900 hover:bg-earth-200 dark:hover:bg-earth-850 text-earth-600 dark:text-earth-300'
-                    }`}
-                    title={
-                      isListening
-                        ? (language === 'mr' ? 'ऐकत आहे... थांबवण्यासाठी दाबा' : language === 'hi' ? 'सुन रहा हूँ... रोकने के लिए दबाएं' : 'Listening... Click to stop')
-                        : (language === 'mr' ? 'आवाज शोध' : language === 'hi' ? 'आवाज खोज' : 'Voice Search')
-                    }
+                     type="button"
+                     onClick={toggleVoiceSearch}
+                     className={`p-2.5 sm:p-3 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                       isListening
+                         ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-md shadow-red-500/20'
+                         : 'bg-earth-100 dark:bg-earth-900 hover:bg-earth-205 dark:hover:bg-earth-850 text-earth-650 dark:text-earth-300 hover:scale-105 active:scale-95'
+                     }`}
+                     title={
+                       isListening
+                         ? (language === 'mr' ? 'ऐकत आहे... थांबवण्यासाठी दाबा' : language === 'hi' ? 'सुन रहा हूँ... रोकने के लिए दबाएं' : 'Listening... Click to stop')
+                         : (language === 'mr' ? 'आवाज शोध' : language === 'hi' ? 'आवाज खोज' : 'Voice Search')
+                     }
                   >
                     {isListening ? (
                       <MicOff className="w-5 h-5" />
@@ -155,7 +154,7 @@ export function Hero() {
                   {/* Search Button */}
                   <button
                     type="submit"
-                    className="px-5 py-2.5 sm:py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm sm:text-base shadow-sm transition-all hover:scale-102 cursor-pointer"
+                    className="px-5 py-2.5 sm:py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm sm:text-base shadow-sm transition-all hover:scale-102 active:scale-98 cursor-pointer"
                   >
                     {t.hero.searchBtn}
                   </button>
@@ -172,7 +171,7 @@ export function Hero() {
             </form>
 
             {/* CTA Farmer / Buyer buttons - Big and accessible */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mt-2 animate-fade-in-up-delay-3">
               <Link
                 href="/register?role=farmer"
                 className="flex items-center justify-center gap-2 px-8 py-5 rounded-2xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-lg shadow-lg shadow-primary-600/20 hover:shadow-primary-600/35 transition-all hover:-translate-y-0.5 active:translate-y-0 text-center"
@@ -182,14 +181,14 @@ export function Hero() {
               </Link>
               <Link
                 href="#explore"
-                className="flex items-center justify-center gap-2 px-8 py-5 rounded-2xl border-2 border-earth-300 dark:border-earth-700 hover:border-primary-500 hover:bg-primary-50/20 dark:hover:bg-primary-950/20 text-foreground font-extrabold text-lg transition-all text-center"
+                className="flex items-center justify-center gap-2 px-8 py-5 rounded-2xl border-2 border-earth-300 dark:border-earth-700 hover:border-primary-500 hover:bg-primary-50/20 dark:hover:bg-primary-950/20 text-foreground font-extrabold text-lg transition-all text-center hover:-translate-y-0.5 active:translate-y-0"
               >
                 <span>{t.hero.buyerBtn}</span>
               </Link>
             </div>
 
             {/* Quick trust metrics */}
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-earth-200 dark:border-earth-900">
+            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-earth-200 dark:border-earth-900 animate-fade-in-up-delay-3">
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-950 flex items-center justify-center text-primary-600">
                   <ShieldCheck className="w-3.5 h-3.5" />
@@ -229,7 +228,7 @@ export function Hero() {
               />
               
               {/* Floating glass card 1 */}
-              <div className="absolute top-6 left-6 glassmorphism px-4 py-3 rounded-2xl shadow-md border border-white/20 flex items-center gap-3">
+              <div className="absolute top-6 left-6 glassmorphism px-4 py-3 rounded-2xl shadow-md border border-white/20 flex items-center gap-3 animate-float-slow">
                 <div className="w-9 h-9 rounded-xl bg-harvest-500 flex items-center justify-center text-white">
                   <TrendingUpIcon className="w-4 h-4" />
                 </div>
@@ -240,7 +239,7 @@ export function Hero() {
               </div>
 
               {/* Floating glass card 2 */}
-              <div className="absolute bottom-6 right-6 glassmorphism px-4 py-3 rounded-2xl shadow-md border border-white/20 flex items-center gap-3">
+              <div className="absolute bottom-6 right-6 glassmorphism px-4 py-3 rounded-2xl shadow-md border border-white/20 flex items-center gap-3 animate-float-slower">
                 <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center text-white">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
