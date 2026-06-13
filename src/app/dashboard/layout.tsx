@@ -6,6 +6,8 @@ import { Sprout, LayoutDashboard } from 'lucide-react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { RegisterSW } from '@/components/RegisterSW';
 
+import { MobileMenuButton } from '@/components/navigation/MobileMenuButton';
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -30,14 +32,17 @@ export default async function DashboardLayout({
       {/* Dashboard Top Header */}
       <header className="sticky top-0 z-40 bg-card border-b border-border shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center text-white">
-              <Sprout className="w-5 h-5" />
-            </div>
-            <span className="text-lg font-black tracking-tight text-foreground">
-              Agro<span className="text-primary-500">Mart</span>
-            </span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <MobileMenuButton />
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center text-white">
+                <Sprout className="w-5 h-5" />
+              </div>
+              <span className="text-lg font-black tracking-tight text-foreground">
+                Agro<span className="text-primary-500">Mart</span>
+              </span>
+            </Link>
+          </div>
 
           <div className="flex items-center gap-4 text-sm font-bold text-earth-500">
             <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-earth-100 dark:bg-earth-900 border border-border">

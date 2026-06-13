@@ -10,6 +10,45 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
     if (!cachedMockClient) {
       cachedMockClient = {
         auth: {
+          signInWithPassword: async ({ email, password }: { email?: string; password?: string }) => {
+            console.warn('Mock Supabase client: signInWithPassword mock response triggered');
+            let correctPassword = 'admin123';
+            if (typeof window !== 'undefined') {
+              correctPassword = localStorage.getItem('agro-mart-mock-admin-pass') || 'admin123';
+            }
+            if (email === 'admin@agromart.com' && password === correctPassword) {
+              const mockUser = {
+                id: 'mock-admin-12345',
+                email: email,
+                user_metadata: {
+                  role: 'admin',
+                  full_name: 'System Administrator',
+                }
+              };
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('agro-mart-mock-user', JSON.stringify(mockUser));
+                document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(mockUser))}; path=/`;
+              }
+              return {
+                data: {
+                  user: mockUser,
+                  session: {
+                    user: mockUser,
+                    access_token: 'mock-access-token',
+                  }
+                },
+                error: null
+              };
+            }
+            return {
+              data: { user: null, session: null },
+              error: { message: `Invalid credentials. Please use admin@agromart.com and ${correctPassword}.` }
+            };
+          },
+          resetPasswordForEmail: async (email: string, options?: any) => {
+            console.warn('Mock Supabase client: resetPasswordForEmail mock response triggered for', email);
+            return { data: {}, error: null };
+          },
           signInWithOtp: async ({ email, phone }: { email?: string; phone?: string }) => {
             console.warn('Mock Supabase client: signInWithOtp mock response triggered');
             return { data: {}, error: null };
@@ -88,8 +127,11 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
             }
             return { error: null };
           },
-          updateUser: async ({ data }: { data: any }) => {
-            console.warn('Mock Supabase client: updateUser mock response triggered', data);
+          updateUser: async ({ data, password }: { data?: any; password?: string }) => {
+            console.warn('Mock Supabase client: updateUser mock response triggered', data, password);
+            if (password && typeof window !== 'undefined') {
+              localStorage.setItem('agro-mart-mock-admin-pass', password);
+            }
             let user = null;
             if (typeof window !== 'undefined') {
               const stored = localStorage.getItem('agro-mart-mock-user');
@@ -100,7 +142,7 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
                     ...parsed,
                     user_metadata: {
                       ...parsed.user_metadata,
-                      ...data
+                      ...(data || {})
                     }
                   };
                   localStorage.setItem('agro-mart-mock-user', JSON.stringify(updatedUser));

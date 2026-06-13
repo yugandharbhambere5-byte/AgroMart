@@ -3,16 +3,20 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search, Sprout, ShieldCheck, Truck, ArrowRight } from 'lucide-react';
 import { useTranslation } from '@/context/LanguageContext';
 
 export function Hero() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Searching for produce: "${searchQuery}"...`);
+    if (searchQuery.trim()) {
+      router.push(`/market-rates?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   return (

@@ -11,13 +11,15 @@ import {
   Star, UserCheck, UserX, Package, LayoutDashboard, Activity,
   FileText, Settings, Bell, ArrowUpRight, ArrowDownRight,
   ShieldX, Globe, Zap, Plus, Save, X, CheckSquare, MoreVertical,
-  Minus, Phone, Fingerprint
+  Minus, Phone, Fingerprint, BookOpen, HelpCircle
 } from 'lucide-react';
+import { AdminEducationManager } from '@/components/education/AdminEducationManager';
+import { AdminSupportManager } from '@/components/support/AdminSupportManager';
 import EmergencyAlerts from '@/components/alerts/EmergencyAlerts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type AdminTab = 'overview' | 'users' | 'listings' | 'reports' | 'market' | 'analytics' | 'alerts';
+type AdminTab = 'overview' | 'users' | 'listings' | 'reports' | 'market' | 'analytics' | 'alerts' | 'education' | 'support';
 type UserRole = 'farmer' | 'buyer' | 'admin';
 type VerificationLevel = 'none' | 'otp' | 'gst' | 'kyc' | 'full';
 type ListingStatus = 'Available' | 'Reserved' | 'Sold' | 'Flagged' | 'Removed';
@@ -391,6 +393,8 @@ export default function AdminDashboard() {
     { id: 'market' as AdminTab, label: 'Market Rates', icon: BarChart3 },
     { id: 'analytics' as AdminTab, label: 'Analytics', icon: Activity },
     { id: 'alerts' as AdminTab, label: 'Alerts', icon: AlertTriangle },
+    { id: 'education' as AdminTab, label: 'Education Manager', icon: BookOpen },
+    { id: 'support' as AdminTab, label: 'Support Tickets', icon: HelpCircle, badge: openReports || undefined },
   ];
 
   // ─── Analytics chart helpers ────────────────────────────────────────────────
@@ -1213,6 +1217,16 @@ export default function AdminDashboard() {
           </div>
           <EmergencyAlerts adminMode={true} />
         </div>
+      )}
+
+      {/* EDUCATION MANAGER TAB */}
+      {activeTab === 'education' && (
+        <AdminEducationManager />
+      )}
+
+      {/* SUPPORT TICKETS TAB */}
+      {activeTab === 'support' && (
+        <AdminSupportManager />
       )}
 
     </div>

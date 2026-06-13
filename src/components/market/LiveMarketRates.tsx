@@ -6,10 +6,12 @@ import {
   MapPin, Filter, ArrowUpRight, ArrowDownRight, Star,
   BarChart3, ChevronUp, ChevronDown, Globe, Activity,
   Clock, IndianRupee, AlertCircle, CheckCircle, Edit3,
-  Save, X, Plus, Trash2, Info, Zap, ShieldCheck
+  Save, X, Plus, Trash2, Info, Zap, ShieldCheck, Sparkles
 } from 'lucide-react';
 import { useTranslation, Language } from '@/context/LanguageContext';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import { BestSellingSuggestions } from './BestSellingSuggestions';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -127,6 +129,92 @@ const MANDI_TRENDS: MandiTrend[] = [
 ];
 
 const CATEGORIES = ['All', 'Grains', 'Vegetables', 'Fruits', 'Oilseeds', 'Spices', 'Cash Crops'];
+
+const CROP_TRANSLATIONS: Record<string, { en: string; hi: string; mr: string; category: string; baseRate: number }> = {
+  // Onion
+  'onion': { en: 'Red Onion', hi: 'लाल प्याज', mr: 'लाल कांदा', category: 'Vegetables', baseRate: 2100 },
+  'kanda': { en: 'Red Onion', hi: 'लाल प्याज', mr: 'लाल कांदा', category: 'Vegetables', baseRate: 2100 },
+  'कांदा': { en: 'Red Onion', hi: 'लाल प्याज', mr: 'लाल कांदा', category: 'Vegetables', baseRate: 2100 },
+  'प्याज': { en: 'Red Onion', hi: 'लाल प्याज', mr: 'लाल कांदा', category: 'Vegetables', baseRate: 2100 },
+  
+  // Wheat
+  'wheat': { en: 'Organic Durum Wheat', hi: 'जैविक गेहूं', mr: 'सेंद्रिय गहू', category: 'Grains', baseRate: 2450 },
+  'gahu': { en: 'Organic Durum Wheat', hi: 'जैविक गेहूं', mr: 'सेंद्रिय गहू', category: 'Grains', baseRate: 2450 },
+  'गेहूं': { en: 'Organic Durum Wheat', hi: 'जैविक गेहूं', mr: 'सेंद्रिय गहू', category: 'Grains', baseRate: 2450 },
+  'गहू': { en: 'Organic Durum Wheat', hi: 'जैविक गेहूं', mr: 'सेंद्रिय गहू', category: 'Grains', baseRate: 2450 },
+
+  // Soybean
+  'soybean': { en: 'Soybean', hi: 'सोयाबीन', mr: 'सोयाबीन', category: 'Oilseeds', baseRate: 4650 },
+  'soyabean': { en: 'Soybean', hi: 'सोयाबीन', mr: 'सोयाबीन', category: 'Oilseeds', baseRate: 4650 },
+  'सोयाबीन': { en: 'Soybean', hi: 'सोयाबीन', mr: 'सोयाबीन', category: 'Oilseeds', baseRate: 4650 },
+
+  // Potato
+  'potato': { en: 'Russet Potatoes', hi: 'आलू', mr: 'बटाटा', category: 'Vegetables', baseRate: 1520 },
+  'batata': { en: 'Russet Potatoes', hi: 'आलू', mr: 'बटाटा', category: 'Vegetables', baseRate: 1520 },
+  'aloo': { en: 'Russet Potatoes', hi: 'आलू', mr: 'बटाटा', category: 'Vegetables', baseRate: 1520 },
+  'बटाटा': { en: 'Russet Potatoes', hi: 'आलू', mr: 'बटाटा', category: 'Vegetables', baseRate: 1520 },
+  'आलू': { en: 'Russet Potatoes', hi: 'आलू', mr: 'बटाटा', category: 'Vegetables', baseRate: 1520 },
+
+  // Tomato
+  'tomato': { en: 'Vine-Ripened Tomatoes', hi: 'टमाटर', mr: 'टोमॅटो', category: 'Vegetables', baseRate: 3500 },
+  'tomatoe': { en: 'Vine-Ripened Tomatoes', hi: 'टमाटर', mr: 'टोमॅटो', category: 'Vegetables', baseRate: 3500 },
+  'टोमॅटो': { en: 'Vine-Ripened Tomatoes', hi: 'टमाटर', mr: 'टोमॅटो', category: 'Vegetables', baseRate: 3500 },
+  'टमाटर': { en: 'Vine-Ripened Tomatoes', hi: 'टमाटर', mr: 'टोमॅटो', category: 'Vegetables', baseRate: 3500 },
+
+  // Cotton
+  'cotton': { en: 'Cotton (Long Staple)', hi: 'कपास', mr: 'कापूस', category: 'Cash Crops', baseRate: 7200 },
+  'kapus': { en: 'Cotton (Long Staple)', hi: 'कपास', mr: 'कापूस', category: 'Cash Crops', baseRate: 7200 },
+  'कापूस': { en: 'Cotton (Long Staple)', hi: 'कपास', mr: 'कापूस', category: 'Cash Crops', baseRate: 7200 },
+  'कपास': { en: 'Cotton (Long Staple)', hi: 'कपास', mr: 'कापूस', category: 'Cash Crops', baseRate: 7200 },
+
+  // Rice
+  'rice': { en: 'Basmati Rice', hi: 'बासमती चावल', mr: 'बासमती तांदूळ', category: 'Grains', baseRate: 4800 },
+  'tandul': { en: 'Basmati Rice', hi: 'बासमती चावल', mr: 'बासमती तांदूळ', category: 'Grains', baseRate: 4800 },
+  'chawal': { en: 'Basmati Rice', hi: 'बासमती चावल', mr: 'बासमती तांदूळ', category: 'Grains', baseRate: 4800 },
+  'तांदूळ': { en: 'Basmati Rice', hi: 'बासमती चावल', mr: 'बासमती तांदूळ', category: 'Grains', baseRate: 4800 },
+  'चावल': { en: 'Basmati Rice', hi: 'बासमती चावल', mr: 'बासमती तांदूळ', category: 'Grains', baseRate: 4800 },
+
+  // Turmeric
+  'turmeric': { en: 'Turmeric (Finger)', hi: 'हल्दी', mr: 'हळद', category: 'Spices', baseRate: 14500 },
+  'halad': { en: 'Turmeric (Finger)', hi: 'हल्दी', mr: 'हळद', category: 'Spices', baseRate: 14500 },
+  'haldi': { en: 'Turmeric (Finger)', hi: 'हल्दी', mr: 'हळद', category: 'Spices', baseRate: 14500 },
+  'हळद': { en: 'Turmeric (Finger)', hi: 'हल्दी', mr: 'हळद', category: 'Spices', baseRate: 14500 },
+  'हल्दी': { en: 'Turmeric (Finger)', hi: 'हल्दी', mr: 'हळद', category: 'Spices', baseRate: 14500 },
+
+  // Sugarcane
+  'sugarcane': { en: 'Sugarcane', hi: 'गन्ना', mr: 'उसाचे ऊस', category: 'Cash Crops', baseRate: 3150 },
+  'us': { en: 'Sugarcane', hi: 'गन्ना', mr: 'उसाचे ऊस', category: 'Cash Crops', baseRate: 3150 },
+  'ganna': { en: 'Sugarcane', hi: 'गन्ना', mr: 'उसाचे ऊस', category: 'Cash Crops', baseRate: 3150 },
+  'ऊस': { en: 'Sugarcane', hi: 'गन्ना', mr: 'उसाचे ऊस', category: 'Cash Crops', baseRate: 3150 },
+  'गन्ना': { en: 'Sugarcane', hi: 'गन्ना', mr: 'उसाचे ऊस', category: 'Cash Crops', baseRate: 3150 },
+
+  // Urad / Udid
+  'udid': { en: 'Black Gram (Urad)', hi: 'उड़द', mr: 'उडीद', category: 'Grains', baseRate: 7400 },
+  'urad': { en: 'Black Gram (Urad)', hi: 'उड़द', mr: 'उडीद', category: 'Grains', baseRate: 7400 },
+  'udeed': { en: 'Black Gram (Urad)', hi: 'उड़द', mr: 'उडीद', category: 'Grains', baseRate: 7400 },
+  'उडीद': { en: 'Black Gram (Urad)', hi: 'उड़द', mr: 'उडीद', category: 'Grains', baseRate: 7400 },
+  'उड़द': { en: 'Black Gram (Urad)', hi: 'उड़द', mr: 'उडीद', category: 'Grains', baseRate: 7400 }
+};
+
+const MANDI_TRANSLATIONS: Record<string, { en: string; hi: string; mr: string }> = {
+  'akola': { en: 'Akola APMC', hi: 'अकोला मंडी', mr: 'अकोला बाजार समिती' },
+  'अकोला': { en: 'Akola APMC', hi: 'अकोला मंडी', mr: 'अकोला बाजार समिती' },
+  'pune': { en: 'Pune Mandi', hi: 'पुणे मंडी', mr: 'पुणे बाजार समिती' },
+  'पुणे': { en: 'Pune Mandi', hi: 'पुणे मंडी', mr: 'पुणे बाजार समिती' },
+  'latur': { en: 'Latur APMC', hi: 'लातूर मंडी', mr: 'लातूर बाजार समिती' },
+  'लातूर': { en: 'Latur APMC', hi: 'लातूर मंडी', mr: 'लातूर बाजार समिती' },
+  'nagpur': { en: 'Nagpur APMC', hi: 'नागपुर मंडी', mr: 'नागपूर बाजार समिती' },
+  'नागपूर': { en: 'Nagpur APMC', hi: 'नागपुर मंडी', mr: 'नागपूर बाजार समिती' },
+  'नागपुर': { en: 'Nagpur APMC', hi: 'नागपुर मंडी', mr: 'नागपूर बाजार समिती' },
+  'nashik': { en: 'Nashik APMC', hi: 'नाशिक मंडी', mr: 'नाशिक बाजार समिती' },
+  'नाशिक': { en: 'Nashik APMC', hi: 'नाशिक मंडी', mr: 'नाशिक बाजार समिती' },
+  'yavatmal': { en: 'Yavatmal APMC', hi: 'यवतमाल मंडी', mr: 'यवतमाळ बाजार समिती' },
+  'यवतमाळ': { en: 'Yavatmal APMC', hi: 'यवतमाल मंडी', mr: 'यवतमाळ बाजार समिती' },
+  'यवतमाल': { en: 'Yavatmal APMC', hi: 'यवतमाल मंडी', mr: 'यवतमाळ बाजार समिती' },
+  'solapur': { en: 'Solapur APMC', hi: 'सोलापुर मंडी', mr: 'सोलापूर बाजार समिती' },
+  'सोलापूर': { en: 'Solapur APMC', hi: 'सोलापुर मंडी', mr: 'सोलापूर बाजार समिती' },
+  'सोलापुर': { en: 'Solapur APMC', hi: 'सोलापुर मंडी', mr: 'सोलापूर बाजार समिती' }
+};
 
 // ─── Helper Utilities ─────────────────────────────────────────────────────────
 
@@ -630,8 +718,10 @@ function RatesTable({ rates, onEdit, isAdmin, lang }: {
 export function LiveMarketRates() {
   const { language } = useTranslation();
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams?.get('search') || '';
   const [rates, setRates] = useState<MarketRate[]>(INITIAL_RATES);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [isAdmin, setIsAdmin] = useState(false);
@@ -640,6 +730,7 @@ export function LiveMarketRates() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
   const [trendFilter, setTrendFilter] = useState<'all' | 'up' | 'down' | 'stable'>('all');
+  const [activeSubTab, setActiveSubTab] = useState<'catalog' | 'suggestions'>('catalog');
 
   // Load admin state from active Supabase session
   useEffect(() => {
@@ -665,7 +756,7 @@ export function LiveMarketRates() {
     return () => clearInterval(timer);
   }, []);
 
-  // Load admin state from localStorage (mock user role)
+  // Load admin state from localStorage (mock user role) and setup sync
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedUser = localStorage.getItem('agro-mart-mock-user');
@@ -682,8 +773,167 @@ export function LiveMarketRates() {
           setRates(JSON.parse(savedRates));
         } catch {}
       }
+
+      const handleStorageRates = (e: StorageEvent) => {
+        if (e.key === 'agromart-market-rates' && e.newValue) {
+          try {
+            setRates(JSON.parse(e.newValue));
+          } catch {}
+        }
+      };
+      window.addEventListener('storage', handleStorageRates);
+      return () => window.removeEventListener('storage', handleStorageRates);
     }
   }, []);
+
+  // Dynamically generate rate on the fly if search query returns no results or limited results
+  useEffect(() => {
+    if (!search || search.trim().length < 2) return;
+    const query = search.trim().toLowerCase();
+
+    setRates(prev => {
+      // 1. Check if the query is a location/mandi search
+      const isMandiSearch = Object.keys(MANDI_TRANSLATIONS).some(k => query.includes(k)) ||
+        [
+          'pune', 'nagpur', 'latur', 'akola', 'amravati', 'solapur', 
+          'kolhapur', 'nashik', 'yavatmal', 'jalgaon', 'manchar', 'lasalgaon', 
+          'sangli', 'ratnagiri', 'mumbai', 'amritsar', 'guntur'
+        ].some(m => query.includes(m)) || query.includes('apmc') || query.includes('mandi') || query.includes('market') || query.includes('बाजार') || query.includes('समिती');
+
+      if (isMandiSearch) {
+        // Resolve target mandi translations
+        let resolvedMandiEn = '';
+        let resolvedMandiMr = '';
+        let resolvedMandiHi = '';
+
+        for (const [key, trans] of Object.entries(MANDI_TRANSLATIONS)) {
+          if (query.includes(key) || key.includes(query)) {
+            resolvedMandiEn = trans.en;
+            resolvedMandiMr = trans.mr;
+            resolvedMandiHi = trans.hi;
+            break;
+          }
+        }
+
+        if (!resolvedMandiEn) {
+          const name = query.charAt(0).toUpperCase() + query.slice(1);
+          resolvedMandiEn = name.includes('APMC') ? name : `${name} APMC`;
+        }
+
+        const hasMandiMatch = prev.some(r => r.mandi.toLowerCase().includes(resolvedMandiEn.toLowerCase().split(' ')[0]));
+        if (hasMandiMatch) return prev;
+
+        // Dynamically generate 3-4 crops for this searched mandi!
+        const cropsToGen = [
+          { crop: 'Organic Durum Wheat', cropHi: 'जैविक गेहूं', cropMr: 'सेंद्रिय गहू', category: 'Grains', baseRate: 2450 },
+          { crop: 'Red Onion', cropHi: 'लाल प्याज', cropMr: 'लाल कांदा', category: 'Vegetables', baseRate: 2100 },
+          { crop: 'Soybean', cropHi: 'सोयाबीन', cropMr: 'सोयाबीन', category: 'Oilseeds', baseRate: 4650 },
+          { crop: 'Russet Potatoes', cropHi: 'आलू', cropMr: 'बटाटा', category: 'Vegetables', baseRate: 1520 }
+        ];
+
+        const generatedList = cropsToGen.map((c, i) => {
+          const todayRate = Math.round(c.baseRate * (0.95 + Math.random() * 0.1));
+          const yesterdayRate = Math.round(todayRate * (1 + (Math.random() - 0.5) * 0.04));
+          return {
+            id: `gen-mandi-${Date.now()}-${i}`,
+            crop: c.crop,
+            cropHi: c.cropHi,
+            cropMr: c.cropMr,
+            category: c.category,
+            unit: '/Quintal',
+            todayRate,
+            yesterdayRate,
+            weekHighRate: Math.round(Math.max(todayRate, yesterdayRate) * 1.15),
+            weekLowRate: Math.round(Math.min(todayRate, yesterdayRate) * 0.85),
+            mandi: resolvedMandiEn,
+            state: 'Maharashtra',
+            quality: 'Grade A' as const,
+            lastUpdated: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+            trending: todayRate > yesterdayRate ? 'up' as const : todayRate < yesterdayRate ? 'down' as const : 'stable' as const,
+            volume: `${Math.round(40 + Math.random() * 200)} T`
+          };
+        });
+
+        const updated = [...generatedList, ...prev];
+        localStorage.setItem('agromart-market-rates', JSON.stringify(updated));
+        return updated;
+      }
+
+      // 2. Check if the query is a crop search
+      let resolvedCrop: typeof CROP_TRANSLATIONS[string] | null = null;
+      for (const [key, trans] of Object.entries(CROP_TRANSLATIONS)) {
+        if (query.includes(key) || key.includes(query)) {
+          resolvedCrop = trans;
+          break;
+        }
+      }
+
+      const cropNameEn = resolvedCrop ? resolvedCrop.en : (query.charAt(0).toUpperCase() + query.slice(1));
+      const cropNameMr = resolvedCrop ? resolvedCrop.mr : cropNameEn;
+      const cropNameHi = resolvedCrop ? resolvedCrop.hi : cropNameEn;
+
+      // Check how many entries we already have for this crop
+      const matchingCrops = prev.filter(r => 
+        r.crop.toLowerCase().includes(cropNameEn.toLowerCase()) ||
+        r.cropMr.toLowerCase().includes(cropNameMr.toLowerCase()) ||
+        r.cropHi.toLowerCase().includes(cropNameHi.toLowerCase())
+      );
+
+      if (matchingCrops.length >= 3) return prev;
+
+      let category = resolvedCrop ? resolvedCrop.category : 'Vegetables';
+      if (!resolvedCrop) {
+        if (query.includes('rice') || query.includes('wheat') || query.includes('grain') || query.includes('corn') || query.includes('bajra') || query.includes('jowar') || query.includes('cereal') || query.includes('millets') || query.includes('धान्य') || query.includes('गहू') || query.includes('तांदूळ')) {
+          category = 'Grains';
+        } else if (query.includes('mango') || query.includes('apple') || query.includes('orange') || query.includes('fruit') || query.includes('grapes') || query.includes('banana') || query.includes('फळ')) {
+          category = 'Fruits';
+        } else if (query.includes('soybean') || query.includes('mustard') || query.includes('oil') || query.includes('groundnut') || query.includes('सोयाबीन')) {
+          category = 'Oilseeds';
+        } else if (query.includes('chilli') || query.includes('turmeric') || query.includes('ginger') || query.includes('garlic') || query.includes('michi') || query.includes('मिरची') || query.includes('हळद')) {
+          category = 'Spices';
+        } else if (query.includes('cotton') || query.includes('sugarcane') || query.includes('कापूस') || query.includes('ऊस')) {
+          category = 'Cash Crops';
+        }
+      }
+
+      const baseTodayRate = resolvedCrop ? resolvedCrop.baseRate : Math.round(1500 + Math.random() * 8500);
+      const mandisToGen = ['Pune Mandi', 'Akola APMC', 'Nagpur APMC', 'Latur APMC', 'Nashik APMC', 'Solapur APMC'].filter(m => {
+        return !matchingCrops.some(match => match.mandi.toLowerCase().includes(m.toLowerCase().split(' ')[0]));
+      });
+
+      const neededCount = Math.max(3, 4 - matchingCrops.length);
+      const selectedMandis = mandisToGen.slice(0, neededCount);
+
+      if (selectedMandis.length === 0) return prev;
+
+      const generatedRates = selectedMandis.map((mandiName, idx) => {
+        const todayRate = Math.round(baseTodayRate * (0.94 + Math.random() * 0.12));
+        const yesterdayRate = Math.round(todayRate * (1 + (Math.random() - 0.5) * 0.05));
+        return {
+          id: `gen-crop-mandi-${Date.now()}-${idx}`,
+          crop: cropNameEn,
+          cropHi: cropNameHi,
+          cropMr: cropNameMr,
+          category,
+          unit: '/Quintal',
+          todayRate,
+          yesterdayRate,
+          weekHighRate: Math.round(Math.max(todayRate, yesterdayRate) * 1.15),
+          weekLowRate: Math.round(Math.min(todayRate, yesterdayRate) * 0.85),
+          mandi: mandiName,
+          state: 'Maharashtra',
+          quality: 'Grade A' as const,
+          lastUpdated: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }),
+          trending: todayRate > yesterdayRate ? 'up' as const : todayRate < yesterdayRate ? 'down' as const : 'stable' as const,
+          volume: `${Math.round(20 + Math.random() * 180)} T`
+        };
+      });
+
+      const updated = [...generatedRates, ...prev];
+      localStorage.setItem('agromart-market-rates', JSON.stringify(updated));
+      return updated;
+    });
+  }, [search, language]);
 
   const simulateRateUpdates = useCallback(() => {
     setRates(prev => prev.map(r => {
@@ -762,13 +1012,57 @@ export function LiveMarketRates() {
   };
 
   const filtered = rates.filter(r => {
+    const q = search.trim().toLowerCase();
+    if (!q) {
+      const matchCat = categoryFilter === 'All' || r.category === categoryFilter;
+      const matchTrend = trendFilter === 'all' || r.trending === trendFilter;
+      return matchCat && matchTrend;
+    }
+
+    // Check direct matches
     const cropName = language === 'mr' ? r.cropMr : language === 'hi' ? r.cropHi : r.crop;
-    const matchSearch = cropName.toLowerCase().includes(search.toLowerCase()) ||
-      r.mandi.toLowerCase().includes(search.toLowerCase()) ||
-      r.state.toLowerCase().includes(search.toLowerCase());
+    let matchesSearch = cropName.toLowerCase().includes(q) ||
+      r.crop.toLowerCase().includes(q) ||
+      r.cropMr.toLowerCase().includes(q) ||
+      r.cropHi.toLowerCase().includes(q) ||
+      r.mandi.toLowerCase().includes(q) ||
+      r.state.toLowerCase().includes(q);
+
+    // Check crop translation mapping
+    if (!matchesSearch) {
+      for (const [key, trans] of Object.entries(CROP_TRANSLATIONS)) {
+        if (q.includes(key) || key.includes(q)) {
+          if (
+            r.crop.toLowerCase().includes(trans.en.toLowerCase()) ||
+            r.cropMr.toLowerCase().includes(trans.mr.toLowerCase()) ||
+            r.cropHi.toLowerCase().includes(trans.hi.toLowerCase())
+          ) {
+            matchesSearch = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // Check mandi translation mapping
+    if (!matchesSearch) {
+      for (const [key, trans] of Object.entries(MANDI_TRANSLATIONS)) {
+        if (q.includes(key) || key.includes(q)) {
+          if (
+            r.mandi.toLowerCase().includes(trans.en.toLowerCase().split(' ')[0]) ||
+            r.mandi.toLowerCase().includes(trans.mr.toLowerCase().split(' ')[0]) ||
+            r.mandi.toLowerCase().includes(trans.hi.toLowerCase().split(' ')[0])
+          ) {
+            matchesSearch = true;
+            break;
+          }
+        }
+      }
+    }
+
     const matchCat = categoryFilter === 'All' || r.category === categoryFilter;
     const matchTrend = trendFilter === 'all' || r.trending === trendFilter;
-    return matchSearch && matchCat && matchTrend;
+    return matchesSearch && matchCat && matchTrend;
   });
 
   // Summary stats
@@ -827,9 +1121,38 @@ export function LiveMarketRates() {
         </div>
       </div>
 
-      {/* ── Summary Stats ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/50 rounded-2xl p-4">
+      {/* Sub-tabs Navigation */}
+      <div className="flex gap-2 p-1.5 bg-earth-100/60 dark:bg-earth-900/60 rounded-2xl w-full mb-8 max-w-md">
+        <button
+          onClick={() => setActiveSubTab('catalog')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold flex-1 text-center cursor-pointer transition-all ${
+            activeSubTab === 'catalog'
+              ? 'bg-card text-primary-600 shadow-sm border border-border'
+              : 'text-earth-500 hover:text-foreground'
+          }`}
+        >
+          {language === 'mr' ? 'थेट दर कॅटलॉग' : language === 'hi' ? 'लाइव दर कैटलॉग' : 'Live Rates Catalog'}
+        </button>
+        <button
+          onClick={() => setActiveSubTab('suggestions')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold flex-1 text-center cursor-pointer transition-all flex items-center justify-center gap-1.5 ${
+            activeSubTab === 'suggestions'
+              ? 'bg-card text-primary-600 shadow-sm border border-border'
+              : 'text-earth-500 hover:text-foreground'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          {language === 'mr' ? 'विक्री सल्ला' : language === 'hi' ? 'बेचना सुझाव' : 'Sell Predictions'}
+        </button>
+      </div>
+
+      {activeSubTab === 'suggestions' ? (
+        <BestSellingSuggestions language={language} rates={rates} />
+      ) : (
+        <>
+          {/* ── Summary Stats ─────────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200/50 dark:border-emerald-900/50 rounded-2xl p-4">
           <div className="text-[10px] font-black uppercase text-emerald-600 tracking-wider mb-1">
             {language === 'mr' ? 'वाढत आहेत' : language === 'hi' ? 'बढ रहे हैं' : 'Rising Today'}
           </div>
@@ -1067,6 +1390,9 @@ export function LiveMarketRates() {
 
         </div>
       </div>
+
+        </>
+      )}
 
       {/* Modals */}
       {editingRate && <EditRateModal rate={editingRate} onSave={handleSaveRate} onClose={() => setEditingRate(null)} />}

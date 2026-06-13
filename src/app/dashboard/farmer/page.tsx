@@ -8,9 +8,12 @@ import {
   MessageSquare, Bell, X, Check, Eye, MapPin, TrendingUp, User,
   Send, Search, Tag, Clock, IndianRupee, CheckCircle, ShieldCheck,
   AlertTriangle, Globe, Star, Phone, Fingerprint, FileText, ChevronRight,
-  LayoutDashboard, Inbox, MessageCircle, UserCheck, Filter, Landmark, Bug, Wallet, Timer, Gavel
+  LayoutDashboard, Inbox, MessageCircle, UserCheck, Filter, Landmark, Bug, Wallet, Timer, Gavel, BookOpen, HelpCircle, Menu
 } from 'lucide-react';
 import { useTranslation } from '@/context/LanguageContext';
+import { FarmerEducationCenter } from '@/components/education/FarmerEducationCenter';
+import { HelpCenter } from '@/components/support/HelpCenter';
+import { BestSellingSuggestions } from '@/components/market/BestSellingSuggestions';
 import VoiceAssistant, { VoiceIntent } from '@/components/voice/VoiceAssistant';
 import EmergencyAlerts from '@/components/alerts/EmergencyAlerts';
 import GovernmentSchemes from '@/components/schemes/GovernmentSchemes';
@@ -113,6 +116,77 @@ const toastTypeColor: Record<string, string> = {
   demand_alert: 'from-purple-500 to-purple-600',
 };
 
+const autoCategory = (name: string): string => {
+  const lowercase = name.toLowerCase();
+  
+  if (
+    lowercase.includes('wheat') || lowercase.includes('gahu') || lowercase.includes('गहू') || lowercase.includes('गेहूं') ||
+    lowercase.includes('rice') || lowercase.includes('chawal') || lowercase.includes('तांदूळ') || lowercase.includes('चावल') || lowercase.includes('भात') ||
+    lowercase.includes('corn') || lowercase.includes('maize') || lowercase.includes('maka') || lowercase.includes('मका') || lowercase.includes('मक्का') ||
+    lowercase.includes('bajra') || lowercase.includes('jowar') || lowercase.includes('grain') || lowercase.includes('धान')
+  ) {
+    return 'Grains';
+  }
+  
+  if (
+    lowercase.includes('tomato') || lowercase.includes('टमाटर') || lowercase.includes('टोमॅटो') ||
+    lowercase.includes('potato') || lowercase.includes('aloo') || lowercase.includes('बटाटा') || lowercase.includes('आलू') ||
+    lowercase.includes('onion') || lowercase.includes('kanda') || lowercase.includes('कांदा') || lowercase.includes('प्याज') ||
+    lowercase.includes('garlic') || lowercase.includes('lasun') || lowercase.includes('लसूण') || lowercase.includes('लहसुन') ||
+    lowercase.includes('chilli') || lowercase.includes('mirchi') || lowercase.includes('मिरची') || lowercase.includes('मिर्च') ||
+    lowercase.includes('cabbage') || lowercase.includes('cauliflower') || lowercase.includes('kobi') || lowercase.includes('कोबी') ||
+    lowercase.includes('vegetable') || lowercase.includes('भाजी') || lowercase.includes('सब्जी')
+  ) {
+    return 'Vegetables';
+  }
+  
+  if (
+    lowercase.includes('grape') || lowercase.includes('draksh') || lowercase.includes('द्राक्ष') || lowercase.includes('अंगूर') ||
+    lowercase.includes('apple') || lowercase.includes('safarchand') || lowercase.includes('सफरचंद') || lowercase.includes('सेब') ||
+    lowercase.includes('mango') || lowercase.includes('amba') || lowercase.includes('आंबा') || lowercase.includes('आम') ||
+    lowercase.includes('banana') || lowercase.includes('keli') || lowercase.includes('केळी') || lowercase.includes('केला') ||
+    lowercase.includes('orange') || lowercase.includes('santri') || lowercase.includes('संत्रे') || lowercase.includes('संतरा') ||
+    lowercase.includes('fruit') || lowercase.includes('फळ') || lowercase.includes('फल')
+  ) {
+    return 'Fruits';
+  }
+  
+  if (
+    lowercase.includes('soybean') || lowercase.includes('सोयाबीन') ||
+    lowercase.includes('groundnut') || lowercase.includes('shengdana') || lowercase.includes('शेंगदाणा') || lowercase.includes('मूंगफली') ||
+    lowercase.includes('mustard') || lowercase.includes('mohori') || lowercase.includes('मोहरी') || lowercase.includes('सरसों') ||
+    lowercase.includes('sunflower') || lowercase.includes('suryaphul') || lowercase.includes('सूर्यफूल') || lowercase.includes('सूरजमुखी') ||
+    lowercase.includes('sesame') || lowercase.includes('til') || lowercase.includes('तीळ') || lowercase.includes('तिल') ||
+    lowercase.includes('cotton') || lowercase.includes('kapus') || lowercase.includes('कापूस') || lowercase.includes('कपास') ||
+    lowercase.includes('oilseed') || lowercase.includes('गळित')
+  ) {
+    return 'Oilseeds';
+  }
+  
+  if (
+    lowercase.includes('gram') || lowercase.includes('harbhara') || lowercase.includes('हरभरा') || lowercase.includes('चना') ||
+    lowercase.includes('moong') || lowercase.includes('मूग') || lowercase.includes('मूंग') ||
+    lowercase.includes('tur') || lowercase.includes('तूर') || lowercase.includes('अरहर') ||
+    lowercase.includes('urad') || lowercase.includes('उडीद') || lowercase.includes('उड़द') ||
+    lowercase.includes('pulse') || lowercase.includes('dal') || lowercase.includes('डाळ') || lowercase.includes('दाल')
+  ) {
+    return 'Pulses';
+  }
+  
+  if (
+    lowercase.includes('turmeric') || lowercase.includes('halad') || lowercase.includes('हळद') || lowercase.includes('हल्दी') ||
+    lowercase.includes('ginger') || lowercase.includes('ale') || lowercase.includes('आले') || lowercase.includes('अदरक') ||
+    lowercase.includes('pepper') || lowercase.includes('mire') || lowercase.includes('मिरे') || lowercase.includes('काली मिर्च') ||
+    lowercase.includes('coriander') || lowercase.includes('dhane') || lowercase.includes('धणे') || lowercase.includes('धनिया') ||
+    lowercase.includes('cardamom') || lowercase.includes('velchi') || lowercase.includes('वेलची') || lowercase.includes('इलायची') ||
+    lowercase.includes('spice') || lowercase.includes('मसाला')
+  ) {
+    return 'Spices';
+  }
+
+  return '';
+};
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function FarmerDashboard() {
@@ -121,7 +195,22 @@ export default function FarmerDashboard() {
   const { language, t } = useTranslation();
 
   // ── Navigation ──
-  const [activeTab, setActiveTab] = useState<'overview' | 'demands' | 'chat' | 'crop_health' | 'finance' | 'schemes' | 'profile' | 'transactions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'demands' | 'chat' | 'crop_health' | 'finance' | 'schemes' | 'profile' | 'transactions' | 'education' | 'support' | 'market_suggestions'>('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const tabsList = [
+    { id: 'overview', icon: LayoutDashboard, label: language === 'mr' ? 'आढावा' : language === 'hi' ? 'अवलोकन' : 'Overview' },
+    { id: 'demands', icon: Inbox, label: language === 'mr' ? 'मागण्या' : language === 'hi' ? 'मांगें' : 'Demands' },
+    { id: 'chat', icon: MessageCircle, label: language === 'mr' ? 'चर्चा' : language === 'hi' ? 'बातचीत' : 'Chats' },
+    { id: 'crop_health', icon: Bug, label: language === 'mr' ? 'पीक आरोग्य' : language === 'hi' ? 'फसल स्वास्थ्य' : 'Crop Health' },
+    { id: 'finance', icon: Wallet, label: language === 'mr' ? 'खर्च' : language === 'hi' ? 'व्यय' : 'Expenses' },
+    { id: 'transactions', icon: FileText, label: language === 'mr' ? 'व्यवहार' : language === 'hi' ? 'लेन-देन' : 'Transactions' },
+    { id: 'schemes', icon: Landmark, label: language === 'mr' ? 'योजना' : language === 'hi' ? 'योजनाएं' : 'Schemes' },
+    { id: 'education', icon: BookOpen, label: language === 'mr' ? 'कृषी शिक्षण' : language === 'hi' ? 'कृषि शिक्षा' : 'Education' },
+    { id: 'market_suggestions', icon: TrendingUp, label: language === 'mr' ? 'विक्री सल्ला' : language === 'hi' ? 'बेचना सुझाव' : 'Sell Suggestions' },
+    { id: 'support', icon: HelpCircle, label: language === 'mr' ? 'मदत व तक्रार' : language === 'hi' ? 'मदद और सहायता' : 'Help & Support' },
+    { id: 'profile', icon: UserCheck, label: language === 'mr' ? 'प्रोफाइल' : language === 'hi' ? 'प्रोफाइल' : 'Profile & Trust' },
+  ] as const;
 
   // ── Buyer Profile Preview State ──
   const [selectedBuyerProfile, setSelectedBuyerProfile] = useState<BuyerProfile | null>(null);
@@ -326,7 +415,10 @@ export default function FarmerDashboard() {
     localStorage.setItem('agromart_notifications_log', JSON.stringify(updated));
     window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_notifications_log', newValue: JSON.stringify(updated) }));
     if (role === 'farmer') {
-      setNotifications(prev => [newNotif, ...prev]);
+      setNotifications(prev => {
+        if (prev.some(n => n.id === newNotif.id)) return prev;
+        return [newNotif, ...prev];
+      });
     }
     return newNotif;
   };
@@ -398,10 +490,21 @@ export default function FarmerDashboard() {
       if (e.key !== 'agromart_notifications_log') return;
       const logs: NotificationItem[] = e.newValue ? JSON.parse(e.newValue) : [];
       const farmerLogs = logs.filter(n => n.role === 'farmer');
-      setNotifications(farmerLogs);
+      
+      // Deduplicate by ID
+      const uniqueLogs: NotificationItem[] = [];
+      const seenIds = new Set<string>();
+      for (const item of farmerLogs) {
+        if (!seenIds.has(item.id)) {
+          seenIds.add(item.id);
+          uniqueLogs.push(item);
+        }
+      }
+      
+      setNotifications(uniqueLogs);
       // Trigger toast for the newest unread notification
-      if (farmerLogs.length > 0 && !farmerLogs[0].read) {
-        triggerToast(farmerLogs[0].id, farmerLogs[0].type ?? 'new_offer', farmerLogs[0].text);
+      if (uniqueLogs.length > 0 && !uniqueLogs[0].read) {
+        triggerToast(uniqueLogs[0].id, uniqueLogs[0].type ?? 'new_offer', uniqueLogs[0].text);
       }
     };
     window.addEventListener('storage', handleStorage);
@@ -457,6 +560,13 @@ export default function FarmerDashboard() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [threads, activeThreadId]);
+
+  // Listen for menu toggle event from layout header
+  useEffect(() => {
+    const handleToggle = () => setIsMobileMenuOpen(prev => !prev);
+    window.addEventListener('toggle-mobile-menu', handleToggle);
+    return () => window.removeEventListener('toggle-mobile-menu', handleToggle);
+  }, []);
 
   // ─── Mark as Read ───────────────────────────────────────────────────────────
   const handleMarkRead = (id: string) => {
@@ -828,17 +938,89 @@ export default function FarmerDashboard() {
 
       <div className="flex flex-col gap-8">
 
+      {/* Mobile Sidebar/Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Drawer content */}
+          <div className="relative flex flex-col w-80 max-w-[85vw] h-full bg-card border-r border-border p-6 shadow-2xl animate-slide-in-left">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-6 border-b border-border">
+              <span className="text-lg font-black tracking-tight text-foreground">
+                Agro<span className="text-primary-500">Mart</span>
+              </span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-xl bg-earth-100 hover:bg-earth-200 dark:bg-earth-900 dark:hover:bg-earth-800 text-earth-700 dark:text-earth-300 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Nav list */}
+            <div className="flex-grow overflow-y-auto py-6 flex flex-col gap-1">
+              {tabsList.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id as any);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer justify-start ${
+                    activeTab === tab.id
+                      ? 'bg-primary-500/10 text-primary-600 border border-primary-500/20'
+                      : 'text-earth-500 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+                  }`}
+                >
+                  <tab.icon className="w-5 h-5" />
+                  <span>{tab.label}</span>
+                  {tab.id === 'demands' && demands.filter(d => d.status === 'Open').length > 0 && (
+                    <span className="ml-auto px-1.5 py-0.5 rounded-full bg-primary-600 text-white text-[9px] font-black">
+                      {demands.filter(d => d.status === 'Open').length}
+                    </span>
+                  )}
+                  {tab.id === 'chat' && threads.some(t => t.unreadForFarmer) && (
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 ml-auto" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Logout button at the very bottom */}
+            <div className="pt-4 border-t border-border">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleSignOut();
+                }}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>{language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-8">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-foreground">
-            {language === 'mr' ? 'शेतकरी डॅशबोर्ड' : language === 'hi' ? 'किसान डैशबोर्ड' : 'Farmer Dashboard'}
-          </h1>
-          <p className="text-sm font-semibold text-earth-500 mt-1">
-            {language === 'mr' ? 'पीक यादी व्यवस्थापित करा, बाजारभाव पहा आणि मागण्यांना प्रतिसाद द्या.' :
-              language === 'hi' ? 'फसल सूची प्रबंधित करें, बाजार भाव देखें और मांगों का जवाब दें।' :
-                'Manage crop listings, check market rates, and respond to buyer demands.'}
-          </p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-foreground">
+              {language === 'mr' ? 'शेतकरी डॅशबोर्ड' : language === 'hi' ? 'किसान डैशबोर्ड' : 'Farmer Dashboard'}
+            </h1>
+            <p className="text-sm font-semibold text-earth-500 mt-1">
+              {language === 'mr' ? 'पीक यादी व्यवस्थापित करा, बाजारभाव पहा आणि मागण्यांना प्रतिसाद द्या.' :
+                language === 'hi' ? 'फसल सूची प्रबंधित करें, बाजार भाव देखें और मांगों का जवाब दें।' :
+                  'Manage crop listings, check market rates, and respond to buyer demands.'}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 self-start md:self-auto">
@@ -873,7 +1055,7 @@ export default function FarmerDashboard() {
 
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
+            className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>{language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}</span>
@@ -881,18 +1063,9 @@ export default function FarmerDashboard() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-earth-100/60 dark:bg-earth-900/60 rounded-2xl w-full overflow-x-auto">
-        {([
-          { id: 'overview', icon: LayoutDashboard, label: language === 'mr' ? 'आढावा' : language === 'hi' ? 'अवलोकन' : 'Overview' },
-          { id: 'demands', icon: Inbox, label: language === 'mr' ? 'मागण्या' : language === 'hi' ? 'मांगें' : 'Demands' },
-          { id: 'chat', icon: MessageCircle, label: language === 'mr' ? 'चर्चा' : language === 'hi' ? 'बातचीत' : 'Chats' },
-          { id: 'crop_health', icon: Bug, label: language === 'mr' ? 'पीक आरोग्य' : language === 'hi' ? 'फसल स्वास्थ्य' : 'Crop Health' },
-          { id: 'finance', icon: Wallet, label: language === 'mr' ? 'खर्च' : language === 'hi' ? 'व्यय' : 'Expenses' },
-          { id: 'transactions', icon: FileText, label: language === 'mr' ? 'व्यवहार' : language === 'hi' ? 'लेन-देन' : 'Transactions' },
-          { id: 'schemes', icon: Landmark, label: language === 'mr' ? 'योजना' : language === 'hi' ? 'योजनाएं' : 'Schemes' },
-          { id: 'profile', icon: UserCheck, label: language === 'mr' ? 'प्रोफाइल' : language === 'hi' ? 'प्रोफाइल' : 'Profile & Trust' },
-        ] as const).map(tab => (
+      {/* Tabs - Hidden on mobile viewports */}
+      <div className="hidden lg:flex gap-1 p-1 bg-earth-100/60 dark:bg-earth-900/60 rounded-2xl w-full overflow-x-auto">
+        {tabsList.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -1179,6 +1352,121 @@ export default function FarmerDashboard() {
                   <div className="py-12 text-center text-sm font-semibold text-earth-500">✓ No pending bids. Check back later.</div>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Row 4: Module Quick Access Widgets */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
+            {/* Widget 1: Sell Suggestions */}
+            <div className="p-6 rounded-3xl bg-card border border-border flex flex-col justify-between gap-4 hover-lift">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-earth-500 uppercase tracking-wider">
+                    {language === 'mr' ? 'विक्री सल्ला' : language === 'hi' ? 'बेचना सुझाव' : 'Optimal Sell Suggestion'}
+                  </span>
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center">
+                    <TrendingUp className="w-4.5 h-4.5" />
+                  </div>
+                </div>
+                <h4 className="font-extrabold text-foreground text-sm">
+                  {language === 'mr' ? 'सोयाबीन: विक्री सल्ला' : language === 'hi' ? 'सोयाबीन: बेचने का सुझाव' : 'Soybean Selling Suggestion'}
+                </h4>
+                <p className="text-xs text-earth-550 dark:text-earth-450 font-semibold leading-relaxed">
+                  {language === 'mr' ? '२ दिवस थांबा, बाजारात सोयाबीनची आवक कमी असल्याने नफा वाढू शकतो.' :
+                   language === 'hi' ? '२ दिन रुकें, कम आवक के कारण सोयाबीन के दाम बढ़ने के संकेत हैं।' :
+                   'Wait 2 days. Soybean prices are projected to rise due to low arrival volumes.'}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab('market_suggestions')}
+                className="w-full py-2.5 rounded-xl border border-border hover:border-primary-500 text-xs font-black text-foreground hover:text-primary-600 transition-all cursor-pointer text-center"
+              >
+                {language === 'mr' ? 'दर अंदाज पहा →' : language === 'hi' ? 'कीमत पूर्वानुमान →' : 'View Forecasts →'}
+              </button>
+            </div>
+
+            {/* Widget 2: Agriculture Education */}
+            <div className="p-6 rounded-3xl bg-card border border-border flex flex-col justify-between gap-4 hover-lift">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-earth-500 uppercase tracking-wider">
+                    {language === 'mr' ? 'कृषी सल्ला' : language === 'hi' ? 'कृषि सलाह' : 'Featured Agriculture Guide'}
+                  </span>
+                  <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-950/40 text-primary-600 flex items-center justify-center">
+                    <BookOpen className="w-4.5 h-4.5" />
+                  </div>
+                </div>
+                <h4 className="font-extrabold text-foreground text-sm">
+                  {language === 'mr' ? 'पावसाळी पिकांची काळजी' : language === 'hi' ? 'मानसूनी फसलों की देखभाल' : 'Monsoon Crop Care Guidelines'}
+                </h4>
+                <p className="text-xs text-earth-550 dark:text-earth-450 font-semibold leading-relaxed">
+                  {language === 'mr' ? 'अतिवृष्टीपासून पिकांचे संरक्षण कसे करावे याबद्दल सविस्तर माहिती आणि खत नियोजन.' :
+                   language === 'hi' ? 'भारी बारिश से फसलों को कैसे बचाएं और खाद का नियोजन कैसे करें।' :
+                   'Learn modern techniques to protect crops from waterlogging and optimize fertilizer intake.'}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab('education')}
+                className="w-full py-2.5 rounded-xl border border-border hover:border-primary-500 text-xs font-black text-foreground hover:text-primary-600 transition-all cursor-pointer text-center"
+              >
+                {language === 'mr' ? 'लेख वाचा →' : language === 'hi' ? 'लेख पढ़ें →' : 'Read Article →'}
+              </button>
+            </div>
+
+            {/* Widget 3: Buyer Crop Demands */}
+            <div className="p-6 rounded-3xl bg-card border border-border flex flex-col justify-between gap-4 hover-lift">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-earth-500 uppercase tracking-wider">
+                    {language === 'mr' ? 'खरेदीदार मागण्या' : language === 'hi' ? 'खरीदार मांग' : 'Active Buyer Requirements'}
+                  </span>
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950/40 text-blue-600 flex items-center justify-center">
+                    <Inbox className="w-4.5 h-4.5" />
+                  </div>
+                </div>
+                <h4 className="font-extrabold text-foreground text-sm">
+                  {language === 'mr' ? 'नवीन खरेदीदार मागण्या' : language === 'hi' ? 'नई खरीदार मांगें' : 'New Procurement Demands'}
+                </h4>
+                <p className="text-xs text-earth-550 dark:text-earth-450 font-semibold leading-relaxed">
+                  {language === 'mr' ? 'तुमच्या जिल्ह्यातील खरेदीदार सध्या सेंद्रिय गहू आणि बटाटा शोधत आहेत.' :
+                   language === 'hi' ? 'आपके जिले में खरीदार वर्तमान में जैविक गेहूं और आलू की तलाश में हैं।' :
+                   'Dealers are looking for organic wheat and grade-A potatoes in your vicinity.'}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab('demands')}
+                className="w-full py-2.5 rounded-xl border border-border hover:border-primary-500 text-xs font-black text-foreground hover:text-primary-600 transition-all cursor-pointer text-center"
+              >
+                {language === 'mr' ? 'मागण्या तपासा →' : language === 'hi' ? 'मांगें देखें →' : 'Check Demands →'}
+              </button>
+            </div>
+
+            {/* Widget 4: Help Center & Dispute */}
+            <div className="p-6 rounded-3xl bg-card border border-border flex flex-col justify-between gap-4 hover-lift">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-earth-500 uppercase tracking-wider">
+                    {language === 'mr' ? 'मदत व तक्रार' : language === 'hi' ? 'मदद और शिकायत' : 'Help & Support'}
+                  </span>
+                  <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center">
+                    <HelpCircle className="w-4.5 h-4.5" />
+                  </div>
+                </div>
+                <h4 className="font-extrabold text-foreground text-sm">
+                  {language === 'mr' ? 'तक्रार निवारण कक्ष' : language === 'hi' ? 'शिकायत निवारण कक्ष' : 'Dispute & Resolution Support'}
+                </h4>
+                <p className="text-xs text-earth-550 dark:text-earth-450 font-semibold leading-relaxed">
+                  {language === 'mr' ? 'व्यवहार, वाहतूक किंवा पेमेंट संबंधित तक्रारी नोंदवा व थेट चॅट करा.' :
+                   language === 'hi' ? 'लेन-देन, परिवहन या भुगतान संबंधी शिकायत दर्ज करें और लाइव चैट करें।' :
+                   'Raise complaints, report payment issues, and track resolutions in real-time.'}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab('support')}
+                className="w-full py-2.5 rounded-xl border border-border hover:border-primary-500 text-xs font-black text-foreground hover:text-primary-600 transition-all cursor-pointer text-center"
+              >
+                {language === 'mr' ? 'तक्रार नोंदवा →' : language === 'hi' ? 'शिकायत दर्ज करें →' : 'Get Help →'}
+              </button>
             </div>
           </div>
         </div>
@@ -1560,6 +1848,21 @@ export default function FarmerDashboard() {
         </div>
       )}
 
+      {/* ── EDUCATION TAB ────────────────────────────────────────────────────── */}
+      {activeTab === 'education' && (
+        <FarmerEducationCenter language={language} userId={user?.id || 'default'} />
+      )}
+
+      {/* ── MARKET SUGGESTIONS TAB ───────────────────────────────────────────── */}
+      {activeTab === 'market_suggestions' && (
+        <BestSellingSuggestions language={language} />
+      )}
+
+      {/* ── SUPPORT TAB ──────────────────────────────────────────────────────── */}
+      {activeTab === 'support' && (
+        <HelpCenter language={language} userId={user?.id || 'default'} userRole="farmer" userName={user?.user_metadata?.fullName || 'Farmer'} />
+      )}
+
       {/* ─── MODALS ──────────────────────────────────────────────────────────── */}
 
       {/* Add/Edit Listing Modal */}
@@ -1576,7 +1879,13 @@ export default function FarmerDashboard() {
             <form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-foreground">Crop Name / Variety *</label>
-                <input type="text" placeholder="e.g. Organic Durum Wheat" value={cropName} onChange={e => { setCropName(e.target.value); if (formErrors.name) setFormErrors({ ...formErrors, name: '' }); }}
+                <input type="text" placeholder="e.g. Organic Durum Wheat" value={cropName} onChange={e => {
+                  const val = e.target.value;
+                  setCropName(val);
+                  if (formErrors.name) setFormErrors({ ...formErrors, name: '' });
+                  const detected = autoCategory(val);
+                  if (detected) setCropCategory(detected);
+                }}
                   className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-sm ${formErrors.name ? 'border-red-500' : 'border-border'}`} />
                 {formErrors.name && <span className="text-[10px] font-bold text-red-500">{formErrors.name}</span>}
               </div>

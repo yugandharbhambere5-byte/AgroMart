@@ -7,9 +7,10 @@ import {
   Search, Filter, Heart, ArrowRight, ShieldCheck, TrendingUp, Info, MapPin, Tag,
   ShoppingCart, Send, LayoutDashboard, Star, CheckCircle, Clock, X, Check,
   AlertTriangle, IndianRupee, LogOut, ArrowDownRight, Compass, MessageSquare, Sparkles, Globe,
-  PlusCircle, Bell, Timer, Gavel
+  PlusCircle, Bell, Timer, Gavel, HelpCircle, Menu
 } from 'lucide-react';
 import { useTranslation, Language } from '@/context/LanguageContext';
+import { HelpCenter } from '@/components/support/HelpCenter';
 import MapComponent, { MapMarker } from '@/components/MapComponent';
 import { LiveMarketRates } from '@/components/market/LiveMarketRates';
 import { TransactionHistory } from '@/components/finance/TransactionHistory';
@@ -550,7 +551,16 @@ export default function BuyerDashboard() {
         logStr = JSON.stringify(initialLogs);
       }
       const logs = JSON.parse(logStr);
-      setNotifications(logs.filter((notif: any) => notif.role === 'buyer'));
+      // Deduplicate on mount loading
+      const uniqueLogs: any[] = [];
+      const seenIds = new Set<string>();
+      for (const log of logs) {
+        if (!seenIds.has(log.id)) {
+          seenIds.add(log.id);
+          uniqueLogs.push(log);
+        }
+      }
+      setNotifications(uniqueLogs.filter((notif: any) => notif.role === 'buyer'));
     }
   }, []);
 
@@ -559,15 +569,26 @@ export default function BuyerDashboard() {
     const handleStorageNotifs = (e: StorageEvent) => {
       if (e.key === 'agromart_notifications_log' && e.newValue) {
         const newLogs = JSON.parse(e.newValue);
+        
+        // Deduplicate logs
+        const uniqueLogs: any[] = [];
+        const seenIds = new Set<string>();
+        for (const log of newLogs) {
+          if (!seenIds.has(log.id)) {
+            seenIds.add(log.id);
+            uniqueLogs.push(log);
+          }
+        }
+        
         setNotifications(prev => {
           const prevIds = new Set(prev.map(p => p.id));
-          const newItems = newLogs.filter((notif: any) => notif.role === 'buyer' && !prevIds.has(notif.id));
+          const newItems = uniqueLogs.filter((notif: any) => notif.role === 'buyer' && !prevIds.has(notif.id));
           
           newItems.forEach((item: any) => {
             triggerToast(item.id, item.type, item.text);
           });
 
-          return newLogs.filter((notif: any) => notif.role === 'buyer');
+          return uniqueLogs.filter((notif: any) => notif.role === 'buyer');
         });
       }
     };
@@ -616,6 +637,13 @@ export default function BuyerDashboard() {
     };
     window.addEventListener('storage', handleAuctionBid);
     return () => window.removeEventListener('storage', handleAuctionBid);
+  }, []);
+
+  // Listen for menu toggle event from layout header
+  useEffect(() => {
+    const handleToggle = () => setIsMobileMenuOpen(prev => !prev);
+    window.addEventListener('toggle-mobile-menu', handleToggle);
+    return () => window.removeEventListener('toggle-mobile-menu', handleToggle);
   }, []);
 
   const handlePlaceBid = (listing: ActiveListing) => {
@@ -693,7 +721,7 @@ export default function BuyerDashboard() {
   };
 
   // Navigation Tabs
-  const [activeTab, setActiveTab] = useState<'marketplace' | 'offers' | 'saved' | 'trends' | 'chat' | 'recommendations' | 'demands' | 'profile' | 'transactions'>('marketplace');
+  const [activeTab, setActiveTab] = useState<'marketplace' | 'offers' | 'saved' | 'trends' | 'chat' | 'recommendations' | 'demands' | 'profile' | 'transactions' | 'support'>('marketplace');
 
   // Verification States
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
@@ -829,6 +857,21 @@ export default function BuyerDashboard() {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [chatCategory, setChatCategory] = useState<'price' | 'quantity' | 'delivery' | 'general'>('general');
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const tabsList = [
+    { id: 'marketplace', icon: ShoppingCart, label: t.dashboard.buyer.tabMarketplace, showNotification: false },
+    { id: 'offers', icon: Send, label: t.dashboard.buyer.tabOffers, showNotification: sentOffers.filter(o => o.status === 'Pending').length > 0 },
+    { id: 'chat', icon: MessageSquare, label: t.dashboard.buyer.tabChat, showNotification: threads.some(thread => thread.unreadForBuyer), isChatDot: true },
+    { id: 'saved', icon: Heart, label: `${t.dashboard.buyer.tabSaved} (${savedIds.length})`, showNotification: false },
+    { id: 'trends', icon: TrendingUp, label: t.dashboard.buyer.tabTrends, showNotification: false },
+    { id: 'recommendations', icon: Sparkles, label: t.dashboard.buyer.tabRecommendations, showNotification: false },
+    { id: 'demands', icon: Compass, label: t.cropDemands.tabMyDemands, showNotification: false },
+    { id: 'profile', icon: ShieldCheck, label: t.verification.title, showNotification: false },
+    { id: 'transactions', icon: FileText, label: language === 'mr' ? 'व्यवहार' : language === 'hi' ? 'लेन-देन' : 'Transactions', showNotification: false },
+    { id: 'support', icon: HelpCircle, label: language === 'mr' ? 'मदत व तक्रार' : language === 'hi' ? 'मदद और सहायता' : 'Help & Support', showNotification: false },
+  ] as const;
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1583,22 +1626,92 @@ export default function BuyerDashboard() {
 
   return (
     <div className="flex flex-col gap-8 animate-fade-in-up relative">
+
+      {/* Mobile Sidebar/Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+
+          {/* Drawer content */}
+          <div className="relative flex flex-col w-80 max-w-[85vw] h-full bg-card border-r border-border p-6 shadow-2xl animate-slide-in-left">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-6 border-b border-border">
+              <span className="text-lg font-black tracking-tight text-foreground">
+                Agro<span className="text-primary-500">Mart</span>
+              </span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-xl bg-earth-100 hover:bg-earth-200 dark:bg-earth-900 dark:hover:bg-earth-800 text-earth-700 dark:text-earth-300 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Nav list */}
+            <div className="flex-grow overflow-y-auto py-6 flex flex-col gap-1">
+              {tabsList.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id as any);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer justify-start ${
+                    activeTab === tab.id
+                      ? 'bg-primary-500/10 text-primary-600 border border-primary-500/20'
+                      : 'text-earth-550 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+                  }`}
+                >
+                  <tab.icon className="w-5 h-5" />
+                  <span>{tab.label}</span>
+                  {tab.id === 'offers' && sentOffers.filter(o => o.status === 'Pending').length > 0 && (
+                    <span className="ml-auto w-2.5 h-2.5 rounded-full bg-red-500" />
+                  )}
+                  {tab.id === 'chat' && threads.some(t => t.unreadForBuyer) && (
+                    <span className="ml-auto w-2.5 h-2.5 rounded-full bg-red-500" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Logout button at the very bottom */}
+            <div className="pt-4 border-t border-border">
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleSignOut();
+                }}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Header & Sign Out */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-8">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-foreground flex flex-wrap items-center gap-3">
-            <span>{t.dashboard.buyer.title}</span>
-            {trustScore > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wide">
-                <ShieldCheck className="w-4 h-4" />
-                <span>{trustScore === 100 ? t.verification.verifiedBuyer : t.verification.verifiedBadge}</span>
-              </span>
-            )}
-          </h1>
-          <p className="text-sm font-semibold text-earth-550 dark:text-earth-400 mt-1">
-            {t.dashboard.buyer.subtitle}
-          </p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-foreground flex flex-wrap items-center gap-3">
+              <span>{t.dashboard.buyer.title}</span>
+              {trustScore > 0 && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wide">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{trustScore === 100 ? t.verification.verifiedBuyer : t.verification.verifiedBadge}</span>
+                </span>
+              )}
+            </h1>
+            <p className="text-sm font-semibold text-earth-550 dark:text-earth-400 mt-1">
+              {t.dashboard.buyer.subtitle}
+            </p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 self-start md:self-auto">
@@ -1631,7 +1744,7 @@ export default function BuyerDashboard() {
 
           <button
             onClick={handleSignOut}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
+            className="hidden lg:flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out</span>
@@ -1639,130 +1752,28 @@ export default function BuyerDashboard() {
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex border-b border-border gap-2 overflow-x-auto pb-1">
-        <button
-          onClick={() => setActiveTab('marketplace')}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
-            activeTab === 'marketplace'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <ShoppingCart className="w-4 h-4" />
-          <span>{t.dashboard.buyer.tabMarketplace}</span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('offers');
-          }}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 relative ${
-            activeTab === 'offers'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <Send className="w-4 h-4" />
-          <span>{t.dashboard.buyer.tabOffers}</span>
-          {sentOffers.filter(o => o.status === 'Pending').length > 0 && (
-            <span className="w-2 h-2 rounded-full bg-red-500 absolute top-2 right-2" />
-          )}
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('chat');
-            if (activeThreadId) {
-              const updated = threads.map(thread => thread.id === activeThreadId ? { ...thread, unreadForBuyer: false } : thread);
-              setThreads(updated);
-              localStorage.setItem('agromart_chats', JSON.stringify(updated));
-            }
-          }}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 relative ${
-            activeTab === 'chat'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>{t.dashboard.buyer.tabChat}</span>
-          {threads.some(thread => thread.unreadForBuyer) && (
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 absolute top-2 right-2 border-2 border-card" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('saved')}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
-            activeTab === 'saved'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <Heart className="w-4 h-4" />
-          <span>{t.dashboard.buyer.tabSaved} ({savedIds.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('trends')}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
-            activeTab === 'trends'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <TrendingUp className="w-4 h-4" />
-          <span>{t.dashboard.buyer.tabTrends}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('recommendations')}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
-            activeTab === 'recommendations'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>{t.dashboard.buyer.tabRecommendations}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('demands')}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
-            activeTab === 'demands'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <Compass className="w-4 h-4" />
-          <span>{t.cropDemands.tabMyDemands}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
-            activeTab === 'profile'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <ShieldCheck className="w-4 h-4" />
-          <span>{t.verification.title}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('transactions')}
-          className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
-            activeTab === 'transactions'
-              ? 'bg-primary-600 text-white shadow-md'
-              : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-          }`}
-        >
-          <FileText className="w-4 h-4" />
-          <span>{language === 'mr' ? 'व्यवहार' : language === 'hi' ? 'लेन-देन' : 'Transactions'}</span>
-        </button>
+      {/* Navigation Tabs - Hidden on mobile viewports */}
+      <div className="hidden lg:flex border-b border-border gap-2 overflow-x-auto pb-1">
+        {tabsList.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
+              activeTab === tab.id
+                ? 'bg-primary-600 text-white shadow-md'
+                : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            <span>{tab.label}</span>
+            {tab.id === 'offers' && sentOffers.filter(o => o.status === 'Pending').length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-red-500 ml-1" />
+            )}
+            {tab.id === 'chat' && threads.some(thread => thread.unreadForBuyer) && (
+              <span className="w-2 h-2 rounded-full bg-red-500 ml-1" />
+            )}
+          </button>
+        ))}
       </div>
 
       {/* TAB 1: Marketplace Browse */}
@@ -1942,7 +1953,7 @@ export default function BuyerDashboard() {
                 return (
                   <div
                     key={crop.id}
-                    className="group bg-card border border-border rounded-3xl overflow-hidden hover-lift flex flex-col h-full"
+                    className="group relative bg-card border border-border rounded-3xl overflow-hidden hover-lift flex flex-col h-full"
                   >
                     {/* Crop Image */}
                     <div className="relative h-48 bg-earth-100 dark:bg-earth-900 overflow-hidden">
@@ -3127,6 +3138,11 @@ export default function BuyerDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* SUPPORT TAB */}
+      {activeTab === 'support' && (
+        <HelpCenter language={language} userId={user?.id || 'default'} userRole="buyer" userName={buyerProfile?.ownerName || 'Buyer'} />
       )}
 
       {/* POPUP MODAL: SMS OTP Verification */}
