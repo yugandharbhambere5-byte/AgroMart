@@ -4,13 +4,78 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Sprout, ShieldCheck, Truck, ArrowRight } from 'lucide-react';
+import { Search, Sprout, ShieldCheck, Truck, ArrowRight, Mic, MicOff } from 'lucide-react';
 import { useTranslation } from '@/context/LanguageContext';
 
 export function Hero() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isListening, setIsListening] = useState(false);
   const router = useRouter();
+  const recognitionRef = React.useRef<any>(null);
+
+  const startListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert(language === 'mr' ? 'तुमच्या ब्राउझरमध्ये आवाज शोध समर्थित नाही.' : language === 'hi' ? 'आपके ब्राउज़र में आवाज़ खोज समर्थित नहीं है।' : 'Voice search is not supported in your browser.');
+      return;
+    }
+
+    const speechLang = language === 'mr' ? 'mr-IN' : language === 'hi' ? 'hi-IN' : 'en-IN';
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+
+    recognition.lang = speechLang;
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setSearchQuery('');
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchQuery(transcript);
+      if (transcript.trim()) {
+        router.push(`/market-rates?search=${encodeURIComponent(transcript.trim())}`);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error(event.error);
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognition.start();
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsListening(false);
+  };
+
+  const toggleVoiceSearch = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,17 +120,46 @@ export function Hero() {
                 <Search className="absolute left-4.5 w-5.5 h-5.5 text-earth-450 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder={t.hero.searchPlaceholder}
+                  placeholder={
+                    isListening
+                      ? (language === 'mr' ? 'ऐकत आहे... बोला' : language === 'hi' ? 'सुन रहा हूँ... बोलें' : 'Listening... Speak now')
+                      : t.hero.searchPlaceholder
+                  }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12.5 pr-28 py-4 sm:py-5 rounded-2xl border border-border bg-card text-foreground placeholder-earth-400 focus:outline-none focus:ring-4 focus:ring-primary-500/25 text-base font-semibold shadow-md shadow-earth-200/10 dark:shadow-none"
+                  className="w-full pl-12.5 pr-[170px] py-4 sm:py-5 rounded-2xl border border-border bg-card text-foreground placeholder-earth-400 focus:outline-none focus:ring-4 focus:ring-primary-500/25 text-base font-semibold shadow-md shadow-earth-200/10 dark:shadow-none transition-all"
                 />
-                <button
-                  type="submit"
-                  className="absolute right-2 px-5 py-2.5 sm:py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm sm:text-base shadow-sm transition-all hover:scale-102 cursor-pointer"
-                >
-                  {t.hero.searchBtn}
-                </button>
+                <div className="absolute right-2 flex items-center gap-2">
+                  {/* Voice Search Button */}
+                  <button
+                    type="button"
+                    onClick={toggleVoiceSearch}
+                    className={`p-2.5 sm:p-3 rounded-xl transition-all cursor-pointer flex items-center justify-center ${
+                      isListening
+                        ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse shadow-md shadow-red-500/20'
+                        : 'bg-earth-100 dark:bg-earth-900 hover:bg-earth-200 dark:hover:bg-earth-850 text-earth-600 dark:text-earth-300'
+                    }`}
+                    title={
+                      isListening
+                        ? (language === 'mr' ? 'ऐकत आहे... थांबवण्यासाठी दाबा' : language === 'hi' ? 'सुन रहा हूँ... रोकने के लिए दबाएं' : 'Listening... Click to stop')
+                        : (language === 'mr' ? 'आवाज शोध' : language === 'hi' ? 'आवाज खोज' : 'Voice Search')
+                    }
+                  >
+                    {isListening ? (
+                      <MicOff className="w-5 h-5" />
+                    ) : (
+                      <Mic className="w-5 h-5 animate-none hover:scale-110 duration-200" />
+                    )}
+                  </button>
+
+                  {/* Search Button */}
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 sm:py-3.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm sm:text-base shadow-sm transition-all hover:scale-102 cursor-pointer"
+                  >
+                    {t.hero.searchBtn}
+                  </button>
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 mt-3 text-xs font-bold text-earth-500">
                 <span>{t.hero.popular}:</span>
