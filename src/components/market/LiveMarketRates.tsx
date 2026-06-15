@@ -973,11 +973,8 @@ export function LiveMarketRates() {
     };
     const updatedLogs = [newNotif, ...logs];
     localStorage.setItem('agromart_notifications_log', JSON.stringify(updatedLogs));
-    
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'agromart_notifications_log',
-      newValue: JSON.stringify(updatedLogs)
-    }));
+    // NOTE: Do NOT dispatch manual StorageEvent — it fires in the same tab and causes re-render cascades.
+    // Cross-tab sync happens via native storage events automatically.
   };
 
   const handleSaveRate = (updated: MarketRate) => {

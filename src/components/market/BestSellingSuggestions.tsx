@@ -303,11 +303,7 @@ export function BestSellingSuggestions({ language, rates }: SuggestionsProps) {
       
       const updatedRates = [newMarketRate, ...ratesList];
       localStorage.setItem('agromart-market-rates', JSON.stringify(updatedRates));
-      
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'agromart-market-rates',
-        newValue: JSON.stringify(updatedRates)
-      }));
+      // No manual StorageEvent dispatch — prevents same-tab re-render cascades.
     }
 
     setSelectedCropKey(cropKey);

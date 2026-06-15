@@ -270,6 +270,8 @@ export default function EmergencyAlerts({ userLocation = '', bannerOnly = false,
   const [isMuted, setIsMuted] = useState(false);
   const [currentBannerIdx, setCurrentBannerIdx] = useState(0);
   const rotateRef = useRef<any>(null);
+  // Track which alert IDs have already been pushed to the notification log
+  const pushedAlertIdsRef = useRef<Set<string>>(new Set());
 
   // Admin broadcast state
   const [broadcastForm, setBroadcastForm] = useState({
@@ -338,15 +340,22 @@ export default function EmergencyAlerts({ userLocation = '', bannerOnly = false,
     return () => clearInterval(rotateRef.current);
   }, [bannerAlerts.length]);
 
-  // Push to notification log for the bell system
+  // Push to notification log for the bell system — runs ONCE per unique alert id
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const critAlerts = alerts.filter(a => a.isActive && (a.severity === 'critical' || a.severity === 'danger') && isAlertRelevant(a, userLocation));
+    const critAlerts = alerts.filter(
+      a => a.isActive && (a.severity === 'critical' || a.severity === 'danger') && isAlertRelevant(a, userLocation)
+    );
     if (critAlerts.length === 0) return;
+
+    // Only push alerts we haven't pushed before in this session (prevents re-firing on re-renders)
+    const freshAlerts = critAlerts.filter(a => !pushedAlertIdsRef.current.has(a.id));
+    if (freshAlerts.length === 0) return;
+
     const logStr = localStorage.getItem('agromart_notifications_log');
     const logs = logStr ? JSON.parse(logStr) : [];
     const existingIds = new Set(logs.map((l: any) => l.id));
-    const newNotifs = critAlerts
+    const newNotifs = freshAlerts
       .filter(a => !existingIds.has(`emergency-${a.id}`))
       .map(a => ({
         id: `emergency-${a.id}`,
@@ -356,10 +365,13 @@ export default function EmergencyAlerts({ userLocation = '', bannerOnly = false,
         read: false,
         role: 'farmer',
       }));
+    // Mark all freshAlerts as pushed regardless of whether they were new in localStorage
+    freshAlerts.forEach(a => pushedAlertIdsRef.current.add(a.id));
     if (newNotifs.length > 0) {
       const updated = [...newNotifs, ...logs];
       localStorage.setItem('agromart_notifications_log', JSON.stringify(updated));
-      window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_notifications_log', newValue: JSON.stringify(updated) }));
+      // NOTE: Do NOT dispatch a manual StorageEvent here — it would fire handleStorage
+      // in the same tab, causing re-render cascades. Cross-tab sync happens natively.
     }
   }, [alerts, userLocation]);
 
@@ -379,7 +391,8 @@ export default function EmergencyAlerts({ userLocation = '', bannerOnly = false,
       isActive: true,
     };
     setAlerts(prev => [newAlert, ...prev]);
-    // Push to notification log for both roles
+    // Write to localStorage for cross-tab pickup
+    // NOTE: Do NOT dispatch manual StorageEvent — it fires in same tab and causes re-render cascades.
     if (typeof window !== 'undefined') {
       const logStr = localStorage.getItem('agromart_notifications_log');
       const logs = logStr ? JSON.parse(logStr) : [];
@@ -387,7 +400,6 @@ export default function EmergencyAlerts({ userLocation = '', bannerOnly = false,
       const notifB = { ...notif, id: `emergency-${newAlert.id}-b`, role: 'buyer' };
       const updated = [notif, notifB, ...logs];
       localStorage.setItem('agromart_notifications_log', JSON.stringify(updated));
-      window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_notifications_log', newValue: JSON.stringify(updated) }));
     }
     setBroadcastForm({ type: 'rainfall', severity: 'warning', title: '', message: '', districts: '', issuedBy: 'Admin' });
     setBroadcastSent(true);

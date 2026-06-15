@@ -446,7 +446,9 @@ export default function FarmerDashboard() {
     };
     const updated = [newNotif, ...logs];
     localStorage.setItem('agromart_notifications_log', JSON.stringify(updated));
-    window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_notifications_log', newValue: JSON.stringify(updated) }));
+    // NOTE: Do NOT dispatch manual StorageEvent here — it fires handleStorage in the SAME tab,
+    // causing double-processing (this function already calls setNotifications directly below).
+    // Native storage events fire automatically in OTHER tabs for cross-tab sync.
     if (role === 'farmer') {
       setNotifications(prev => {
         if (prev.some(n => n.id === newNotif.id)) return prev;
@@ -586,13 +588,13 @@ export default function FarmerDashboard() {
     }
   }, []);
 
-  // Listen for cross-tab notification updates
+  // Listen for cross-tab notification updates (storage event only fires for OTHER tabs, not same tab)
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
       if (e.key !== 'agromart_notifications_log') return;
       const logs: NotificationItem[] = e.newValue ? JSON.parse(e.newValue) : [];
       const farmerLogs = logs.filter(n => n.role === 'farmer');
-      
+
       // Deduplicate by ID
       const uniqueLogs: NotificationItem[] = [];
       const seenIds = new Set<string>();
@@ -602,11 +604,17 @@ export default function FarmerDashboard() {
           uniqueLogs.push(item);
         }
       }
-      
+
       setNotifications(uniqueLogs);
-      // Trigger toast for the newest unread notification
+      // Show toast only for the newest unread notification (cross-tab updates)
       if (uniqueLogs.length > 0 && !uniqueLogs[0].read) {
-        triggerToast(uniqueLogs[0].id, uniqueLogs[0].type ?? 'new_offer', uniqueLogs[0].text);
+        const newest = uniqueLogs[0];
+        // Avoid duplicate toasts — check if this toast ID was already queued
+        setActiveToasts(prev => {
+          if (prev.some(t => t.id === newest.id)) return prev;
+          setTimeout(() => setActiveToasts(p => p.filter(t => t.id !== newest.id)), 4500);
+          return [...prev, { id: newest.id, type: newest.type ?? 'new_offer', text: newest.text }];
+        });
       }
     };
     window.addEventListener('storage', handleStorage);
@@ -616,19 +624,24 @@ export default function FarmerDashboard() {
   // Auction Countdown Ticker & Auto-close
   useEffect(() => {
     const timer = setInterval(() => {
+      // Collect closed auctions BEFORE updating state, then notify outside the updater
+      const closedListings: string[] = [];
       setListings(prev => {
         let changed = false;
         const now = Date.now();
         const upd = prev.map(l => {
           if (l.is_auction && l.auction_end_time && new Date(l.auction_end_time).getTime() <= now && l.status === 'Available') {
             changed = true;
-            // Optionally trigger a notification
-            pushNotification('market_update', `Auction for ${l.name} has closed.`, 'farmer');
+            closedListings.push(l.name);
             return { ...l, status: 'Sold' as const };
           }
           return l;
         });
         return changed ? upd : prev;
+      });
+      // Fire notifications AFTER state update, outside the updater (no side-effects inside updaters)
+      closedListings.forEach(name => {
+        pushNotification('market_update', `Auction for ${name} has closed.`, 'farmer');
       });
     }, 10000); // Check every 10 seconds
     return () => clearInterval(timer);
