@@ -92,6 +92,22 @@ interface ActiveToast {
   text: string;
 }
 
+interface CropOption {
+  id: string;
+  en: string;
+  mr: string;
+  hi: string;
+}
+
+const cropOptions: CropOption[] = [
+  { id: 'wheat', en: 'Wheat', mr: 'गहू', hi: 'गेहूं' },
+  { id: 'potato', en: 'Potato', mr: 'बटाटा', hi: 'आलू' },
+  { id: 'tomato', en: 'Tomato', mr: 'टोमॅटो', hi: 'टमाटर' },
+  { id: 'rice', en: 'Rice', mr: 'भात', hi: 'चावल' },
+  { id: 'cotton', en: 'Cotton', mr: 'कापूस', hi: 'कपास' },
+  { id: 'sugarcane', en: 'Sugarcane', mr: 'ऊस', hi: 'गन्ना' },
+];
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 const getLocalizedNotifText = (type: string | undefined, fallback: string, t: any) => {
@@ -381,6 +397,22 @@ export default function FarmerDashboard() {
   const [isGstVerified, setIsGstVerified] = useState(false);
   const [isKycVerified, setIsKycVerified] = useState(false);
 
+  // ── Profile Edit Fields ──
+  const [profileName, setProfileName] = useState('');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profileState, setProfileState] = useState('');
+  const [profileDistrict, setProfileDistrict] = useState('');
+  const [profileTaluka, setProfileTaluka] = useState('');
+  const [profileVillage, setProfileVillage] = useState('');
+  const [profilePincode, setProfilePincode] = useState('');
+  const [profileAddress, setProfileAddress] = useState('');
+  const [profileFarmSize, setProfileFarmSize] = useState('');
+  const [profileFarmingType, setProfileFarmingType] = useState('organic');
+  const [profileCrops, setProfileCrops] = useState<string[]>([]);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState('');
+
   // ── Demands ──
   const [demands, setDemands] = useState<CropDemand[]>([]);
   const [demandSearch, setDemandSearch] = useState('');
@@ -462,6 +494,75 @@ export default function FarmerDashboard() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: any, session: any) => setUser(session?.user ?? null));
     return () => subscription.unsubscribe();
   }, [supabase]);
+
+  // Sync profile fields when user changes
+  useEffect(() => {
+    if (user) {
+      const meta = user.user_metadata || {};
+      setProfileName(meta.full_name || meta.fullName || '');
+      setProfilePhone(user.phone || meta.phone || '');
+      setProfileEmail(user.email || meta.email || '');
+      setProfileState(meta.state || '');
+      setProfileDistrict(meta.district || '');
+      setProfileTaluka(meta.taluka || '');
+      setProfileVillage(meta.village || '');
+      setProfilePincode(meta.pincode || '');
+      setProfileAddress(meta.address || '');
+      setProfileFarmSize(meta.farm_size || '');
+      setProfileFarmingType(meta.farming_type || 'organic');
+      setProfileCrops(meta.main_crops || []);
+    }
+  }, [user]);
+
+  const handleProfileCropToggle = (cropId: string) => {
+    if (profileCrops.includes(cropId)) {
+      setProfileCrops(profileCrops.filter(c => c !== cropId));
+    } else {
+      setProfileCrops([...profileCrops, cropId]);
+    }
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileSaveSuccess('');
+    
+    const updatedMetadata = {
+      full_name: profileName,
+      fullName: profileName,
+      state: profileState,
+      district: profileDistrict,
+      taluka: profileTaluka,
+      village: profileVillage,
+      pincode: profilePincode,
+      address: profileAddress,
+      farm_size: profileFarmSize,
+      farming_type: profileFarmingType,
+      main_crops: profileCrops,
+    };
+
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: updatedMetadata
+      });
+      if (error) throw error;
+      
+      if (data?.user) {
+        setUser(data.user);
+      }
+      
+      const loc = [profileVillage, profileDistrict, profileState].filter(Boolean).join(', ');
+      setUserLocation(loc);
+      setCropLocation(loc);
+
+      setProfileSaveSuccess(language === 'mr' ? 'प्रोफाइल यशस्वीरित्या जतन केली!' : 'Profile saved successfully!');
+      setIsEditingProfile(false);
+      
+      const notif = pushNotification('listing_approved', 'Profile details updated successfully.', 'farmer');
+      if (notif) triggerToast(notif.id, 'listing_approved', 'Profile Updated ✓');
+    } catch (err: any) {
+      alert(err.message || 'Failed to update profile');
+    }
+  };
 
   // Load demands from localStorage or seed
   useEffect(() => {
@@ -1877,6 +1978,222 @@ export default function FarmerDashboard() {
                 <button onClick={() => setIsKycModalOpen(true)} className="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-extrabold cursor-pointer transition-all">Upload Document</button>
               )}
             </div>
+          </div>
+
+          {/* Farmer Profile Information Section */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
+            <div className="flex items-center justify-between border-b border-border pb-5">
+              <div>
+                <h3 className="text-lg font-black text-foreground">
+                  {language === 'mr' ? 'नोंदणीकृत तपशील' : language === 'hi' ? 'पंजीकृत विवरण' : 'Registered Profile Details'}
+                </h3>
+                <p className="text-xs font-semibold text-earth-500">
+                  {language === 'mr' ? 'नोंदणी दरम्यान भरलेली तुमची वैयक्तिक आणि शेतीची माहिती.' : 'Your personal and farm details entered during registration.'}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsEditingProfile(prev => !prev);
+                  setProfileSaveSuccess('');
+                }}
+                className="px-4 py-2 rounded-xl border border-primary-500/20 text-primary-600 dark:text-primary-400 font-extrabold text-xs hover:bg-primary-50 dark:hover:bg-primary-950/20 transition-all cursor-pointer"
+              >
+                {isEditingProfile ? (language === 'mr' ? 'रद्द करा' : 'Cancel') : (language === 'mr' ? 'माहिती बदला (Edit)' : 'Edit Profile')}
+              </button>
+            </div>
+
+            {profileSaveSuccess && (
+              <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black">
+                {profileSaveSuccess}
+              </div>
+            )}
+
+            {!isEditingProfile ? (
+              // READ-ONLY VIEW
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 text-sm font-semibold">
+                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
+                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'पूर्ण नाव' : 'Full Name'}</span>
+                  <span className="text-foreground">{profileName || '—'}</span>
+                </div>
+                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
+                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'मोबाईल नंबर' : 'Phone Number'}</span>
+                  <span className="text-foreground">{profilePhone || '—'}</span>
+                </div>
+                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
+                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'ईमेल पत्ता' : 'Email Address'}</span>
+                  <span className="text-foreground">{profileEmail || '—'}</span>
+                </div>
+                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
+                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'शेती आकारमान (एकर)' : 'Farm Size (Acres)'}</span>
+                  <span className="text-foreground">{profileFarmSize ? `${profileFarmSize} Acres` : '—'}</span>
+                </div>
+                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
+                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'शेतीचा प्रकार' : 'Farming Type'}</span>
+                  <span className="text-foreground capitalize">{profileFarmingType || '—'}</span>
+                </div>
+                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
+                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'मुख्य पिके' : 'Main Crops'}</span>
+                  <span className="text-foreground capitalize">
+                    {profileCrops.length > 0 
+                      ? profileCrops.map(cid => cropOptions.find(o => o.id === cid)?.[language === 'mr' ? 'mr' : language === 'hi' ? 'hi' : 'en'] || cid).join(', ') 
+                      : '—'}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5 md:col-span-2">
+                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'ठिकाण / पत्ता' : 'Location & Address'}</span>
+                  <span className="text-foreground">
+                    {[profileAddress, profileVillage, profileTaluka, profileDistrict, profileState].filter(Boolean).join(', ')} 
+                    {profilePincode ? ` (${profilePincode})` : ''}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              // EDITABLE FORM VIEW
+              <form onSubmit={handleSaveProfile} className="flex flex-col gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'पूर्ण नाव' : 'Full Name'}</label>
+                    <input
+                      type="text"
+                      value={profileName}
+                      onChange={e => setProfileName(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'मोबाईल नंबर' : 'Phone Number'}</label>
+                    <input
+                      type="text"
+                      value={profilePhone}
+                      onChange={e => setProfilePhone(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'ईमेल पत्ता' : 'Email Address'}</label>
+                    <input
+                      type="email"
+                      value={profileEmail}
+                      onChange={e => setProfileEmail(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'शेती आकारमान (एकर)' : 'Farm Size (Acres)'}</label>
+                    <input
+                      type="number"
+                      value={profileFarmSize}
+                      onChange={e => setProfileFarmSize(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'शेतीचा प्रकार' : 'Farming Type'}</label>
+                    <select
+                      value={profileFarmingType}
+                      onChange={e => setProfileFarmingType(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                    >
+                      <option value="organic">Organic (सेंद्रिय)</option>
+                      <option value="chemical">Chemical (रासायनिक)</option>
+                      <option value="mix">Mixed / Traditional (मिश्र/पारंपरिक)</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5 md:col-span-2">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'मुख्य पिके' : 'Main Crops'}</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {cropOptions.map(crop => {
+                        const isSelected = profileCrops.includes(crop.id);
+                        return (
+                          <button
+                            key={crop.id}
+                            type="button"
+                            onClick={() => handleProfileCropToggle(crop.id)}
+                            className={`p-2.5 rounded-xl border flex items-center justify-between font-bold text-xs transition-all cursor-pointer ${
+                              isSelected
+                                ? 'border-primary-500 bg-primary-50/15 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400'
+                                : 'border-border bg-background text-earth-650'
+                            }`}
+                          >
+                            <span>{crop[language === 'mr' ? 'mr' : language === 'hi' ? 'hi' : 'en'] || crop.en}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-primary-500" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'गाव / शहर' : 'Village / City'}</label>
+                    <input
+                      type="text"
+                      value={profileVillage}
+                      onChange={e => setProfileVillage(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'तालुका' : 'Taluka'}</label>
+                    <input
+                      type="text"
+                      value={profileTaluka}
+                      onChange={e => setProfileTaluka(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'जिल्हा' : 'District'}</label>
+                    <input
+                      type="text"
+                      value={profileDistrict}
+                      onChange={e => setProfileDistrict(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'राज्य' : 'State'}</label>
+                    <input
+                      type="text"
+                      value={profileState}
+                      onChange={e => setProfileState(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="flex flex-col gap-1.5 md:col-span-3">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'पूर्ण पत्ता' : 'Full Address'}</label>
+                    <input
+                      type="text"
+                      value={profileAddress}
+                      onChange={e => setProfileAddress(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'पिनकोड' : 'Pincode'}</label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={profilePincode}
+                      onChange={e => setProfilePincode(e.target.value.replace(/\D/g, ''))}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full mt-3 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm shadow cursor-pointer transition-colors"
+                >
+                  {language === 'mr' ? 'बदल जतन करा (Save Changes)' : 'Save Changes'}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
