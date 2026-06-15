@@ -96,9 +96,8 @@ export function Hero() {
         className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
       >
         {/* Vegetarian Crop and Agricultural Videos (Cotton/Wheat Harvesting and Fresh Vegetables/Marketyards) */}
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-drone-shot-of-a-combine-harvester-in-a-wheat-field-34220-large.mp4" type="video/mp4" />
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-fresh-vegetables-on-a-wooden-board-close-up-view-10420-large.mp4" type="video/mp4" />
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-agriculture-and-modern-machinery-34222-large.mp4" type="video/mp4" />
+        <source src="https://player.vimeo.com/external/198054816.hd.mp4?s=9148e366c318343616b90a1fb0359f151d2e7a58&profile_id=119" type="video/mp4" />
+        <source src="https://player.vimeo.com/progressive_redirect/playback/946985230/rendition/720p/file.mp4?loc=external&log_user=0&signature=34c543522a51ebdc6116342ba68661f0fb80ce3bf4ac58fc88e0c03cd04d08e8" type="video/mp4" />
       </video>
 
       {/* Dark/Green transparent overlay above video so text remains readable */}

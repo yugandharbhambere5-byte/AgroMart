@@ -5,7 +5,7 @@ export const mr = {
     stats: 'बाजार माहिती',
     signIn: 'प्रवेश करा (Login)',
     signOut: 'बाहेर पडा (Sign Out)',
-    getStarted: 'सुरू करा',
+    getStarted: 'नोंदणी करा',
     myFarm: 'माझी शेती',
     myCart: 'माझी कार्ट',
     dashboard: 'डॅशबोर्ड',

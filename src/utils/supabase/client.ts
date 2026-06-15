@@ -136,7 +136,7 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
               phone: phone || null,
               user_metadata: {
                 role: role,
-                full_name: 'Superadmin',
+                full_name: 'Farmer',
               }
             };
 
