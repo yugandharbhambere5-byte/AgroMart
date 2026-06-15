@@ -493,7 +493,7 @@ export default function FarmerDashboard() {
     init();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e: any, session: any) => setUser(session?.user ?? null));
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, []);
 
   // Sync profile fields when user changes
   useEffect(() => {

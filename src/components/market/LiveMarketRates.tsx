@@ -746,7 +746,7 @@ export function LiveMarketRates() {
       }
     };
     checkUser();
-  }, [supabase]);
+  }, []);
 
   // Auto-refresh simulation every 3 minutes
   useEffect(() => {

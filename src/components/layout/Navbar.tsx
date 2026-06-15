@@ -48,7 +48,7 @@ export function Navbar() {
       subscription.unsubscribe();
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [supabase.auth]);
+  }, []);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');

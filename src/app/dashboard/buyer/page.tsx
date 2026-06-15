@@ -1146,7 +1146,7 @@ export default function BuyerDashboard() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   // Trust Calculations
   const isOtpVerified = !!user?.user_metadata?.is_otp_verified;
