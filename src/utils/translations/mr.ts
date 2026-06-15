@@ -3,7 +3,7 @@ export const mr = {
     about: 'आमच्याबद्दल',
     features: 'वैशिष्ट्ये',
     stats: 'बाजार माहिती',
-    signIn: 'प्रवेश करा (Sign In)',
+    signIn: 'प्रवेश करा (Login)',
     signOut: 'बाहेर पडा (Sign Out)',
     getStarted: 'सुरू करा',
     myFarm: 'माझी शेती',

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from 'next-themes';
-import { Sun, Moon, Menu, X, ShoppingCart, User, Sprout, ArrowRight, Globe, TrendingUp } from 'lucide-react';
+import { Sun, Moon, Menu, X, ShoppingCart, User, Sprout, ArrowRight, Globe, TrendingUp, LogOut } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useTranslation, Language } from '@/context/LanguageContext';
@@ -83,7 +83,7 @@ export function Navbar() {
         scrolled ? 'py-3' : 'py-4'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-12">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -182,15 +182,42 @@ export function Navbar() {
           </div>
 
           {/* Mobile Menu Controls */}
-          <div className="flex md:hidden items-center gap-3">
+          <div className="flex md:hidden items-center gap-2">
+            {/* Show Login or Dashboard/Logout directly on the header screen */}
+            {user ? (
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href="/dashboard"
+                  className="p-2.5 rounded-xl bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 transition-all active:scale-95"
+                  title={t.common.dashboard}
+                >
+                  <User className="w-5 h-5" />
+                </Link>
+                <button
+                  onClick={handleSignOut}
+                  className="p-2.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 transition-all cursor-pointer active:scale-95"
+                  title={t.common.signOut}
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="px-3.5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-black shadow-md shadow-primary-500/10 transition-all active:scale-95"
+              >
+                {t.common.signIn}
+              </Link>
+            )}
+
             {renderThemeToggle()}
             
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-3 rounded-xl bg-earth-100 dark:bg-earth-800 text-foreground transition-all cursor-pointer"
+              className="p-2.5 rounded-xl bg-earth-100 dark:bg-earth-800 text-foreground transition-all cursor-pointer active:scale-95"
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -202,6 +229,15 @@ export function Navbar() {
           mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
+        {/* Close Button inside Drawer */}
+        <button
+          onClick={() => setMobileMenuOpen(false)}
+          className="absolute top-4 right-4 p-3 rounded-xl bg-earth-100 dark:bg-earth-800 text-foreground hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-all cursor-pointer"
+          aria-label="Close menu"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
         <div className="flex flex-col gap-6 mt-16">
           {/* Mobile Language Switcher */}
           <div className="flex items-center justify-between pb-4 border-b border-border mt-2">
@@ -219,6 +255,49 @@ export function Navbar() {
               </select>
               <span className="absolute right-2 text-[8px] text-earth-450 pointer-events-none font-bold">▼</span>
             </div>
+          </div>
+
+          {/* Mobile Auth Actions - Top Section for Instant Visibility */}
+          <div className="pb-4 border-b border-border flex flex-col gap-2">
+            {user ? (
+              <div className="flex flex-col gap-2">
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-bold shadow-sm"
+                >
+                  <User className="w-4.5 h-4.5" />
+                  <span>{t.common.dashboard}</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="py-2.5 rounded-xl border border-red-500/20 text-red-500 text-sm font-bold hover:bg-red-500/5 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4.5 h-4.5" />
+                  <span>{t.common.signOut}</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl border border-border text-center text-sm font-bold text-foreground hover:bg-earth-100 dark:hover:bg-earth-800"
+                >
+                  {t.common.signIn}
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-primary-600 text-white text-center text-sm font-bold shadow-md shadow-primary-500/10 hover:bg-primary-700"
+                >
+                  {t.common.getStarted}
+                </Link>
+              </div>
+            )}
           </div>
 
           <Link
@@ -255,45 +334,6 @@ export function Navbar() {
             <ShoppingCart className="w-5 h-5 text-primary-500" />
             <span>{t.common.myCart}</span>
           </Link>
-
-          {user ? (
-            <div className="flex flex-col gap-3">
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary-600 text-white font-bold"
-              >
-                <User className="w-5 h-5" />
-                <span>{t.common.dashboard}</span>
-              </Link>
-              <button
-                onClick={() => {
-                  handleSignOut();
-                  setMobileMenuOpen(false);
-                }}
-                className="py-3 rounded-xl border border-red-500/20 text-red-500 font-bold hover:bg-red-500/5 cursor-pointer"
-              >
-                {t.common.signOut}
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-3 rounded-xl border border-border text-center font-bold"
-              >
-                {t.common.signIn}
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setMobileMenuOpen(false)}
-                className="py-3 rounded-xl bg-primary-600 text-white text-center font-bold shadow-md shadow-primary-500/10"
-              >
-                {t.common.getStarted}
-              </Link>
-            </div>
-          )}
         </div>
       </div>
       

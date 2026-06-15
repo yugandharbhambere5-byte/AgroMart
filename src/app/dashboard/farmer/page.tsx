@@ -197,6 +197,7 @@ export default function FarmerDashboard() {
   // ── Navigation ──
   const [activeTab, setActiveTab] = useState<'overview' | 'demands' | 'chat' | 'crop_health' | 'finance' | 'schemes' | 'profile' | 'transactions' | 'education' | 'support' | 'market_suggestions'>('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const tabsList = [
     { id: 'overview', icon: LayoutDashboard, label: language === 'mr' ? 'आढावा' : language === 'hi' ? 'अवलोकन' : 'Overview' },
@@ -563,7 +564,10 @@ export default function FarmerDashboard() {
 
   // Listen for menu toggle event from layout header
   useEffect(() => {
-    const handleToggle = () => setIsMobileMenuOpen(prev => !prev);
+    const handleToggle = () => {
+      setIsMobileMenuOpen(prev => !prev);
+      setIsSidebarOpen(prev => !prev);
+    };
     window.addEventListener('toggle-mobile-menu', handleToggle);
     return () => window.removeEventListener('toggle-mobile-menu', handleToggle);
   }, []);
@@ -927,16 +931,86 @@ export default function FarmerDashboard() {
   const trustLevelLabel = trustScore >= 70 ? 'Verified Farmer' : trustScore >= 30 ? 'Partially Verified' : 'Unverified';
   const trustLevelColor = trustScore >= 70 ? 'text-emerald-500' : trustScore >= 30 ? 'text-harvest-500' : 'text-red-400';
 
+  const displayFullName = user?.user_metadata?.fullName || user?.user_metadata?.full_name || 'Farmer';
+
   // ─── JSX ─────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-0 animate-fade-in-up relative">
+    <div className="flex flex-col gap-0 animate-fade-in-up relative w-full">
 
-      {/* ── Emergency Alerts Banner ───────────────────────────────────────── */}
-      <div className="-mx-4 sm:-mx-6 lg:-mx-8 mb-6">
-        <EmergencyAlerts userLocation={userLocation} />
-      </div>
+      <div className="lg:flex lg:gap-0 items-stretch min-h-[calc(100vh-4rem)] w-full">
+        
+        {/* Desktop Sidebar Panel */}
+        <aside className={`shrink-0 bg-card border-r border-border sticky top-16 self-stretch flex-col gap-6 h-[calc(100vh-4rem)] overflow-y-auto scroll-smooth transition-all duration-300 ${isSidebarOpen ? 'w-72 p-6' : 'w-20 p-4 items-center'} hidden lg:flex`}>
+          
+          {/* Logo or Profile Info */}
+          <div className={`flex flex-col items-center text-center pb-5 border-b border-border gap-3 ${isSidebarOpen ? '' : 'hidden'}`}>
+            <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-950 flex items-center justify-center text-primary-600 font-black text-2xl uppercase border border-primary-500/10">
+              {displayFullName.charAt(0)}
+            </div>
+            <div>
+              <h4 className="font-extrabold text-foreground text-base leading-tight">{displayFullName}</h4>
+              <p className="text-xs text-earth-500 font-bold mt-1 uppercase tracking-wider">{userLocation || 'Akola Hub'}</p>
+            </div>
+            {trustScore > 0 && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wide border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>{trustLevelLabel}</span>
+              </div>
+            )}
+          </div>
 
-      <div className="flex flex-col gap-8">
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-1 w-full relative">
+            {tabsList.map(tab => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative flex items-center rounded-xl text-sm font-extrabold transition-all cursor-pointer w-full ${isSidebarOpen ? 'px-4 py-3.5 gap-3 justify-start' : 'p-3 justify-center'} ${
+                    isSelected
+                      ? 'bg-primary-500 text-white shadow-md shadow-primary-500/10'
+                      : 'text-earth-500 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+                  }`}
+                  title={tab.label}
+                >
+                  <tab.icon className="w-5 h-5 shrink-0" />
+                  <span className={`truncate ${isSidebarOpen ? '' : 'hidden'}`}>{tab.label}</span>
+                  
+                  {isSidebarOpen && tab.id === 'demands' && demands.filter(d => d.status === 'Open').length > 0 && (
+                    <span className={`ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-black ${isSelected ? 'bg-white text-primary-605' : 'bg-primary-600 text-white'}`}>
+                      {demands.filter(d => d.status === 'Open').length}
+                    </span>
+                  )}
+                  
+                  {isSidebarOpen && tab.id === 'chat' && threads.some(t => t.unreadForFarmer) && (
+                    <span className="w-2 h-2 rounded-full bg-red-500 ml-auto" />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Logout Button */}
+          <div className="pt-4 border-t border-border mt-auto w-full">
+            <button
+              onClick={handleSignOut}
+              className={`flex items-center rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer w-full justify-center ${isSidebarOpen ? 'px-4 py-3.5 gap-2' : 'p-3'}`}
+              title={language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}
+            >
+              <LogOut className="w-5 h-5 shrink-0" />
+              <span className={isSidebarOpen ? '' : 'hidden'}>{language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Right Content Column */}
+        <div className="flex-grow flex flex-col gap-8 min-w-0 w-full px-4 sm:px-6 lg:px-8 py-10 pb-24 lg:pb-10">
+
+          {/* Emergency Alerts Banner inside right content */}
+          <div className="mb-2">
+            <EmergencyAlerts userLocation={userLocation} />
+          </div>
 
       {/* Mobile Sidebar/Drawer Overlay */}
       {isMobileMenuOpen && (
@@ -1052,42 +1126,9 @@ export default function FarmerDashboard() {
               </span>
             )}
           </button>
-
-          <button
-            onClick={handleSignOut}
-            className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>{language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}</span>
-          </button>
         </div>
       </div>
 
-      {/* Tabs - Hidden on mobile viewports */}
-      <div className="hidden lg:flex gap-1 p-1 bg-earth-100/60 dark:bg-earth-900/60 rounded-2xl w-full overflow-x-auto">
-        {tabsList.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition-all cursor-pointer flex-1 justify-center ${
-              activeTab === tab.id
-                ? 'bg-card text-primary-600 shadow-sm border border-border'
-                : 'text-earth-500 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            <span>{tab.label}</span>
-            {tab.id === 'demands' && demands.filter(d => d.status === 'Open').length > 0 && (
-              <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-primary-600 text-white text-[9px] font-black">
-                {demands.filter(d => d.status === 'Open').length}
-              </span>
-            )}
-            {tab.id === 'chat' && threads.some(t => t.unreadForFarmer) && (
-              <span className="w-2 h-2 rounded-full bg-red-500 ml-0.5" />
-            )}
-          </button>
-        ))}
-      </div>
 
       {/* ── OVERVIEW TAB ─────────────────────────────────────────────────────── */}
       {activeTab === 'overview' && (
@@ -1883,8 +1924,41 @@ export default function FarmerDashboard() {
                   const val = e.target.value;
                   setCropName(val);
                   if (formErrors.name) setFormErrors({ ...formErrors, name: '' });
+                  
+                  // Auto-fill category
                   const detected = autoCategory(val);
                   if (detected) setCropCategory(detected);
+
+                  // Auto-fill expected price & unit based on live market rate base values
+                  const lowercase = val.toLowerCase();
+                  if (lowercase.includes('wheat') || lowercase.includes('gahu') || lowercase.includes('गेहूं') || lowercase.includes('गहू')) {
+                    setCropPrice('2450');
+                    setCropUnit('Quintals');
+                  } else if (lowercase.includes('rice') || lowercase.includes('chawal') || lowercase.includes('तांदूळ') || lowercase.includes('चावल')) {
+                    setCropPrice('4800');
+                    setCropUnit('Quintals');
+                  } else if (lowercase.includes('soybean') || lowercase.includes('सोयाबीन')) {
+                    setCropPrice('4650');
+                    setCropUnit('Quintals');
+                  } else if (lowercase.includes('onion') || lowercase.includes('kanda') || lowercase.includes('कांदा') || lowercase.includes('प्याज')) {
+                    setCropPrice('2100');
+                    setCropUnit('Quintals');
+                  } else if (lowercase.includes('potato') || lowercase.includes('batata') || lowercase.includes('बटाटा') || lowercase.includes('आलू')) {
+                    setCropPrice('1520');
+                    setCropUnit('Quintals');
+                  } else if (lowercase.includes('tomato') || lowercase.includes('टोमॅटो') || lowercase.includes('टमाटर')) {
+                    setCropPrice('3500');
+                    setCropUnit('Quintals');
+                  } else if (lowercase.includes('cotton') || lowercase.includes('kapus') || lowercase.includes('कापूस') || lowercase.includes('कपास')) {
+                    setCropPrice('7200');
+                    setCropUnit('Quintals');
+                  } else if (lowercase.includes('turmeric') || lowercase.includes('halad') || lowercase.includes('हळद') || lowercase.includes('हल्दी')) {
+                    setCropPrice('14500');
+                    setCropUnit('Quintals');
+                  } else if (lowercase.includes('sugarcane') || lowercase.includes('ganna') || lowercase.includes('ऊस')) {
+                    setCropPrice('3150');
+                    setCropUnit('Tons');
+                  }
                 }}
                   className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-sm ${formErrors.name ? 'border-red-500' : 'border-border'}`} />
                 {formErrors.name && <span className="text-[10px] font-bold text-red-500">{formErrors.name}</span>}
@@ -2190,7 +2264,8 @@ export default function FarmerDashboard() {
         ))}
       </div>
 
-    </div>{/* end inner gap-8 div */}
+        </div>{/* end Right Content Column */}
+      </div>{/* end lg:flex lg:gap-0 */}
     </div>
   );
 }

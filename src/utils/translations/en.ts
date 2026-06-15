@@ -3,9 +3,9 @@ export const en = {
     about: 'About',
     features: 'Features',
     stats: 'Market Stats',
-    signIn: 'Sign In',
+    signIn: 'Login',
     signOut: 'Sign Out',
-    getStarted: 'Get Started',
+    getStarted: 'Registration',
     myFarm: 'My Farm',
     myCart: 'My Cart',
     dashboard: 'Dashboard',
@@ -231,7 +231,7 @@ export const en = {
     newToAgroMart: 'New to AgroMart?',
     alreadyHaveAccount: 'Already have an account?',
     createAccountLink: 'Create an Account',
-    signInLink: 'Sign In'
+    signInLink: 'Login'
   },
   locationSystem: {
     detectLocation: 'Detect Current Location',

@@ -343,6 +343,28 @@ export function BestSellingSuggestions({ language, rates }: SuggestionsProps) {
     }
   }, [rates, language]);
 
+  // Sync rates in real-time when localStorage is modified (e.g., admin edits rates)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'agromart-market-rates' && e.newValue) {
+        try {
+          const ratesList = JSON.parse(e.newValue);
+          const merged = mergeRatesWithSuggestions(ratesList, language);
+          setSuggestionData(merged);
+          if (merged.length > 0) {
+            const exists = merged.some(m => m.cropKey === selectedCropKey);
+            if (!exists) {
+              setSelectedCropKey(merged[0].cropKey);
+            }
+          }
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [language, selectedCropKey]);
+
   // Read actual nearby demands from localStorage to show real dynamics
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -647,6 +669,16 @@ export function BestSellingSuggestions({ language, rates }: SuggestionsProps) {
 
           <div className="w-full overflow-x-auto no-scrollbar">
             <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full min-w-[450px] overflow-visible">
+              <defs>
+                <filter id="chartGlowPrimary" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+                <filter id="chartGlowAmber" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
               {/* Grid Lines */}
               {[0, 1, 2, 3].map((g, idx) => {
                 const yVal = minRate + (rateRange / 3) * idx;
@@ -660,10 +692,10 @@ export function BestSellingSuggestions({ language, rates }: SuggestionsProps) {
               })}
 
               {/* Historical Trend Line (Solid) */}
-              <polyline fill="none" stroke="currentColor" className="text-primary-500" strokeWidth="3" points={historyPoints} />
+              <polyline fill="none" stroke="currentColor" className="text-primary-500" strokeWidth="3" points={historyPoints} filter="url(#chartGlowPrimary)" />
               
               {/* Future Forecast Line (Dashed) */}
-              <polyline fill="none" stroke="currentColor" className="text-amber-500" strokeDasharray="5,4" strokeWidth="3" points={forecastPoints} />
+              <polyline fill="none" stroke="currentColor" className="text-amber-500" strokeDasharray="5,4" strokeWidth="3" points={forecastPoints} filter="url(#chartGlowAmber)" />
 
               {/* Data Points Dots */}
               {activeCrop.historyRates.map((val, i) => (

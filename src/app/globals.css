@@ -46,6 +46,10 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --background: #fbfcfb;
   --foreground: #141c19;
@@ -75,10 +79,15 @@
 }
 
 body {
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   background-color: var(--background);
   color: var(--foreground);
   transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-outfit), var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
 /* Custom premium styles */

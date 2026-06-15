@@ -31,7 +31,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       {/* Dashboard Top Header */}
       <header className="sticky top-0 z-40 bg-card border-b border-border shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-5 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <MobileMenuButton />
             <Link href="/" className="flex items-center gap-2 group">
@@ -60,7 +60,7 @@ export default async function DashboardLayout({
 
       {/* Main Dashboard Area */}
       <div className="flex-grow flex flex-col">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-grow flex flex-col">
+        <div className="w-full flex-grow flex flex-col">
           {children}
         </div>
       </div>

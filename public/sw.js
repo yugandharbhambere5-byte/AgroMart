@@ -1,6 +1,6 @@
 const CACHE_NAME = 'agromart-cache-v2';
 const ASSETS_TO_CACHE = [
-  '/manifest.json',
+  '/manifest.webmanifest',
   '/icons/icon.svg',
   '/images/hero.png',
 ];

@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { RegisterSW } from '@/components/RegisterSW';
@@ -7,14 +6,18 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import { LanguageSelectionModal } from '@/components/LanguageSelectionModal';
 import { LiveBackground } from '@/components/layout/LiveBackground';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+import { Plus_Jakarta_Sans, Outfit } from 'next/font/google';
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: '--font-sans',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const outfit = Outfit({
+  variable: '--font-outfit',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
 });
 
 export const metadata: Metadata = {
@@ -55,7 +58,7 @@ export const viewport: Viewport = {
   userScalable: false,
  };
  
- export default function RootLayout({
+export default function RootLayout({
    children,
  }: Readonly<{
    children: React.ReactNode;
@@ -63,7 +66,7 @@ export const viewport: Viewport = {
    return (
      <html
        lang="en"
-       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+       className={`${plusJakartaSans.variable} ${outfit.variable} h-full antialiased`}
        suppressHydrationWarning
      >
        <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">

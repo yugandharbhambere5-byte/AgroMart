@@ -75,7 +75,7 @@ export function MarketStats() {
 
   return (
     <section id="stats" className="py-24 bg-card border-t border-b border-border transition-colors duration-300 scroll-mt-28">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-12">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
           

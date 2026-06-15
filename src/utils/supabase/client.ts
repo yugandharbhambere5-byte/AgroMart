@@ -12,22 +12,87 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
         auth: {
           signInWithPassword: async ({ email, password }: { email?: string; password?: string }) => {
             console.warn('Mock Supabase client: signInWithPassword mock response triggered');
+            
+            if (typeof window !== 'undefined') {
+              const storedAdmins = localStorage.getItem('agromart_admins');
+              if (storedAdmins) {
+                try {
+                  const admins = JSON.parse(storedAdmins);
+                  const matched = admins.find((a: any) => a.email === email);
+                  if (matched) {
+                    if (matched.password === password) {
+                      if (!matched.isVerified) {
+                        return {
+                          data: { user: null, session: null },
+                          error: { message: 'Your admin account is not verified yet. Please verify your email OTP.' }
+                        };
+                      }
+                      const mockUser = {
+                        id: matched.id || 'mock-admin-' + Date.now(),
+                        email: matched.email,
+                        user_metadata: {
+                          role: 'admin',
+                          full_name: matched.fullName,
+                        }
+                      };
+                      localStorage.setItem('agro-mart-mock-user', JSON.stringify(mockUser));
+                      document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(mockUser))}; path=/`;
+                      return {
+                        data: {
+                          user: mockUser,
+                          session: { user: mockUser, access_token: 'mock-access-token' }
+                        },
+                        error: null
+                      };
+                    } else {
+                      return {
+                        data: { user: null, session: null },
+                        error: { message: 'Invalid password. Please try again.' }
+                      };
+                    }
+                  }
+                } catch (e) {}
+              }
+            }
+
             let correctPassword = 'admin123';
             if (typeof window !== 'undefined') {
               correctPassword = localStorage.getItem('agro-mart-mock-admin-pass') || 'admin123';
             }
-            if (email === 'admin@agromart.com' && password === correctPassword) {
+
+            const isHardcodedAdmin = 
+              (email === 'admin@agromart.com' && password === correctPassword) ||
+              (email === 'yugandharbhambere5@gmail.com' && password === 'Admin@123');
+
+            if (isHardcodedAdmin) {
+              const isUserReqAdmin = email === 'yugandharbhambere5@gmail.com';
               const mockUser = {
-                id: 'mock-admin-12345',
+                id: isUserReqAdmin ? 'mock-admin-yugandhar' : 'mock-admin-12345',
                 email: email,
                 user_metadata: {
                   role: 'admin',
-                  full_name: 'System Administrator',
+                  full_name: isUserReqAdmin ? 'Yugandhar Bhambere' : 'System Administrator',
                 }
               };
               if (typeof window !== 'undefined') {
                 localStorage.setItem('agro-mart-mock-user', JSON.stringify(mockUser));
                 document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(mockUser))}; path=/`;
+                
+                // Also seed into agromart_admins array if not exists so registration lists are consistent
+                try {
+                  const storedAdmins = localStorage.getItem('agromart_admins');
+                  let admins = storedAdmins ? JSON.parse(storedAdmins) : [];
+                  if (!admins.some((a: any) => a.email.toLowerCase() === email.toLowerCase())) {
+                    admins.push({
+                      id: mockUser.id,
+                      fullName: mockUser.user_metadata.full_name,
+                      email: email,
+                      password: password,
+                      isVerified: true
+                    });
+                    localStorage.setItem('agromart_admins', JSON.stringify(admins));
+                  }
+                } catch (e) {}
               }
               return {
                 data: {
@@ -42,7 +107,7 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
             }
             return {
               data: { user: null, session: null },
-              error: { message: `Invalid credentials. Please use admin@agromart.com and ${correctPassword}.` }
+              error: { message: `Invalid credentials.` }
             };
           },
           resetPasswordForEmail: async (email: string, options?: any) => {
@@ -71,7 +136,7 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
               phone: phone || null,
               user_metadata: {
                 role: role,
-                full_name: 'Demo Local User',
+                full_name: 'Superadmin',
               }
             };
 

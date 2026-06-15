@@ -11,7 +11,7 @@ export function Footer() {
   return (
     <footer className="bg-earth-950 text-earth-300 border-t border-earth-900/60 transition-colors duration-300">
       {/* Pre-footer Value Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-b border-earth-900/40">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-12 py-12 border-b border-earth-900/40">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="flex items-start gap-4">
             <div className="p-3 rounded-xl bg-primary-950 text-primary-400">
@@ -44,7 +44,7 @@ export function Footer() {
       </div>
 
       {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-12 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-8">
           {/* Logo & Newsletter */}
           <div className="lg:col-span-2 flex flex-col gap-6">
@@ -148,8 +148,8 @@ export function Footer() {
             &copy; {new Date().getFullYear()} AgroMart. {t.footer.copyright}
           </p>
           <div className="flex items-center gap-6 text-xs text-earth-500">
-            <Link href="#privacy" className="hover:text-white transition-colors">{t.footer.privacy}</Link>
-            <Link href="#terms" className="hover:text-white transition-colors">{t.footer.terms}</Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">{t.footer.privacy}</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">{t.footer.terms}</Link>
             <Link href="#cookies" className="hover:text-white transition-colors">{t.footer.cookies}</Link>
           </div>
         </div>

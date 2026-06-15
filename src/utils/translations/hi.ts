@@ -3,7 +3,7 @@ export const hi = {
     about: 'हमारे बारे में',
     features: 'विशेषताएं',
     stats: 'बाजार की जानकारी',
-    signIn: 'लॉग इन करें (Sign In)',
+    signIn: 'लॉग इन करें (Login)',
     signOut: 'लॉग आउट करें (Sign Out)',
     getStarted: 'शुरू करें',
     myFarm: 'मेरी खेती',

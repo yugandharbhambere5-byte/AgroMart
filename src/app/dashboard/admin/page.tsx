@@ -11,7 +11,7 @@ import {
   Star, UserCheck, UserX, Package, LayoutDashboard, Activity,
   FileText, Settings, Bell, ArrowUpRight, ArrowDownRight,
   ShieldX, Globe, Zap, Plus, Save, X, CheckSquare, MoreVertical,
-  Minus, Phone, Fingerprint, BookOpen, HelpCircle
+  Minus, Phone, Fingerprint, BookOpen, HelpCircle, Menu
 } from 'lucide-react';
 import { AdminEducationManager } from '@/components/education/AdminEducationManager';
 import { AdminSupportManager } from '@/components/support/AdminSupportManager';
@@ -204,6 +204,18 @@ export default function AdminDashboard() {
   const supabase = createClient();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Listen for menu toggle event from layout header
+  React.useEffect(() => {
+    const handleToggle = () => {
+      setIsMobileMenuOpen(prev => !prev);
+      setIsSidebarOpen(prev => !prev);
+    };
+    window.addEventListener('toggle-mobile-menu', handleToggle);
+    return () => window.removeEventListener('toggle-mobile-menu', handleToggle);
+  }, []);
 
   // ── Users State ──
   const [users, setUsers] = useState<AdminUser[]>(SEED_USERS);
@@ -427,57 +439,189 @@ export default function AdminDashboard() {
 
   // ─── JSX ─────────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-8 animate-fade-in-up">
+    <div className="flex flex-col gap-0 animate-fade-in-up relative w-full">
 
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/20">
-            <ShieldCheck className="w-6 h-6 text-white" />
+      <div className="lg:flex lg:gap-0 items-stretch min-h-[calc(100vh-4rem)] w-full">
+        {/* Desktop Sidebar Panel */}
+        <aside className={`shrink-0 bg-card border-r border-border sticky top-16 self-stretch flex-col gap-6 h-[calc(100vh-4rem)] overflow-y-auto scroll-smooth transition-all duration-300 ${isSidebarOpen ? 'w-72 p-6' : 'w-20 p-4 items-center'} hidden lg:flex`}>
+          
+          {/* Logo or Profile Info */}
+          <div className={`flex flex-col items-center text-center pb-5 border-b border-border gap-3 ${isSidebarOpen ? '' : 'hidden'}`}>
+            <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-950 flex items-center justify-center text-red-600 font-black text-2xl uppercase border border-red-500/10">
+              A
+            </div>
+            <div>
+              <h4 className="font-extrabold text-foreground text-base leading-tight">Admin System</h4>
+              <p className="text-xs text-earth-500 font-bold mt-1 uppercase tracking-wider">Control Center</p>
+            </div>
+            {openReports > 0 && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wide border-red-500/30 bg-red-50 dark:bg-red-950/30 text-red-600">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>{openReports} Open Reports</span>
+              </div>
+            )}
           </div>
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-foreground">Admin Control Panel</h1>
-            <p className="text-sm font-semibold text-earth-500 mt-0.5">Manage users, listings, reports, and market rates</p>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-1 w-full relative">
+            {TABS.map(tab => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative flex items-center rounded-xl text-sm font-extrabold transition-all cursor-pointer w-full ${isSidebarOpen ? 'px-4 py-3.5 gap-3 justify-start' : 'p-3 justify-center'} ${
+                    isSelected
+                      ? 'bg-red-600 text-white shadow-md shadow-red-500/10'
+                      : 'text-earth-500 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+                  }`}
+                  title={tab.label}
+                >
+                  <tab.icon className="w-5 h-5 shrink-0" />
+                  <span className={`truncate ${isSidebarOpen ? '' : 'hidden'}`}>{tab.label}</span>
+                  
+                  {isSidebarOpen && tab.badge != null && tab.badge > 0 && (
+                    <span className={`ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-black ${isSelected ? 'bg-white text-red-600' : 'bg-red-600 text-white'}`}>
+                      {tab.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Logout Button */}
+          <div className="pt-4 border-t border-border mt-auto w-full">
+            <button
+              onClick={handleSignOut}
+              className={`flex items-center rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer w-full justify-center ${isSidebarOpen ? 'px-4 py-3.5 gap-2' : 'p-3'}`}
+              title="Sign Out"
+            >
+              <LogOut className="w-5 h-5 shrink-0" />
+              <span className={isSidebarOpen ? '' : 'hidden'}>Sign Out</span>
+            </button>
           </div>
-        </div>
-        <div className="flex items-center gap-3 self-start md:self-auto">
-          {openReports > 0 && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 text-xs font-black">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              {openReports} open reports
+        </aside>
+
+        {/* Right Content Column */}
+        <div className="flex-grow flex flex-col gap-8 min-w-0 w-full px-4 sm:px-6 lg:px-8 py-10 pb-24 lg:pb-10">
+
+          {/* Mobile Sidebar/Drawer Overlay */}
+          {isMobileMenuOpen && (
+            <div className="fixed inset-0 z-50 flex lg:hidden">
+              {/* Backdrop */}
+              <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+
+              {/* Drawer content */}
+              <div className="relative flex flex-col w-80 max-w-[85vw] h-full bg-card border-r border-border p-6 shadow-2xl animate-slide-in-left">
+                {/* Header */}
+                <div className="flex items-center justify-between pb-6 border-b border-border">
+                  <span className="text-lg font-black tracking-tight text-foreground">
+                    Agro<span className="text-red-500">Admin</span>
+                  </span>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 rounded-xl bg-earth-100 hover:bg-earth-200 dark:bg-earth-900 dark:hover:bg-earth-800 text-earth-700 dark:text-earth-300 cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Nav list */}
+                <div className="flex-grow overflow-y-auto py-6 flex flex-col gap-1">
+                  {TABS.map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveTab(tab.id as any);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer justify-start ${
+                        activeTab === tab.id
+                          ? 'bg-red-500/10 text-red-650 border border-red-500/20'
+                          : 'text-earth-550 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+                      }`}
+                    >
+                      <tab.icon className="w-5 h-5" />
+                      <span>{tab.label}</span>
+                      {tab.badge != null && tab.badge > 0 && (
+                        <span className="ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-black bg-red-600 text-white">
+                          {tab.badge}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Logout button at the very bottom */}
+                <div className="pt-4 border-t border-border">
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-3.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />Sign Out
-          </button>
-        </div>
-      </div>
 
-      {/* ── Tab Bar ─────────────────────────────────────────────────────────── */}
-      <div className="flex gap-1 p-1 bg-earth-100/60 dark:bg-earth-900/60 rounded-2xl w-full overflow-x-auto">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition-all cursor-pointer flex-1 justify-center relative ${
-              activeTab === tab.id
-                ? 'bg-card text-red-500 shadow-sm border border-border'
-                : 'text-earth-500 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            <span className="hidden sm:inline">{tab.label}</span>
-            {tab.badge != null && tab.badge > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
-                {tab.badge}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+                <ShieldCheck className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-black tracking-tight text-foreground">Admin Control Panel</h1>
+                <p className="text-sm font-semibold text-earth-500 mt-0.5">Manage users, listings, reports, and market rates</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 self-start md:self-auto">
+              {openReports > 0 && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 text-xs font-black">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  {openReports} open reports
+                </div>
+              )}
+              <button
+                onClick={handleSignOut}
+                className="flex lg:hidden items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />Sign Out
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Tab Bar */}
+          <div className="lg:hidden flex gap-1 p-1 bg-earth-100/60 dark:bg-earth-900/60 rounded-2xl w-full overflow-x-auto">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition-all cursor-pointer flex-1 justify-center relative ${
+                  activeTab === tab.id
+                    ? 'bg-card text-red-500 shadow-sm border border-border'
+                    : 'text-earth-500 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span className="hidden sm:inline">{tab.label}</span>
+                {tab.badge != null && tab.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
 
       {/* ══════════════════════════════════════════════════════════════════════ */}
       {/* OVERVIEW TAB                                                         */}
@@ -1228,6 +1372,9 @@ export default function AdminDashboard() {
       {activeTab === 'support' && (
         <AdminSupportManager />
       )}
+
+        </div>{/* end Right Content Column */}
+      </div>{/* end lg:flex lg:gap-8 items-start */}
 
     </div>
   );

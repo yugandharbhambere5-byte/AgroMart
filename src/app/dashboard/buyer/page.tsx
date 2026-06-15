@@ -7,7 +7,7 @@ import {
   Search, Filter, Heart, ArrowRight, ShieldCheck, TrendingUp, Info, MapPin, Tag,
   ShoppingCart, Send, LayoutDashboard, Star, CheckCircle, Clock, X, Check,
   AlertTriangle, IndianRupee, LogOut, ArrowDownRight, Compass, MessageSquare, Sparkles, Globe,
-  PlusCircle, Bell, Timer, Gavel, HelpCircle, Menu
+  PlusCircle, Bell, Timer, Gavel, HelpCircle, Menu, Sprout
 } from 'lucide-react';
 import { useTranslation, Language } from '@/context/LanguageContext';
 import { HelpCenter } from '@/components/support/HelpCenter';
@@ -641,7 +641,10 @@ export default function BuyerDashboard() {
 
   // Listen for menu toggle event from layout header
   useEffect(() => {
-    const handleToggle = () => setIsMobileMenuOpen(prev => !prev);
+    const handleToggle = () => {
+      setIsMobileMenuOpen(prev => !prev);
+      setIsSidebarOpen(prev => !prev);
+    };
     window.addEventListener('toggle-mobile-menu', handleToggle);
     return () => window.removeEventListener('toggle-mobile-menu', handleToggle);
   }, []);
@@ -859,6 +862,7 @@ export default function BuyerDashboard() {
   const [chatCategory, setChatCategory] = useState<'price' | 'quantity' | 'delivery' | 'general'>('general');
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const tabsList = [
     { id: 'marketplace', icon: ShoppingCart, label: t.dashboard.buyer.tabMarketplace, showNotification: false },
@@ -1624,8 +1628,77 @@ export default function BuyerDashboard() {
     memberSince: '2023-01-15T00:00:00.000Z'
   };
 
+  const displayFullName = user?.user_metadata?.fullName || user?.user_metadata?.full_name || 'Buyer';
+  const trustLevelLabel = trustScore === 100 ? t.verification.verifiedBuyer : t.verification.verifiedBadge;
+
   return (
-    <div className="flex flex-col gap-8 animate-fade-in-up relative">
+    <div className="flex flex-col gap-0 animate-fade-in-up relative w-full">
+
+      <div className="lg:flex lg:gap-0 items-stretch min-h-[calc(100vh-4rem)] w-full">
+        {/* Desktop Sidebar Panel */}
+        <aside className={`shrink-0 bg-card border-r border-border sticky top-16 self-stretch flex-col gap-6 h-[calc(100vh-4rem)] overflow-y-auto scroll-smooth transition-all duration-300 ${isSidebarOpen ? 'w-72 p-6' : 'w-20 p-4 items-center'} hidden lg:flex`}>
+          
+          {/* Logo or Profile Info */}
+          <div className={`flex flex-col items-center text-center pb-5 border-b border-border gap-3 ${isSidebarOpen ? '' : 'hidden'}`}>
+            <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-950 flex items-center justify-center text-primary-600 font-black text-2xl uppercase border border-primary-500/10">
+              {displayFullName.charAt(0)}
+            </div>
+            <div>
+              <h4 className="font-extrabold text-foreground text-base leading-tight">{displayFullName}</h4>
+              <p className="text-xs text-earth-500 font-bold mt-1 uppercase tracking-wider">{userLocation || 'Akola Hub'}</p>
+            </div>
+            {trustScore > 0 && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-wide border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>{trustLevelLabel}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation Links */}
+          <nav className="flex flex-col gap-1 w-full relative">
+            {tabsList.map(tab => {
+              const isSelected = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative flex items-center rounded-xl text-sm font-extrabold transition-all cursor-pointer w-full ${isSidebarOpen ? 'px-4 py-3.5 gap-3 justify-start' : 'p-3 justify-center'} ${
+                    isSelected
+                      ? 'bg-primary-500 text-white shadow-md shadow-primary-500/10'
+                      : 'text-earth-500 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+                  }`}
+                  title={tab.label}
+                >
+                  <tab.icon className="w-5 h-5 shrink-0" />
+                  <span className={`truncate ${isSidebarOpen ? '' : 'hidden'}`}>{tab.label}</span>
+                  
+                  {isSidebarOpen && tab.id === 'offers' && sentOffers.filter(o => o.status === 'Pending').length > 0 && (
+                    <span className="ml-auto w-2 h-2 rounded-full bg-red-500" />
+                  )}
+                  {isSidebarOpen && tab.id === 'chat' && threads.some(t => t.unreadForBuyer) && (
+                    <span className="ml-auto w-2 h-2 rounded-full bg-red-500" />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Logout Button */}
+          <div className="pt-4 border-t border-border mt-auto w-full">
+            <button
+              onClick={handleSignOut}
+              className={`flex items-center rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer w-full justify-center ${isSidebarOpen ? 'px-4 py-3.5 gap-2' : 'p-3'}`}
+              title={language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}
+            >
+              <LogOut className="w-5 h-5 shrink-0" />
+              <span className={isSidebarOpen ? '' : 'hidden'}>{language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Right Content Column */}
+        <div className="flex-grow flex flex-col gap-8 min-w-0 w-full px-4 sm:px-6 lg:px-8 py-10 pb-24 lg:pb-10">
 
       {/* Mobile Sidebar/Drawer Overlay */}
       {isMobileMenuOpen && (
@@ -1704,11 +1777,11 @@ export default function BuyerDashboard() {
               {trustScore > 0 && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wide">
                   <ShieldCheck className="w-4 h-4" />
-                  <span>{trustScore === 100 ? t.verification.verifiedBuyer : t.verification.verifiedBadge}</span>
+                  <span>{trustLevelLabel}</span>
                 </span>
               )}
             </h1>
-            <p className="text-sm font-semibold text-earth-550 dark:text-earth-400 mt-1">
+            <p className="text-sm font-semibold text-earth-555 dark:text-earth-400 mt-1">
               {t.dashboard.buyer.subtitle}
             </p>
           </div>
@@ -1741,40 +1814,9 @@ export default function BuyerDashboard() {
               <span className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-card" />
             )}
           </button>
-
-          <button
-            onClick={handleSignOut}
-            className="hidden lg:flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Sign Out</span>
-          </button>
         </div>
       </div>
 
-      {/* Navigation Tabs - Hidden on mobile viewports */}
-      <div className="hidden lg:flex border-b border-border gap-2 overflow-x-auto pb-1">
-        {tabsList.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-3.5 rounded-xl text-sm font-extrabold cursor-pointer transition-all shrink-0 ${
-              activeTab === tab.id
-                ? 'bg-primary-600 text-white shadow-md'
-                : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            <span>{tab.label}</span>
-            {tab.id === 'offers' && sentOffers.filter(o => o.status === 'Pending').length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-red-500 ml-1" />
-            )}
-            {tab.id === 'chat' && threads.some(thread => thread.unreadForBuyer) && (
-              <span className="w-2 h-2 rounded-full bg-red-500 ml-1" />
-            )}
-          </button>
-        ))}
-      </div>
 
       {/* TAB 1: Marketplace Browse */}
       {activeTab === 'marketplace' && (
@@ -1850,7 +1892,7 @@ export default function BuyerDashboard() {
                 <div>
                   <h3 className="text-sm font-extrabold text-foreground">{language === 'mr' ? 'खरेदी नकाशा आणि जीपीएस स्थान ट्रॅकर' : language === 'hi' ? 'खरीद मानचित्र और जीपीएस स्थान ट्रैकर' : 'Sourcing Map & Geolocation Locator'}</h3>
                   <p className="text-[11px] text-earth-500 font-bold">
-                    {language === 'mr' ? 'सध्याचे स्थान:' : language === 'hi' ? 'वर्तमान स्थान:' : 'Current Location:'} <span className="text-primary-600 dark:text-primary-400 font-black">{userLocation || (language === 'mr' ? 'पुणे केंद्र' : language === 'hi' ? 'पुणे केंद्र' : 'Pune Hub')}</span> 
+                    {language === 'mr' ? 'सध्याचे स्थान:' : language === 'hi' ? 'वर्तमान स्थान:' : 'Current Location:'} <span className="text-primary-600 dark:text-primary-400 font-black">{userLocation || (language === 'mr' ? 'अकोला केंद्र' : language === 'hi' ? 'अकोला केंद्र' : 'Akola Hub')}</span> 
                     {userCoords && ` (${userCoords.lat.toFixed(4)}° N, {userCoords.lon.toFixed(4)}° E)`}
                   </p>
                 </div>
@@ -3755,6 +3797,9 @@ export default function BuyerDashboard() {
           <TransactionHistory userRole="buyer" userId={user?.id || 'mock-buyer-1'} />
         </div>
       )}
+
+        </div>{/* end Right Content Column */}
+      </div>{/* end lg:flex lg:gap-8 items-start */}
 
       {/* Floating In-App Toasts Stack */}
       <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none">

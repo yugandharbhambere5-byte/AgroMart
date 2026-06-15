@@ -30,7 +30,7 @@ export function Features() {
       {/* Decorative background grid */}
       <div className="absolute inset-0 bg-[radial-gradient(rgba(16,185,129,0.04)_1.5px,transparent_1.5px)] [background-size:24px_24px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-12 relative">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 flex flex-col gap-4">
