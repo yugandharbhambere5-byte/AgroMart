@@ -179,11 +179,13 @@ const mergeRatesWithSuggestions = (ratesList: any[], language: string) => {
 
     // Pick 3 pseudo-random mandis from Maharashtra
     const selectedIndexes: number[] = [];
-    while (selectedIndexes.length < 3) {
-      const idx = Math.floor(getPseudoRandom(selectedIndexes.length + 1) * maharashtraMandis.length);
+    let attempts = 0;
+    while (selectedIndexes.length < 3 && attempts < 100) {
+      const idx = Math.floor(getPseudoRandom(selectedIndexes.length + 1 + attempts) * maharashtraMandis.length);
       if (!selectedIndexes.includes(idx)) {
         selectedIndexes.push(idx);
       }
+      attempts++;
     }
 
     return selectedIndexes.map((mandiIdx, i) => {

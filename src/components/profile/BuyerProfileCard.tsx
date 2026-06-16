@@ -8,9 +8,22 @@ import { BuyerProfile } from '@/types/buyer';
 interface BuyerProfileCardProps {
   profile: BuyerProfile;
   onEdit?: () => void;
+  onCall?: () => void;
+  onMessage?: () => void;
+  onSendOffer?: () => void;
+  onRequestVisit?: () => void;
+  language?: 'en' | 'mr' | 'hi';
 }
 
-export function BuyerProfileCard({ profile, onEdit }: BuyerProfileCardProps) {
+export function BuyerProfileCard({ 
+  profile, 
+  onEdit,
+  onCall,
+  onMessage,
+  onSendOffer,
+  onRequestVisit,
+  language
+}: BuyerProfileCardProps) {
   return (
     <div className="w-full bg-card rounded-3xl overflow-hidden shadow-xl border border-border animate-fade-in">
       {/* Banner & Avatar */}
@@ -61,6 +74,78 @@ export function BuyerProfileCard({ profile, onEdit }: BuyerProfileCardProps) {
       {/* Main Content */}
       <div className="px-6 sm:px-8 pt-16 pb-8 flex flex-col gap-8">
         
+        {/* Action Buttons Panel */}
+        <div className="flex flex-wrap gap-3">
+          <button 
+            onClick={() => {
+              const lang = language || 'en';
+              const tNoContact = lang === 'mr' ? 'संपर्क क्रमांक उपलब्ध नाही' : lang === 'hi' ? 'संपर्क नंबर उपलब्ध नहीं है' : 'Contact number not available';
+              if (profile.contactNumber) {
+                window.location.href = `tel:${profile.contactNumber.replace(/\s+/g, '')}`;
+                if (onCall) onCall();
+              } else {
+                alert(tNoContact);
+              }
+            }}
+            className="flex-1 min-w-[140px] py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+          >
+            <Phone className="w-4 h-4" />
+            <span>
+              {language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}
+            </span>
+          </button>
+          {onMessage && (
+            <button 
+              onClick={onMessage}
+              className="flex-1 min-w-[140px] py-3.5 px-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>
+                {language === 'mr' ? 'चॅट करा' : language === 'hi' ? 'चैट करें' : 'Chat'}
+              </span>
+            </button>
+          )}
+          <button 
+            onClick={() => {
+              const lang = language || 'en';
+              const tNoLocation = lang === 'mr' ? 'स्थान नकाशा दुवा उपलब्ध नाही' : lang === 'hi' ? 'स्थान मानचित्र लिंक उपलब्ध नहीं है' : 'Location maps link not available';
+              if (profile.googleMapsUrl) {
+                window.open(profile.googleMapsUrl, '_blank');
+              } else {
+                alert(tNoLocation);
+              }
+            }}
+            className="flex-1 min-w-[140px] py-3.5 px-4 rounded-xl border border-border hover:bg-earth-100 dark:hover:bg-earth-900 text-foreground font-extrabold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          >
+            <MapPin className="w-4 h-4 text-primary-500" />
+            <span>
+              {language === 'mr' ? 'स्थान पहा' : language === 'hi' ? 'स्थान देखें' : 'View Location'}
+            </span>
+          </button>
+          {onSendOffer && (
+            <button 
+              onClick={onSendOffer}
+              className="flex-1 min-w-[140px] py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>
+                {language === 'mr' ? 'पीक ऑफर पाठवा' : language === 'hi' ? 'फसल प्रस्ताव भेजें' : 'Send Crop Offer'}
+              </span>
+            </button>
+          )}
+          {onRequestVisit && (
+            <button 
+              onClick={onRequestVisit}
+              className="flex-1 min-w-[140px] py-3.5 px-4 rounded-xl border border-primary-500/20 bg-primary-50/5 hover:bg-primary-50/10 text-primary-600 font-extrabold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <Clock className="w-4 h-4" />
+              <span>
+                {language === 'mr' ? 'भेट देण्याची विनंती' : language === 'hi' ? 'भेंट का अनुरोध' : 'Request Visit'}
+              </span>
+            </button>
+          )}
+        </div>
+
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="p-4 rounded-2xl bg-earth-50 dark:bg-earth-900/30 border border-border flex flex-col gap-1">
@@ -97,18 +182,17 @@ export function BuyerProfileCard({ profile, onEdit }: BuyerProfileCardProps) {
           <div className="flex flex-col gap-4">
             <h3 className="text-[11px] font-black uppercase tracking-wider text-earth-500">Contact & Address</h3>
             
-            <a 
-              href={`tel:${profile.contactNumber}`}
-              className="flex items-start gap-3 p-3 rounded-xl hover:bg-earth-50 dark:hover:bg-earth-900/20 transition-colors group cursor-pointer"
+            <div 
+              className="flex items-start gap-3 p-3 rounded-xl hover:bg-earth-50 dark:hover:bg-earth-900/20 transition-colors group"
             >
-              <div className="w-10 h-10 rounded-xl bg-earth-100 dark:bg-earth-800 flex items-center justify-center shrink-0 group-hover:bg-primary-100 group-hover:text-primary-600 transition-colors">
-                <Phone className="w-4.5 h-4.5" />
+              <div className="w-10 h-10 rounded-xl bg-earth-100 dark:bg-earth-800 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors">
+                <Phone className="w-4.5 h-4.5 text-emerald-500" />
               </div>
               <div className="flex flex-col">
-                <span className="font-black text-foreground">{profile.contactNumber}</span>
-                <span className="text-xs font-semibold text-earth-500">Mobile Number</span>
+                <span className="font-black text-foreground">🛡️ 🟢 Web Call Secure</span>
+                <span className="text-xs font-semibold text-earth-500">Number Hidden for Privacy</span>
               </div>
-            </a>
+            </div>
 
             <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-earth-50 dark:hover:bg-earth-900/20 transition-colors group">
               <div className="w-10 h-10 rounded-xl bg-earth-100 dark:bg-earth-800 flex items-center justify-center shrink-0">
@@ -150,6 +234,87 @@ export function BuyerProfileCard({ profile, onEdit }: BuyerProfileCardProps) {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="w-full h-px bg-border" />
+
+        {/* Crops They Buy & Current Buying Rates */}
+        <div className="flex flex-col gap-4">
+          <h3 className="text-[11px] font-black uppercase tracking-wider text-earth-500">Crops Purchased & Current Rates</h3>
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {profile.buyingRates && profile.buyingRates.length > 0 ? (
+              profile.buyingRates.map((rate, i) => (
+                <div key={i} className="p-4 rounded-2xl border border-border bg-earth-50/30 dark:bg-earth-900/10 flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-sm text-foreground">{rate.cropName}</span>
+                    <span className="text-[10px] font-bold text-earth-500">Per {rate.unit}</span>
+                  </div>
+                  <span className="font-black text-emerald-600 dark:text-emerald-500 text-base">₹{rate.buyingPrice}</span>
+                </div>
+              ))
+            ) : (
+              [
+                { cropName: 'Soybean', buyingPrice: 4250, unit: 'Quintal' },
+                { cropName: 'Tur (Pigeon Pea)', buyingPrice: 7800, unit: 'Quintal' },
+                { cropName: 'Wheat', buyingPrice: 2450, unit: 'Quintal' }
+              ].map((rate, i) => (
+                <div key={i} className="p-4 rounded-2xl border border-border bg-earth-50/30 dark:bg-earth-900/10 flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-sm text-foreground">{rate.cropName}</span>
+                    <span className="text-[10px] font-bold text-earth-500 font-extrabold">Per {rate.unit}</span>
+                  </div>
+                  <span className="font-black text-emerald-600 dark:text-emerald-500 text-base">₹{rate.buyingPrice}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="w-full h-px bg-border" />
+
+        {/* Recent Deals */}
+        <div className="flex flex-col gap-4">
+          <h3 className="text-[11px] font-black uppercase tracking-wider text-earth-500">Recent Marketplace Deals</h3>
+          {profile.recentDeals && profile.recentDeals.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {profile.recentDeals.map((deal) => (
+                <div key={deal.id} className="p-4 rounded-2xl border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-bold">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 flex items-center justify-center">✓</div>
+                    <div className="flex flex-col">
+                      <span className="text-foreground">{deal.cropName}</span>
+                      <span className="text-[10px] text-earth-500">Qty: {deal.quantity} {deal.unit}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 justify-between sm:justify-end">
+                    <span className="text-foreground">Total: ₹{deal.amount.toLocaleString()}</span>
+                    <span className="text-earth-400 font-semibold">{new Date(deal.date).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {[
+                { id: 'd-1', cropName: 'Soybean', quantity: 20, unit: 'Quintals', amount: 85000, date: '2026-06-10T10:00:00Z' },
+                { id: 'd-2', cropName: 'Wheat', quantity: 15, unit: 'Quintals', amount: 36750, date: '2026-06-08T15:30:00Z' }
+              ].map((deal) => (
+                <div key={deal.id} className="p-4 rounded-2xl border border-border bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 flex items-center justify-center font-bold">✓</div>
+                    <div className="flex flex-col">
+                      <span className="text-foreground font-bold">{deal.cropName}</span>
+                      <span className="text-[10px] text-earth-500 font-bold">Qty: {deal.quantity} {deal.unit}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 justify-between sm:justify-end font-bold">
+                    <span className="text-foreground">Total: ₹{deal.amount.toLocaleString()}</span>
+                    <span className="text-earth-400">{new Date(deal.date).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Ratings & Reviews List */}
@@ -214,7 +379,6 @@ export function BuyerProfileCard({ profile, onEdit }: BuyerProfileCardProps) {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

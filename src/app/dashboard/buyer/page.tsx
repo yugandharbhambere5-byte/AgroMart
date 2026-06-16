@@ -7,7 +7,7 @@ import {
   Search, Filter, Heart, ArrowRight, ShieldCheck, TrendingUp, Info, MapPin, Tag,
   ShoppingCart, Send, LayoutDashboard, Star, CheckCircle, Clock, X, Check,
   AlertTriangle, IndianRupee, LogOut, ArrowDownRight, Compass, MessageSquare, Sparkles, Globe,
-  PlusCircle, Bell, Timer, Gavel, HelpCircle, Menu, Sprout
+  PlusCircle, Bell, Timer, Gavel, HelpCircle, Menu, Sprout, Loader2
 } from 'lucide-react';
 import { useTranslation, Language } from '@/context/LanguageContext';
 import { HelpCenter } from '@/components/support/HelpCenter';
@@ -20,7 +20,10 @@ import { BuyerProfileCard } from '@/components/profile/BuyerProfileCard';
 import { BuyerProfileEditModal } from '@/components/profile/BuyerProfileEditModal';
 import { BuyerProfile } from '@/types/buyer';
 import { Transaction } from '@/types/transaction';
-import { FileText } from 'lucide-react';
+import { FileText, User, Edit } from 'lucide-react';
+import { CropDetailModal } from '@/components/market/CropDetailModal';
+import { FarmerProfileModal, FarmerProfile } from '@/components/profile/FarmerProfileModal';
+import SecureCallModal from '@/components/voice/SecureCallModal';
 
 interface ActiveListing {
   id: string;
@@ -474,10 +477,159 @@ const unitMap: Record<string, Record<string, string>> = {
   hi: { Tons: 'टन', Ton: 'टन', Kgs: 'किलो', Kg: 'किलो', Quintals: 'क्विंटल', Quintal: 'क्विंटल', Bags: 'बोरी', Bag: 'बोरी' }
 };
 
+const menuLabels = {
+  en: {
+    viewProfile: 'View Profile',
+    editProfile: 'Edit Profile',
+    langSettings: 'Language Settings',
+    helpCenter: 'Help Center',
+    logout: 'Log Out'
+  },
+  mr: {
+    viewProfile: 'प्रोफाईल पहा',
+    editProfile: 'प्रोफाईल संपादित करा',
+    langSettings: 'भाषा सेटिंग्स',
+    helpCenter: 'मदत केंद्र',
+    logout: 'लॉग आउट'
+  },
+  hi: {
+    viewProfile: 'प्रोफ़ाइल देखें',
+    editProfile: 'प्रोफ़ाइल संपादित करें',
+    langSettings: 'भाषा सेटिंग्स',
+    helpCenter: 'सहायता केंद्र',
+    logout: 'लॉग आउट'
+  }
+};
+
+const chatLabels = {
+  en: {
+    title: 'Inquiries & Chats',
+    subtitle: 'Direct negotiations with growers',
+    discussionOn: 'Discussion on:',
+    tag: 'Tag:',
+    priceDiscussion: 'Price Discussion',
+    volumeInquiry: 'Volume Inquiry',
+    deliveryRoute: 'Delivery Route',
+    typeMessage: 'Type message details...',
+    send: 'Send',
+    selectThread: 'Select an Inquiry Thread',
+    selectThreadSubtitle: 'Direct peer-to-peer negotiations on prices, logistics and crop volumes',
+    general: 'General',
+    price: 'Price',
+    quantity: 'Quantity',
+    delivery: 'Delivery',
+    discussionType: 'Discussion Type'
+  },
+  mr: {
+    title: 'चौकशी आणि गप्पा',
+    subtitle: 'शेतकऱ्यांशी थेट बोलणी करा',
+    discussionOn: 'चर्चा विषय:',
+    tag: 'टॅग:',
+    priceDiscussion: 'किंमत चर्चा',
+    volumeInquiry: 'प्रमाण चौकशी',
+    deliveryRoute: 'वाहतूक मार्ग',
+    typeMessage: 'मेसेज टाईप करा...',
+    send: 'पाठवा',
+    selectThread: 'चर्चा निवड करा',
+    selectThreadSubtitle: 'किंमत, वाहतूक आणि मालाचे प्रमाण यावर थेट बोलणी करा',
+    general: 'सामान्य',
+    price: 'किंमत',
+    quantity: 'प्रमाण',
+    delivery: 'वितरण',
+    discussionType: 'चर्चा प्रकार'
+  },
+  hi: {
+    title: 'पूछताछ और चैट',
+    subtitle: 'किसानों के साथ सीधी बातचीत करें',
+    discussionOn: 'चर्चा विषय:',
+    tag: 'टैग:',
+    priceDiscussion: 'कीमत चर्चा',
+    volumeInquiry: 'मात्रा पूछताछ',
+    deliveryRoute: 'परिवहन मार्ग',
+    typeMessage: 'संदेश टाइप करें...',
+    send: 'भेजें',
+    selectThread: 'चर्चा का चयन करें',
+    selectThreadSubtitle: 'कीमत, परिवहन और मात्रा पर सीधी बातचीत करें',
+    general: 'सामान्य',
+    price: 'कीमत',
+    quantity: 'मात्रा',
+    delivery: 'वितरण',
+    discussionType: 'चर्चा प्रकार'
+  }
+};
+
+const getLocalizedMessageText = (msgId: string, defaultText: string, lang: string) => {
+  const translations: Record<string, Record<string, string>> = {
+    m1: {
+      en: 'Hello Ramesh, I saw your listing for Organic Durum Wheat. Is the price of ₹24,500 per Ton negotiable for a bulk order of 10 tons?',
+      mr: 'नमस्कार रमेशजी, मी तुमचे सेंद्रिय गहूचे लिस्टिंग पाहिले. १० टन बल्क ऑर्डरसाठी ₹२४,५०० प्रति टन किंमत कमी होऊ शकते का?',
+      hi: 'नमस्कार रमेशजी, मैंने आपकी जैविक गेहूं की लिस्टिंग देखी। १० टन थोक ऑर्डर के लिए ₹२४,५०० प्रति टन कीमत कम हो सकती है क्या?'
+    },
+    m2: {
+      en: 'Hello! Yes, since you are ordering 10 tons, I can adjust the price slightly to ₹23,800 per Ton. How does that sound?',
+      mr: 'नमस्कार! होय, तुम्ही १० टन ऑर्डर करत असल्यामुळे, मी किंमत थोडी कमी करून ₹२३,८०० प्रति टन करू शकतो. तुम्हाला काय वाटते?',
+      hi: 'नमस्कार! हाँ, चूंकि आप १० टन ऑर्डर कर रहे हैं, मैं कीमत थोड़ी कम करके ₹२३,८०० प्रति टन कर सकता हूँ। आपको कैसा लगा?'
+    },
+    m3: {
+      en: 'That sounds fair. Let me submit the official contract offer now. Thanks!',
+      mr: 'हे योग्य वाटते. मी आता अधिकृत करार ऑफर पाठवतो. धन्यवाद!',
+      hi: 'यह ठीक लग रहा है। मैं अभी आधिकारिक अनुबंध प्रस्ताव भेजता हूँ। धन्यवाद!'
+    },
+    m4: {
+      en: 'Hi Suresh, we need to arrange cold storage transport for the Russet Potatoes. Can your packaging sustain 3 days in transit?',
+      mr: 'हाय सुरेशजी, आपल्याला बटाट्यांसाठी कोल्ड स्टोरेज वाहतुकीची सोय करावी लागेल. warme तुमचे पॅकेजिंग ३ दिवस वाहतुकीमध्ये टिकू शकेल का?',
+      hi: 'हाय सुरेशजी, हमें आलू के लिए कोल्ड स्टोरेज परिवहन की व्यवस्था करनी होगी। क्या आपकी पैकेजिंग ३ दिनों तक परिवहन में टिक पाएगी?'
+    },
+    m5: {
+      en: 'Yes, absolutely. We package them in aerated crates and they are stored at 8°C right up to loading. They will hold up perfectly.',
+      mr: 'होय, नक्कीच. आम्ही ते हवेशीर क्रेट्समध्ये पॅक करतो आणि लोड करेपर्यंत ८°C तापमानात ठेवतो. ते अगदी सुरक्षित राहतील.',
+      hi: 'हाँ, बिल्कुल। हम उन्हें हवादार क्रेटों में पैक करते हैं और लोड होने तक ८°C तापमान पर रखते हैं। वे बिल्कुल सुरक्षित रहेंगे।'
+    }
+  };
+  return translations[msgId] ? (translations[msgId][lang] || defaultText) : defaultText;
+};
+
 export default function BuyerDashboard() {
   const router = useRouter();
   const supabase = createClient();
   const { language, setLanguage, t } = useTranslation();
+
+  const [selectedCropForDetail, setSelectedCropForDetail] = useState<ActiveListing | null>(null);
+  const [selectedFarmerProfile, setSelectedFarmerProfile] = useState<FarmerProfile | null>(null);
+  const [activeCallRecipient, setActiveCallRecipient] = useState<string | null>(null);
+
+  const getFarmerProfileByName = (name: string): FarmerProfile => {
+    const farmer = mockFarmers.find(f => f.name === name) || mockFarmers[0];
+    return {
+      id: `farmer-${name.replace(/\s+/g, '-').toLowerCase()}`,
+      name: farmer.name,
+      contactNumber: '+91 98765 43210',
+      address: `${farmer.location.split(' ')[0]}, Maharashtra, India`,
+      isVerified: farmer.certified,
+      ratings: farmer.rating,
+      reviewsCount: 42,
+      memberSince: '2022',
+      trustScore: 95,
+      activeCrops: farmer.activeCrops,
+      listings: crops.filter(c => c.farmer_name === farmer.name).map(c => ({
+        id: c.id,
+        name: c.name,
+        price: c.expected_price,
+        unit: c.unit,
+        quantity: c.quantity
+      })),
+      reviews: [
+        {
+          id: 'r1',
+          reviewerName: 'Premium Agro Buyers',
+          reviewerRole: 'Buyer',
+          rating: 5,
+          comment: 'Excellent quality crops and very smooth transaction.',
+          date: '2026-05-15T00:00:00.000Z'
+        }
+      ]
+    };
+  };
 
   // Notification States
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -762,6 +914,9 @@ export default function BuyerDashboard() {
   const [userLocation, setUserLocation] = useState('');
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
   const [buyerProfile, setBuyerProfile] = useState<BuyerProfile | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [hasFetchedProfile, setHasFetchedProfile] = useState(false);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -872,7 +1027,6 @@ export default function BuyerDashboard() {
     { id: 'trends', icon: TrendingUp, label: t.dashboard.buyer.tabTrends, showNotification: false },
     { id: 'recommendations', icon: Sparkles, label: t.dashboard.buyer.tabRecommendations, showNotification: false },
     { id: 'demands', icon: Compass, label: t.cropDemands.tabMyDemands, showNotification: false },
-    { id: 'profile', icon: ShieldCheck, label: t.verification.title, showNotification: false },
     { id: 'transactions', icon: FileText, label: language === 'mr' ? 'व्यवहार' : language === 'hi' ? 'लेन-देन' : 'Transactions', showNotification: false },
     { id: 'support', icon: HelpCircle, label: language === 'mr' ? 'मदत व तक्रार' : language === 'hi' ? 'मदद और सहायता' : 'Help & Support', showNotification: false },
   ] as const;
@@ -1157,67 +1311,231 @@ export default function BuyerDashboard() {
 
   const trustScore = (isOtpVerified ? 30 : 0) + (isGstVerified ? 35 : 0) + (isKycVerified ? 35 : 0);
 
-  // Sync / Load Buyer Profile
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storageKey = `agromart_buyer_profile_${user?.id || 'default'}`;
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        setBuyerProfile(JSON.parse(stored));
-      } else {
-        const initialProfile: BuyerProfile = {
-          id: user?.id || 'buyer-1',
-          shopName: 'Premium Agro Traders',
-          ownerName: user?.user_metadata?.fullName || 'Premium Agro Buyers',
-          profilePhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80',
-          bannerImage: 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
-          contactNumber: user?.phone || '+91 98765 43210',
-          address: 'Shop No. 42, Krushi Utpanna Bazar Samiti, Pune',
-          googleMapsUrl: 'https://maps.google.com/?q=Pune',
-          businessType: 'Wholesaler',
-          gstNumber: gstNumber || '27AABCU9603R1ZX',
-          isVerified: isKycVerified && isGstVerified,
-          ratings: 4.8,
-          reviewsCount: 156,
-          workingDays: 'Monday - Saturday',
-          timings: '06:00 AM - 08:00 PM',
-          memberSince: '2023-01-15T00:00:00.000Z',
-          reviews: [
-            {
-              id: 'rev-1',
-              reviewerName: 'Ramesh Patil',
-              reviewerRole: 'Farmer',
-              rating: 5,
-              comment: 'Very professional buyer. Timely payments and transparent weight measurement. Highly recommended!',
-              date: '2026-05-10T12:00:00.000Z'
-            },
-            {
-              id: 'rev-2',
-              reviewerName: 'Suresh Deshmukh',
-              reviewerRole: 'Farmer',
-              rating: 4,
-              comment: 'Good communication. Picked up the potato harvest directly from my farm. Payment took 1 day extra but overall very smooth.',
-              date: '2026-06-01T09:30:00.000Z'
-            }
-          ]
-        };
-        localStorage.setItem(storageKey, JSON.stringify(initialProfile));
-        setBuyerProfile(initialProfile);
-      }
-    }
-  }, [user, gstNumber, isKycVerified, isGstVerified]);
+  const fetchProfileFromSupabase = async (userId: string) => {
+    setIsProfileLoading(true);
+    setProfileError(null);
+    console.log('[DEBUG] Auth user ID:', userId);
 
-  const handleSaveProfile = (updatedProfile: BuyerProfile) => {
-    setBuyerProfile(updatedProfile);
-    if (typeof window !== 'undefined') {
-      const storageKey = `agromart_buyer_profile_${user?.id || 'default'}`;
-      localStorage.setItem(storageKey, JSON.stringify(updatedProfile));
+    try {
+      // Try buyer_profiles table first
+      let { data, error } = await supabase
+        .from('buyer_profiles')
+        .select('*')
+        .eq('user_id', userId);
+
+      let activeTable = 'buyer_profiles';
+      let profileRow = data && data.length > 0 ? data[0] : null;
+
+      if (error) {
+        console.warn('[DEBUG] Error fetching from buyer_profiles, checking profiles table:', error.message);
+        // Try profiles table
+        const fallback = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId);
+        
+        profileRow = fallback.data && fallback.data.length > 0 ? fallback.data[0] : null;
+        error = fallback.error;
+        activeTable = 'profiles';
+      }
+
+      console.log('[DEBUG] Fetched profile data from table', activeTable, ':', profileRow);
+
+      if (error) {
+        throw error;
+      }
+
+      if (profileRow) {
+        // Map database record to BuyerProfile object
+        const mappedProfile: BuyerProfile = {
+          id: userId,
+          shopName: profileRow.shop_name || profileRow.shopName || '',
+          ownerName: profileRow.owner_name || profileRow.ownerName || '',
+          profilePhoto: profileRow.profile_photo || profileRow.profile_photo_url || profileRow.profilePhoto || '',
+          bannerImage: profileRow.banner_image || profileRow.shop_banner_image_url || profileRow.bannerImage || '',
+          contactNumber: profileRow.contact_number || profileRow.contactNumber || '',
+          address: profileRow.address || profileRow.shop_address || '',
+          googleMapsUrl: profileRow.google_maps_url || profileRow.google_maps_link || profileRow.googleMapsUrl || '',
+          businessType: profileRow.business_type || profileRow.businessType || 'Other',
+          gstNumber: profileRow.gst_number || profileRow.gstNumber || '',
+          isVerified: !!(profileRow.is_verified ?? profileRow.isVerified),
+          ratings: Number(profileRow.ratings ?? profileRow.rating ?? 4.8),
+          reviewsCount: Number(profileRow.reviews_count ?? profileRow.reviewsCount ?? 0),
+          workingDays: profileRow.working_days || profileRow.workingDays || 'Monday - Saturday',
+          timings: profileRow.timings || (profileRow.opening_time && profileRow.closing_time ? `${profileRow.opening_time} - ${profileRow.closing_time}` : '09:00 AM - 06:00 PM'),
+          memberSince: profileRow.created_at || profileRow.member_since || profileRow.memberSince || new Date().toISOString(),
+          reviews: profileRow.reviews || [],
+          buyingRates: profileRow.buying_rates || [],
+          recentDeals: profileRow.recent_deals || [],
+        };
+        setBuyerProfile(mappedProfile);
+        setHasFetchedProfile(true);
+        return mappedProfile;
+      } else {
+        // Profile does not exist yet. Initialize blank profile structure without sample/demo data.
+        const blankProfile: BuyerProfile = {
+          id: userId,
+          shopName: '',
+          ownerName: user?.user_metadata?.fullName || user?.user_metadata?.full_name || '',
+          profilePhoto: '',
+          bannerImage: '',
+          contactNumber: user?.phone || '',
+          address: '',
+          googleMapsUrl: '',
+          businessType: 'Other',
+          gstNumber: user?.user_metadata?.gst_number || '',
+          isVerified: false,
+          ratings: 5.0,
+          reviewsCount: 0,
+          workingDays: 'Monday - Saturday',
+          timings: '09:00 AM - 06:00 PM',
+          memberSince: new Date().toISOString(),
+          reviews: [],
+          buyingRates: [],
+          recentDeals: [],
+        };
+        setBuyerProfile(blankProfile);
+        setHasFetchedProfile(true);
+        return blankProfile;
+      }
+    } catch (err: any) {
+      console.error('[DEBUG] Fetch Profile Error:', err);
+      setProfileError(err.message || 'Failed to load profile details.');
+      throw err;
+    } finally {
+      setIsProfileLoading(false);
     }
-    pushNotification(
-      'listing_approved',
-      'Your shop profile details have been updated successfully and are now visible to farmers.',
-      'buyer'
-    );
+  };
+
+  const handleOpenEditProfile = async () => {
+    if (!user?.id) {
+      alert('You must be logged in to edit your profile.');
+      return;
+    }
+    try {
+      await fetchProfileFromSupabase(user.id);
+      setIsProfileEditOpen(true);
+    } catch (err: any) {
+      // Error is already logged and set in state
+    }
+  };
+
+  // Initial Load from Supabase Auth user transition
+  useEffect(() => {
+    if (user?.id) {
+      fetchProfileFromSupabase(user.id).catch((e) => {
+        console.warn('Initial profile load from Supabase failed, trying localStorage:', e);
+        const storageKey = `agromart_buyer_profile_${user.id}`;
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          try {
+            setBuyerProfile(JSON.parse(stored));
+          } catch {}
+        }
+      });
+    }
+  }, [user]);
+
+  const handleSaveProfile = async (updatedProfile: BuyerProfile) => {
+    if (!user?.id) return;
+    
+    setIsProfileLoading(true);
+    setProfileError(null);
+
+    // Map camelCase fields to snake_case structure
+    const dbData: any = {
+      shop_name: updatedProfile.shopName,
+      owner_name: updatedProfile.ownerName,
+      profile_photo: updatedProfile.profilePhoto,
+      banner_image: updatedProfile.bannerImage,
+      contact_number: updatedProfile.contactNumber,
+      business_type: updatedProfile.businessType,
+      gst_number: updatedProfile.gstNumber,
+      address: updatedProfile.address,
+      google_maps_url: updatedProfile.googleMapsUrl,
+      working_days: updatedProfile.workingDays,
+      timings: updatedProfile.timings,
+    };
+
+    console.log('[DEBUG] Saving profile data to Supabase:', dbData);
+
+    try {
+      let activeTable = 'buyer_profiles';
+      
+      // Check if row already exists in buyer_profiles
+      let { data: existingRows, error: checkError } = await supabase
+        .from('buyer_profiles')
+        .select('id')
+        .eq('user_id', user.id);
+
+      let existingRow = existingRows && existingRows.length > 0 ? existingRows[0] : null;
+
+      if (checkError) {
+        console.warn('[DEBUG] Error checking buyer_profiles table, switching to profiles table:', checkError.message);
+        activeTable = 'profiles';
+        
+        // Check profiles table
+        const fallbackCheck = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id);
+        
+        existingRow = fallbackCheck.data && fallbackCheck.data.length > 0 ? fallbackCheck.data[0] : null;
+      }
+
+      let saveResponse: any = null;
+
+      if (activeTable === 'buyer_profiles') {
+        if (existingRow) {
+          saveResponse = await supabase
+            .from('buyer_profiles')
+            .update(dbData)
+            .eq('user_id', user.id)
+            .select();
+        } else {
+          saveResponse = await supabase
+            .from('buyer_profiles')
+            .insert({ ...dbData, user_id: user.id })
+            .select();
+        }
+      } else {
+        if (existingRow) {
+          saveResponse = await supabase
+            .from('profiles')
+            .update(dbData)
+            .eq('id', user.id)
+            .select();
+        } else {
+          saveResponse = await supabase
+            .from('profiles')
+            .insert({ ...dbData, id: user.id })
+            .select();
+        }
+      }
+
+      console.log('[DEBUG] Update response:', saveResponse);
+
+      if (saveResponse?.error) {
+        throw saveResponse.error;
+      }
+
+      setBuyerProfile(updatedProfile);
+      if (typeof window !== 'undefined') {
+        const storageKey = `agromart_buyer_profile_${user.id}`;
+        localStorage.setItem(storageKey, JSON.stringify(updatedProfile));
+      }
+
+      pushNotification(
+        'listing_approved',
+        'Your shop profile details have been updated successfully and are now visible to farmers.',
+        'buyer'
+      );
+    } catch (err: any) {
+      console.error('[DEBUG] Save Profile Error:', err);
+      setProfileError(err.message || 'Failed to save profile details.');
+    } finally {
+      setIsProfileLoading(false);
+    }
   };
 
   const handleSendOtp = () => {
@@ -1677,24 +1995,47 @@ export default function BuyerDashboard() {
                     <span className="ml-auto w-2 h-2 rounded-full bg-red-500" />
                   )}
                   {isSidebarOpen && tab.id === 'chat' && threads.some(t => t.unreadForBuyer) && (
-                    <span className="ml-auto w-2 h-2 rounded-full bg-red-500" />
+                    <span className={`ml-auto w-2 h-2 rounded-full bg-red-500`}></span>
                   )}
                 </button>
               );
             })}
-          </nav>
 
-          {/* Logout Button */}
-          <div className="pt-4 border-t border-border mt-auto w-full">
+            {/* Divider */}
+            <div className="my-2 border-t border-border" />
+
+            {/* View Profile */}
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`relative flex items-center rounded-xl text-sm font-extrabold transition-all cursor-pointer w-full ${isSidebarOpen ? 'px-4 py-3.5 gap-3 justify-start' : 'p-3 justify-center'} ${
+                activeTab === 'profile'
+                  ? 'bg-primary-500 text-white shadow-md shadow-primary-500/10'
+                  : 'text-earth-550 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+              }`}
+              title={menuLabels[language].viewProfile}
+            >
+              <User className="w-5 h-5 shrink-0" />
+              <span className={`truncate ${isSidebarOpen ? '' : 'hidden'}`}>{menuLabels[language].viewProfile}</span>
+            </button>
+
+            {/* Edit Profile */}
+            <button
+              onClick={handleOpenEditProfile} className={`relative flex items-center rounded-xl text-sm font-extrabold transition-all cursor-pointer w-full ${isSidebarOpen ? 'px-4 py-3.5 gap-3 justify-start' : 'p-3 justify-center'} text-earth-550 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800`} title={menuLabels[language].editProfile}
+            >
+              <Edit className="w-5 h-5 shrink-0" />
+              <span className={`truncate ${isSidebarOpen ? '' : 'hidden'}`}>{menuLabels[language].editProfile}</span>
+            </button>
+
+            {/* Logout Button */}
             <button
               onClick={handleSignOut}
-              className={`flex items-center rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer w-full justify-center ${isSidebarOpen ? 'px-4 py-3.5 gap-2' : 'p-3'}`}
-              title={language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}
+              className={`relative flex items-center rounded-xl text-sm font-extrabold transition-all cursor-pointer w-full ${isSidebarOpen ? 'px-4 py-3.5 gap-3 justify-start' : 'p-3 justify-center'} border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500`}
+              title={menuLabels[language].logout}
             >
               <LogOut className="w-5 h-5 shrink-0" />
-              <span className={isSidebarOpen ? '' : 'hidden'}>{language === 'mr' ? 'साइन आउट' : language === 'hi' ? 'साइन आउट' : 'Sign Out'}</span>
+              <span className={`truncate ${isSidebarOpen ? '' : 'hidden'}`}>{menuLabels[language].logout}</span>
             </button>
-          </div>
+          </nav>
         </aside>
 
         {/* Right Content Column */}
@@ -1749,19 +2090,48 @@ export default function BuyerDashboard() {
                   )}
                 </button>
               ))}
-            </div>
 
-            {/* Logout button at the very bottom */}
-            <div className="pt-4 border-t border-border">
+              {/* Divider */}
+              <div className="my-2 border-t border-border" />
+
+              {/* View Profile */}
+              <button
+                onClick={() => {
+                  setActiveTab('profile');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer justify-start ${
+                  activeTab === 'profile'
+                    ? 'bg-primary-500/10 text-primary-600 border border-primary-500/20'
+                    : 'text-earth-550 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800'
+                }`}
+              >
+                <User className="w-5 h-5" />
+                <span>{menuLabels[language].viewProfile}</span>
+              </button>
+
+              {/* Edit Profile */}
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleOpenEditProfile();
+                }}
+                className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all cursor-pointer justify-start text-earth-550 hover:text-foreground hover:bg-earth-100 dark:hover:bg-earth-800"
+              >
+                <Edit className="w-5 h-5" />
+                <span>{menuLabels[language].editProfile}</span>
+              </button>
+
+              {/* Logout */}
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   handleSignOut();
                 }}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
+                className="flex items-center justify-start gap-3 px-4 py-3.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer mt-1"
               >
                 <LogOut className="w-5 h-5" />
-                <span>Sign Out</span>
+                <span>{menuLabels[language].logout}</span>
               </button>
             </div>
           </div>
@@ -1788,21 +2158,6 @@ export default function BuyerDashboard() {
         </div>
 
         <div className="flex items-center gap-3 self-start md:self-auto">
-          {/* Language Selector */}
-          <div className="relative flex items-center">
-            <Globe className="absolute left-3 w-4 h-4 text-earth-455 pointer-events-none" />
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as Language)}
-              className="pl-9 pr-7 py-2.5 rounded-xl border border-border bg-card hover:bg-earth-100 dark:hover:bg-earth-800 text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer appearance-none"
-            >
-              <option value="en">EN</option>
-              <option value="mr">मराठी</option>
-              <option value="hi">हिंदी</option>
-            </select>
-            <span className="absolute right-2.5 text-earth-455 pointer-events-none text-[8px] font-black">▼</span>
-          </div>
-
           {/* Notification Bell Badge */}
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -1998,7 +2353,10 @@ export default function BuyerDashboard() {
                     className="group relative bg-card border border-border rounded-3xl overflow-hidden hover-lift flex flex-col h-full"
                   >
                     {/* Crop Image */}
-                    <div className="relative h-48 bg-earth-100 dark:bg-earth-900 overflow-hidden">
+                    <div 
+                      onClick={() => setSelectedCropForDetail(crop)} 
+                      className="relative h-48 bg-earth-100 dark:bg-earth-900 overflow-hidden cursor-pointer"
+                    >
                       <img
                         src={crop.images?.[0] || 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600'}
                         alt={crop.name}
@@ -2007,7 +2365,10 @@ export default function BuyerDashboard() {
                       
                       {/* Save/Bookmark Button */}
                       <button
-                        onClick={() => handleToggleSave(crop.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleSave(crop.id);
+                        }}
                         className={`absolute top-4 right-4 p-2.5 rounded-xl border backdrop-blur-md transition-colors cursor-pointer ${
                           isSaved
                             ? 'bg-rose-500 border-rose-500 text-white'
@@ -2044,7 +2405,10 @@ export default function BuyerDashboard() {
                         <span className="text-[10px] font-black uppercase tracking-wider text-primary-500">
                           {categoryMap[language]?.[crop.category] || crop.category}
                         </span>
-                        <h3 className="text-lg font-black text-foreground group-hover:text-primary-655 transition-colors leading-tight">
+                        <h3 
+                          onClick={() => setSelectedCropForDetail(crop)} 
+                          className="text-lg font-black text-foreground group-hover:text-primary-655 transition-colors leading-tight cursor-pointer"
+                        >
                           {crop.name}
                         </h3>
                       </div>
@@ -2994,7 +3358,14 @@ export default function BuyerDashboard() {
       {activeTab === 'profile' && (
         <div className="flex flex-col gap-8 animate-fade-in text-left">
           {/* Top: Public Profile Card */}
-          <BuyerProfileCard profile={buyerProfile || dummyBuyerProfile} onEdit={() => setIsProfileEditOpen(true)} />
+          {buyerProfile ? (
+            <BuyerProfileCard profile={buyerProfile} onEdit={handleOpenEditProfile} />
+          ) : (
+            <div className="py-20 bg-card border border-border rounded-3xl flex flex-col items-center justify-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+              <p className="text-sm font-bold text-foreground">Loading profile...</p>
+            </div>
+          )}
 
           {/* Bottom: Verification Settings */}
           <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
@@ -3838,6 +4209,111 @@ export default function BuyerDashboard() {
           onClose={() => setIsProfileEditOpen(false)}
           onSave={handleSaveProfile}
         />
+      )}
+
+      {/* Crop Detail Modal */}
+      {selectedCropForDetail && (
+        <CropDetailModal
+          isOpen={!!selectedCropForDetail}
+          onClose={() => setSelectedCropForDetail(null)}
+          crop={selectedCropForDetail}
+          distance={getCropDistance(selectedCropForDetail)}
+          marketRate={24000}
+          similarCrops={crops.filter(c => c.category === selectedCropForDetail.category && c.id !== selectedCropForDetail.id)}
+          language={language}
+          onCall={() => {
+            const prof = getFarmerProfileByName(selectedCropForDetail.farmer_name || 'Ramesh Patil');
+            if (prof && prof.contactNumber) {
+              window.location.href = `tel:${prof.contactNumber.replace(/\s+/g, '')}`;
+            } else {
+              alert(language === 'mr' ? 'संपर्क क्रमांक उपलब्ध नाही' : language === 'hi' ? 'संपर्क नंबर उपलब्ध नहीं है' : 'Contact number not available');
+            }
+          }}
+          onMessage={() => {
+            startChatWithFarmer(selectedCropForDetail);
+            setSelectedCropForDetail(null);
+          }}
+          onSendDemand={() => {
+            openBidModal(selectedCropForDetail);
+            setSelectedCropForDetail(null);
+          }}
+          onViewFarmerProfile={(farmerName) => {
+            const prof = getFarmerProfileByName(farmerName);
+            setSelectedFarmerProfile(prof);
+          }}
+        />
+      )}
+
+      {/* Farmer Profile Modal */}
+      {selectedFarmerProfile && (
+        <FarmerProfileModal
+          isOpen={!!selectedFarmerProfile}
+          onClose={() => setSelectedFarmerProfile(null)}
+          profile={selectedFarmerProfile}
+          language={language}
+          onCall={() => {
+            if (selectedFarmerProfile.contactNumber) {
+              window.location.href = `tel:${selectedFarmerProfile.contactNumber.replace(/\s+/g, '')}`;
+            } else {
+              alert(language === 'mr' ? 'संपर्क क्रमांक उपलब्ध नाही' : language === 'hi' ? 'संपर्क नंबर उपलब्ध नहीं है' : 'Contact number not available');
+            }
+          }}
+          onMessage={() => {
+            startChatWithFarmerName(selectedFarmerProfile.name);
+            setSelectedFarmerProfile(null);
+            setSelectedCropForDetail(null);
+          }}
+          onSendDemand={() => {
+            setSelectedFarmerProfile(null);
+            const matchingCrop = crops.find(c => c.farmer_name === selectedFarmerProfile.name) || crops[0];
+            if (matchingCrop) {
+              openBidModal(matchingCrop);
+            }
+          }}
+          onRequestSample={() => {
+            const lang = language || 'en';
+            const msg = lang === 'mr' ? `नमुना विनंती यशस्वीरीत्या ${selectedFarmerProfile.name} कडे पाठविली गेली!` : lang === 'hi' ? `नमूना अनुरोध ${selectedFarmerProfile.name} को सफलतापूर्वक भेजा गया!` : `Sample request sent to ${selectedFarmerProfile.name} successfully!`;
+            alert(msg);
+            setSelectedFarmerProfile(null);
+          }}
+        />
+      )}
+
+      {/* Secure Call Modal */}
+      {activeCallRecipient && (
+        <SecureCallModal
+          isOpen={!!activeCallRecipient}
+          calleeName={activeCallRecipient}
+          onClose={() => setActiveCallRecipient(null)}
+          language={language}
+        />
+      )}
+
+      {isProfileLoading && (
+        <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-card border border-border p-6 rounded-2xl flex flex-col items-center gap-3 shadow-xl max-w-xs text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+            <p className="text-sm font-bold text-foreground">Loading profile...</p>
+          </div>
+        </div>
+      )}
+
+      {profileError && (
+        <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-card border border-border p-6 rounded-2xl flex flex-col items-center gap-4 shadow-xl max-w-sm text-center">
+            <AlertTriangle className="w-8 h-8 text-rose-500 animate-bounce" />
+            <div>
+              <p className="text-sm font-bold text-foreground">Failed to load profile</p>
+              <p className="text-xs text-earth-500 mt-1">{profileError}</p>
+            </div>
+            <button 
+              onClick={() => setProfileError(null)}
+              className="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
 
       <style dangerouslySetInnerHTML={{ __html: `

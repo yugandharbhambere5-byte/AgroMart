@@ -1,19 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import {
   Sprout, LogOut, PlusCircle, ArrowUpRight, BadgeDollarSign, ShoppingCart,
-  MessageSquare, Bell, X, Check, Eye, MapPin, TrendingUp, User,
+  MessageSquare, Bell, X, Check, Eye, MapPin, TrendingUp, User, Sparkles,
   Send, Search, Tag, Clock, IndianRupee, CheckCircle, ShieldCheck,
   AlertTriangle, Globe, Star, Phone, Fingerprint, FileText, ChevronRight,
-  LayoutDashboard, Inbox, MessageCircle, UserCheck, Filter, Landmark, Bug, Wallet, Timer, Gavel, BookOpen, HelpCircle, Menu
+  LayoutDashboard, Inbox, MessageCircle, UserCheck, Filter, Landmark, Bug, Wallet, Timer, Gavel, BookOpen, HelpCircle, Menu,
+  ExternalLink
 } from 'lucide-react';
 import { useTranslation } from '@/context/LanguageContext';
 import { FarmerEducationCenter } from '@/components/education/FarmerEducationCenter';
 import { HelpCenter } from '@/components/support/HelpCenter';
-import { BestSellingSuggestions } from '@/components/market/BestSellingSuggestions';
+import { AIInsightsDashboard } from '@/components/market/AIInsightsDashboard';
 import VoiceAssistant, { VoiceIntent } from '@/components/voice/VoiceAssistant';
 import EmergencyAlerts from '@/components/alerts/EmergencyAlerts';
 import GovernmentSchemes from '@/components/schemes/GovernmentSchemes';
@@ -30,8 +31,7 @@ import { SmartSearch } from '@/components/search/SmartSearch';
 import { UpcomingBookings } from '@/components/scheduling/UpcomingBookings';
 import { BuyerProfileModal } from '@/components/profile/BuyerProfileModal';
 import { BuyerProfile } from '@/types/buyer';
-
-// ─── Types ─────────────────────────────────────────────────────────────────
+import SecureCallModal from '@/components/voice/SecureCallModal';
 
 interface ActiveListing {
   id: string;
@@ -45,7 +45,7 @@ interface ActiveListing {
   harvest_date: string;
   quality_type: string;
   location: string;
-  status: 'Available' | 'Reserved' | 'Sold';
+  status: 'Available' | 'Reserved' | 'Sold' | 'Pending Review';
   created_at?: string;
   views?: number;
   offers?: number;
@@ -132,7 +132,79 @@ const toastTypeColor: Record<string, string> = {
   demand_alert: 'from-purple-500 to-purple-600',
 };
 
+const devanagariToEnglish = (str: string): string => {
+  const devanagariDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+  return str.replace(/[०-९]/g, d => String(devanagariDigits.indexOf(d)));
+};
+
+const normalizeCropName = (name: string): string => {
+  const n = name.toLowerCase().trim();
+  if (['cotton', 'kapus', 'kapas', 'कापूस', 'कपास'].some(k => n === k || n.includes(k))) return 'cotton';
+  if (['soybean', 'soyabean', 'सोयाबीन'].some(k => n === k || n.includes(k))) return 'soybean';
+  if (['tur', 'तूर', 'अरहर'].some(k => n === k || n.includes(k))) return 'tur';
+  if (['gram', 'chana', 'हरभरा', 'चना'].some(k => n === k || n.includes(k))) return 'gram';
+  if (['wheat', 'गहू', 'गेहूं'].some(k => n === k || n.includes(k))) return 'wheat';
+  if (['jowar', 'ज्वारी', 'ज्वार'].some(k => n === k || n.includes(k))) return 'jowar';
+  if (['bajra', 'बाजरी', 'बाजरा'].some(k => n === k || n.includes(k))) return 'bajra';
+  return n;
+};
+
+const getLocalizedCategoryLabel = (cat: string, lang: string): string => {
+  const map: Record<string, Record<string, string>> = {
+    'Grains': { en: 'Grains', mr: 'धान्य', hi: 'अनाज' },
+    'Oilseeds': { en: 'Oilseeds', mr: 'तेलबिया', hi: 'तिलहन' },
+    'Pulses': { en: 'Pulses', mr: 'कडधान्ये', hi: 'दलहन' },
+    'Fiber Crop': { en: 'Fiber Crop', mr: 'तंतू पीक', hi: 'रेशा फसल' },
+    'Commercial Crop': { en: 'Commercial Crop', mr: 'व्यापारी पीक', hi: 'वाणिज्यिक फसल' },
+    'Vegetables': { en: 'Vegetables', mr: 'भाज्या', hi: 'सब्जियां' },
+    'Fruits': { en: 'Fruits', mr: 'फळे', hi: 'फल' },
+    'Spices': { en: 'Spices', mr: 'मसाले', hi: 'मसाले' }
+  };
+  const item = map[cat];
+  if (!item) return cat;
+  if (lang === 'mr') return item.mr || item.en;
+  if (lang === 'hi') return item.hi || item.en;
+  return item.en;
+};
+
+const getLocalizedUnitLabel = (unit: string, lang: string): string => {
+  const norm = unit.toLowerCase();
+  if (norm.includes('quintal')) {
+    if (lang === 'mr') return 'क्विंटल';
+    if (lang === 'hi') return 'क्विंटल';
+    return 'quintal';
+  }
+  if (norm.includes('ton')) {
+    if (lang === 'mr') return 'टन';
+    if (lang === 'hi') return 'टन';
+    return 'ton';
+  }
+  if (norm.includes('kg')) {
+    if (lang === 'mr') return 'किलो';
+    if (lang === 'hi') return 'किलो';
+    return 'kg';
+  }
+  if (norm.includes('bag')) {
+    if (lang === 'mr') return 'बॅग';
+    if (lang === 'hi') return 'बैग';
+    return 'bag';
+  }
+  return unit;
+};
+
+const getPositiveNumberError = (lang: string) => {
+  if (lang === 'mr') return 'कृपया शून्यापेक्षा जास्त योग्य मूल्य टाका.';
+  if (lang === 'hi') return 'कृपया शून्य से अधिक सही मूल्य दर्ज करें।';
+  return 'Please enter a valid value greater than zero.';
+};
+
 const autoCategory = (name: string): string => {
+  const norm = normalizeCropName(name);
+  if (norm === 'cotton') return 'Fiber Crop';
+  if (norm === 'soybean') return 'Oilseeds';
+  if (norm === 'tur' || norm === 'gram') return 'Pulses';
+  if (norm === 'wheat' || norm === 'jowar' || norm === 'bajra') return 'Grains';
+
   const lowercase = name.toLowerCase();
   
   if (
@@ -211,12 +283,13 @@ export default function FarmerDashboard() {
   const { language, t } = useTranslation();
 
   // ── Navigation ──
-  const [activeTab, setActiveTab] = useState<'overview' | 'demands' | 'chat' | 'crop_health' | 'finance' | 'schemes' | 'profile' | 'transactions' | 'education' | 'support' | 'market_suggestions'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'marketplace' | 'demands' | 'chat' | 'crop_health' | 'finance' | 'schemes' | 'profile' | 'transactions' | 'education' | 'support' | 'ai_insights'>('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const tabsList = [
     { id: 'overview', icon: LayoutDashboard, label: language === 'mr' ? 'आढावा' : language === 'hi' ? 'अवलोकन' : 'Overview' },
+    { id: 'marketplace', icon: ShoppingCart, label: language === 'mr' ? 'बाजारपेठ' : language === 'hi' ? 'बाजारपेठ' : 'Virtual Market' },
     { id: 'demands', icon: Inbox, label: language === 'mr' ? 'मागण्या' : language === 'hi' ? 'मांगें' : 'Demands' },
     { id: 'chat', icon: MessageCircle, label: language === 'mr' ? 'चर्चा' : language === 'hi' ? 'बातचीत' : 'Chats' },
     { id: 'crop_health', icon: Bug, label: language === 'mr' ? 'पीक आरोग्य' : language === 'hi' ? 'फसल स्वास्थ्य' : 'Crop Health' },
@@ -224,13 +297,18 @@ export default function FarmerDashboard() {
     { id: 'transactions', icon: FileText, label: language === 'mr' ? 'व्यवहार' : language === 'hi' ? 'लेन-देन' : 'Transactions' },
     { id: 'schemes', icon: Landmark, label: language === 'mr' ? 'योजना' : language === 'hi' ? 'योजनाएं' : 'Schemes' },
     { id: 'education', icon: BookOpen, label: language === 'mr' ? 'कृषी शिक्षण' : language === 'hi' ? 'कृषि शिक्षा' : 'Education' },
-    { id: 'market_suggestions', icon: TrendingUp, label: language === 'mr' ? 'विक्री सल्ला' : language === 'hi' ? 'बेचना सुझाव' : 'Sell Suggestions' },
+    { id: 'ai_insights', icon: Sparkles, label: language === 'mr' ? 'एआय सल्ला' : language === 'hi' ? 'एआई सलाह' : 'AI Insights' },
     { id: 'support', icon: HelpCircle, label: language === 'mr' ? 'मदत व तक्रार' : language === 'hi' ? 'मदद और सहायता' : 'Help & Support' },
     { id: 'profile', icon: UserCheck, label: language === 'mr' ? 'प्रोफाइल' : language === 'hi' ? 'प्रोफाइल' : 'Profile & Trust' },
   ] as const;
 
   // ── Buyer Profile Preview State ──
   const [selectedBuyerProfile, setSelectedBuyerProfile] = useState<BuyerProfile | null>(null);
+
+  const handleStartWebCall = (name: string) => {
+    setCallModalCallee(name);
+    setIsCallModalOpen(true);
+  };
 
   const handleOpenBuyerProfile = (buyerName: string) => {
     // Determine business type & details based on name
@@ -374,10 +452,210 @@ export default function FarmerDashboard() {
   const [cropHarvestDate, setCropHarvestDate] = useState('');
   const [cropQualityType, setCropQualityType] = useState('Grade A');
   const [cropLocation, setCropLocation] = useState('');
-  const [cropStatus, setCropStatus] = useState<'Available' | 'Reserved' | 'Sold'>('Available');
+  const [cropStatus, setCropStatus] = useState<'Available' | 'Reserved' | 'Sold' | 'Pending Review'>('Available');
   const [cropIsAuction, setCropIsAuction] = useState(false);
   const [cropAuctionHours, setCropAuctionHours] = useState('24');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // ── Market Rate Validation States ──
+  const [matchedRateVal, setMatchedRateVal] = useState<number | null>(null);
+  const [allowedMinPrice, setAllowedMinPrice] = useState<number | null>(null);
+  const [allowedMaxPrice, setAllowedMaxPrice] = useState<number | null>(null);
+  const [isRateAvailable, setIsRateAvailable] = useState<boolean>(true);
+  const [matchedRateUnit, setMatchedRateUnit] = useState<string>('Quintals');
+
+  // Seeding market rates on mount to guarantee updated data
+  useEffect(() => {
+    const defaultRates = [
+      { crop: 'Organic Durum Wheat', cropHi: 'जैविक गेहूं', cropMr: 'सेंद्रिय गहू', category: 'Grains', unit: '/Quintal', todayRate: 2450, mandi: 'Nashik APMC', state: 'Maharashtra' },
+      { crop: 'Russet Potatoes', cropHi: 'आलू', cropMr: 'बटाटा', category: 'Vegetables', unit: '/Quintal', todayRate: 1520, mandi: 'Pune Mandi', state: 'Maharashtra' },
+      { crop: 'Vine-Ripened Tomatoes', cropHi: 'टमाटर', cropMr: 'टोमॅटो', category: 'Vegetables', unit: '/Quintal', todayRate: 3500, mandi: 'Manchar Mandi', state: 'Maharashtra' },
+      { crop: 'Golden Sweet Corn', cropHi: 'मक्का', cropMr: 'मका', category: 'Grains', unit: '/Quintal', todayRate: 1850, mandi: 'Solapur APMC', state: 'Maharashtra' },
+      { crop: 'Basmati Rice', cropHi: 'बासमती चावल', cropMr: 'बासमती तांदूळ', category: 'Grains', unit: '/Quintal', todayRate: 4800, mandi: 'Amritsar Grain Market', state: 'Punjab' },
+      { crop: 'Red Onion', cropHi: 'लाल प्याज', cropMr: 'लाल कांदा', category: 'Vegetables', unit: '/Quintal', todayRate: 2100, mandi: 'Lasalgaon APMC', state: 'Maharashtra' },
+      { crop: 'Soybean', cropHi: 'सोयाबीन', cropMr: 'सोयाबीन', category: 'Oilseeds', unit: '/Quintal', todayRate: 4650, mandi: 'Latur APMC', state: 'Maharashtra' },
+      { crop: 'Green Chilli', cropHi: 'हरी मिर्च', cropMr: 'हिरवी मिरची', category: 'Spices', unit: '/Quintal', todayRate: 6200, mandi: 'Guntur APMC', state: 'Andhra Pradesh' },
+      { crop: 'Cotton (Long Staple)', cropHi: 'कपास', cropMr: 'कापूस', category: 'Fiber Crop', unit: '/Quintal', todayRate: 8690, mandi: 'Akola APMC', state: 'Maharashtra' },
+      { crop: 'Alphonso Mango', cropHi: 'अल्फांसो आम', cropMr: 'हापूस आंबा', category: 'Fruits', unit: '/Dozen', todayRate: 420, mandi: 'Ratnagiri Mandi', state: 'Maharashtra' },
+      { crop: 'Turmeric (Finger)', cropHi: 'हल्दी', cropMr: 'हळद', category: 'Spices', unit: '/Quintal', todayRate: 14500, mandi: 'Sangli APMC', state: 'Maharashtra' },
+      { crop: 'Sugarcane', cropHi: 'गन्ना', cropMr: 'उसाचे ऊस', category: 'Commercial Crop', unit: '/Tonne', todayRate: 3150, mandi: 'Kolhapur', state: 'Maharashtra' }
+    ];
+    localStorage.setItem('agromart-market-rates', JSON.stringify(defaultRates));
+  }, []);
+
+  // Rate lookup and validation
+  useEffect(() => {
+    if (!isAddModalOpen || !cropName.trim()) {
+      setMatchedRateVal(null);
+      setAllowedMinPrice(null);
+      setAllowedMaxPrice(null);
+      setIsRateAvailable(true);
+      return;
+    }
+
+    // 1. Fetch rates
+    let ratesList = [];
+    try {
+      const saved = localStorage.getItem('agromart-market-rates');
+      if (saved) ratesList = JSON.parse(saved);
+    } catch (e) {}
+    if (!ratesList || ratesList.length === 0) {
+      ratesList = [
+        { crop: 'Organic Durum Wheat', cropHi: 'जैविक गेहूं', cropMr: 'सेंद्रिय गहू', category: 'Grains', unit: '/Quintal', todayRate: 2450, mandi: 'Nashik APMC', state: 'Maharashtra' },
+        { crop: 'Russet Potatoes', cropHi: 'आलू', cropMr: 'बटाटा', category: 'Vegetables', unit: '/Quintal', todayRate: 1520, mandi: 'Pune Mandi', state: 'Maharashtra' },
+        { crop: 'Vine-Ripened Tomatoes', cropHi: 'टमाटर', cropMr: 'टोमॅटो', category: 'Vegetables', unit: '/Quintal', todayRate: 3500, mandi: 'Manchar Mandi', state: 'Maharashtra' },
+        { crop: 'Golden Sweet Corn', cropHi: 'मक्का', cropMr: 'मका', category: 'Grains', unit: '/Quintal', todayRate: 1850, mandi: 'Solapur APMC', state: 'Maharashtra' },
+        { crop: 'Basmati Rice', cropHi: 'बासमती चावल', cropMr: 'बासमती तांदूळ', category: 'Grains', unit: '/Quintal', todayRate: 4800, mandi: 'Amritsar Grain Market', state: 'Punjab' },
+        { crop: 'Red Onion', cropHi: 'लाल प्याज', cropMr: 'लाल कांदा', category: 'Vegetables', unit: '/Quintal', todayRate: 2100, mandi: 'Lasalgaon APMC', state: 'Maharashtra' },
+        { crop: 'Soybean', cropHi: 'सोयाबीन', cropMr: 'सोयाबीन', category: 'Oilseeds', unit: '/Quintal', todayRate: 4650, mandi: 'Latur APMC', state: 'Maharashtra' },
+        { crop: 'Green Chilli', cropHi: 'हरी मिर्च', cropMr: 'हिरवी मिरची', category: 'Spices', unit: '/Quintal', todayRate: 6200, mandi: 'Guntur APMC', state: 'Andhra Pradesh' },
+        { crop: 'Cotton (Long Staple)', cropHi: 'कपास', cropMr: 'कापूस', category: 'Fiber Crop', unit: '/Quintal', todayRate: 8690, mandi: 'Akola APMC', state: 'Maharashtra' },
+        { crop: 'Alphonso Mango', cropHi: 'अल्फांसो आम', cropMr: 'हापूस आंबा', category: 'Fruits', unit: '/Dozen', todayRate: 420, mandi: 'Ratnagiri Mandi', state: 'Maharashtra' },
+        { crop: 'Turmeric (Finger)', cropHi: 'हल्दी', cropMr: 'हळद', category: 'Spices', unit: '/Quintal', todayRate: 14500, mandi: 'Sangli APMC', state: 'Maharashtra' },
+        { crop: 'Sugarcane', cropHi: 'गन्ना', cropMr: 'उसाचे ऊस', category: 'Commercial Crop', unit: '/Tonne', todayRate: 3150, mandi: 'Kolhapur', state: 'Maharashtra' }
+      ];
+    }
+
+    // 2. Match crop using normalized name
+    const normalizedInput = normalizeCropName(cropName);
+    const matched = ratesList.filter((r: any) => {
+      const cEn = normalizeCropName(r.crop || '');
+      const cHi = normalizeCropName(r.cropHi || '');
+      const cMr = normalizeCropName(r.cropMr || '');
+      return cEn === normalizedInput || cHi === normalizedInput || cMr === normalizedInput ||
+             (r.crop || '').toLowerCase().includes(normalizedInput) ||
+             (r.cropHi || '').toLowerCase().includes(normalizedInput) ||
+             (r.cropMr || '').toLowerCase().includes(normalizedInput);
+    });
+
+    if (matched.length === 0) {
+      setIsRateAvailable(false);
+      setMatchedRateVal(null);
+      setAllowedMinPrice(null);
+      setAllowedMaxPrice(null);
+      return;
+    }
+
+    setIsRateAvailable(true);
+
+    // 3. Match location
+    const inputLocNorm = cropLocation.toLowerCase().trim();
+    const locMatched = matched.filter((r: any) => {
+      const mandi = (r.mandi || '').toLowerCase();
+      const state = (r.state || '').toLowerCase();
+      return inputLocNorm.includes(mandi) || mandi.includes(inputLocNorm) ||
+             inputLocNorm.includes(state) || state.includes(inputLocNorm);
+    });
+
+    const candidate = locMatched.length > 0 ? locMatched[0] : matched[0];
+
+    // 4. Calculate unit conversion factor
+    const farmerUnitNorm = cropUnit.toLowerCase();
+    const rateUnitNorm = (candidate.unit || '').toLowerCase();
+
+    let multiplier = 1;
+
+    if (rateUnitNorm.includes('quintal')) {
+      if (farmerUnitNorm.includes('ton')) multiplier = 10;
+      else if (farmerUnitNorm.includes('kg')) multiplier = 0.01;
+      else if (farmerUnitNorm.includes('bag')) multiplier = 0.5;
+    } else if (rateUnitNorm.includes('tonne') || rateUnitNorm.includes('ton')) {
+      if (farmerUnitNorm.includes('quintal')) multiplier = 0.1;
+      else if (farmerUnitNorm.includes('kg')) multiplier = 0.001;
+      else if (farmerUnitNorm.includes('bag')) multiplier = 0.05;
+    } else if (rateUnitNorm.includes('kg')) {
+      if (farmerUnitNorm.includes('quintal')) multiplier = 100;
+      else if (farmerUnitNorm.includes('ton')) multiplier = 1000;
+      else if (farmerUnitNorm.includes('bag')) multiplier = 50;
+    }
+
+    const rateInFarmerUnit = candidate.todayRate * multiplier;
+    setMatchedRateVal(rateInFarmerUnit);
+    
+    let limitMultiplier = 1;
+    if (farmerUnitNorm.includes('ton')) limitMultiplier = 10;
+    else if (farmerUnitNorm.includes('kg')) limitMultiplier = 0.01;
+    else if (farmerUnitNorm.includes('bag')) limitMultiplier = 0.5;
+
+    const priceLimitDelta = 2000 * limitMultiplier;
+    const minVal = Math.max(0, rateInFarmerUnit - priceLimitDelta);
+    const maxVal = rateInFarmerUnit + priceLimitDelta;
+
+    setAllowedMinPrice(minVal);
+    setAllowedMaxPrice(maxVal);
+    setMatchedRateUnit(cropUnit);
+  }, [cropName, cropLocation, cropUnit, isAddModalOpen]);
+
+  // Handle dynamic expected price validation errors
+  useEffect(() => {
+    if (!isAddModalOpen) return;
+    const cleanPrice = devanagariToEnglish(cropPrice).trim();
+    if (!cleanPrice) {
+      setFormErrors(prev => ({ ...prev, price: getPositiveNumberError(language) }));
+      return;
+    }
+    const priceNum = Number(cleanPrice);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      setFormErrors(prev => ({ ...prev, price: getPositiveNumberError(language) }));
+      return;
+    }
+
+    if (isRateAvailable && allowedMinPrice !== null && allowedMaxPrice !== null) {
+      if (priceNum < allowedMinPrice) {
+        let msg = '';
+        if (language === 'mr') {
+          msg = 'तुम्ही टाकलेली किंमत चालू बाजारभावापेक्षा खूप कमी आहे.';
+        } else if (language === 'hi') {
+          msg = 'आपके द्वारा दर्ज की गई कीमत वर्तमान बाजार भाव से बहुत कम है।';
+        } else {
+          msg = 'The entered price is too low compared to the current market rate.';
+        }
+        setFormErrors(prev => ({ ...prev, price: msg }));
+      } else if (priceNum > allowedMaxPrice) {
+        let msg = '';
+        if (language === 'mr') {
+          msg = 'तुम्ही टाकलेली किंमत चालू बाजारभावापेक्षा खूप जास्त आहे.';
+        } else if (language === 'hi') {
+          msg = 'आपके द्वारा दर्ज की गई कीमत वर्तमान बाजार भाव से बहुत अधिक है।';
+        } else {
+          msg = 'The entered price is too high compared to the current market rate.';
+        }
+        setFormErrors(prev => ({ ...prev, price: msg }));
+      } else {
+        setFormErrors(prev => {
+          const copy = { ...prev };
+          delete copy.price;
+          return copy;
+        });
+      }
+    } else {
+      setFormErrors(prev => {
+        const copy = { ...prev };
+        delete copy.price;
+        return copy;
+      });
+    }
+  }, [cropPrice, allowedMinPrice, allowedMaxPrice, isRateAvailable, language, matchedRateUnit, isAddModalOpen]);
+
+  // Handle dynamic quantity validation errors
+  useEffect(() => {
+    if (!isAddModalOpen) return;
+    const cleanQty = devanagariToEnglish(cropQty).trim();
+    if (!cleanQty) {
+      setFormErrors(prev => ({ ...prev, qty: getPositiveNumberError(language) }));
+      return;
+    }
+    const qtyNum = Number(cleanQty);
+    if (isNaN(qtyNum) || qtyNum <= 0) {
+      setFormErrors(prev => ({ ...prev, qty: getPositiveNumberError(language) }));
+    } else {
+      setFormErrors(prev => {
+        const copy = { ...prev };
+        delete copy.qty;
+        return copy;
+      });
+    }
+  }, [cropQty, language, isAddModalOpen]);
 
   // ── Verification ──
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
@@ -397,6 +675,216 @@ export default function FarmerDashboard() {
   const [isGstVerified, setIsGstVerified] = useState(false);
   const [isKycVerified, setIsKycVerified] = useState(false);
 
+  // ── Virtual Market Buyer Directory States ──
+  const [buyersList, setBuyersList] = useState<BuyerProfile[]>([]);
+  const [mktSearch, setMktSearch] = useState('');
+  const [mktBuyerType, setMktBuyerType] = useState('All');
+  const [mktDistance, setMktDistance] = useState('All');
+  const [mktVerifiedOnly, setMktVerifiedOnly] = useState(false);
+  const [mktSortBy, setMktSortBy] = useState('distance'); // 'distance' | 'price' | 'rating'
+
+  // Send Offer Modal States
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [offerTargetBuyer, setOfferTargetBuyer] = useState<any>(null);
+  const [offerCropName, setOfferCropName] = useState('');
+  const [offerQty, setOfferQty] = useState('');
+  const [offerUnit, setOfferUnit] = useState('Quintals');
+  const [offerPrice, setOfferPrice] = useState('');
+  const [offerNotes, setOfferNotes] = useState('');
+
+  // Load Buyers on Mount
+  useEffect(() => {
+    let saved = null;
+    try {
+      saved = localStorage.getItem('agromart_buyer_profiles');
+    } catch(e){}
+    if (saved) {
+      setBuyersList(JSON.parse(saved));
+    } else {
+      const seeded = [
+        {
+          id: 'b-mahesh',
+          shopName: 'Mahesh Agro Traders',
+          ownerName: 'Mahesh Deshmukh',
+          profilePhoto: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80',
+          bannerImage: 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
+          contactNumber: '+91 98765 00001',
+          address: 'Gate 4, APMC Market Yard, Latur, Maharashtra',
+          googleMapsUrl: 'https://maps.google.com/?q=Latur+APMC+Market+Yard',
+          businessType: 'Wholesaler' as const,
+          gstNumber: '27AABCU1234F1ZX',
+          isVerified: true,
+          ratings: 4.8,
+          reviewsCount: 124,
+          workingDays: 'Monday - Saturday',
+          timings: '08:00 AM - 07:00 PM',
+          memberSince: '2024-03-10T00:00:00Z',
+          distance: 4.5,
+          buyingRates: [
+            { cropName: 'Soybean', buyingPrice: 4250, unit: 'Quintal' },
+            { cropName: 'Tur (Pigeon Pea)', buyingPrice: 7800, unit: 'Quintal' },
+            { cropName: 'Wheat', buyingPrice: 2450, unit: 'Quintal' }
+          ]
+        },
+        {
+          id: 'b-nashik-grain',
+          shopName: 'Nashik Grain Exporters',
+          ownerName: 'Sanjay Patil',
+          profilePhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80',
+          bannerImage: 'https://images.unsplash.com/photo-1605000797439-75a150088d44?auto=format&fit=crop&q=80',
+          contactNumber: '+91 87654 00002',
+          address: 'Industrial Area, Nashik Road, Nashik, Maharashtra',
+          googleMapsUrl: 'https://maps.google.com/?q=Nashik+APMC',
+          businessType: 'Exporter' as const,
+          gstNumber: '27AABCU5678R1ZX',
+          isVerified: true,
+          ratings: 4.9,
+          reviewsCount: 78,
+          workingDays: 'Monday - Saturday',
+          timings: '09:00 AM - 06:00 PM',
+          memberSince: '2023-08-15T00:00:00Z',
+          distance: 12.8,
+          buyingRates: [
+            { cropName: 'Wheat', buyingPrice: 2450, unit: 'Quintal' },
+            { cropName: 'Onion', buyingPrice: 2100, unit: 'Quintal' }
+          ]
+        },
+        {
+          id: 'b-pune-veggies',
+          shopName: 'Pune Wholesale Mandi Shop',
+          ownerName: 'Rajesh Gupta',
+          profilePhoto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80',
+          bannerImage: 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
+          contactNumber: '+91 76543 00003',
+          address: 'Shop 44, Gultekdi APMC Market Yard, Pune, Maharashtra',
+          googleMapsUrl: 'https://maps.google.com/?q=Gultekdi+APMC+Pune',
+          businessType: 'Wholesaler' as const,
+          gstNumber: '27AABCU9012E1ZX',
+          isVerified: false,
+          ratings: 4.2,
+          reviewsCount: 36,
+          workingDays: 'Monday - Sunday',
+          timings: '05:00 AM - 04:00 PM',
+          memberSince: '2025-01-20T00:00:00Z',
+          distance: 24.0,
+          buyingRates: [
+            { cropName: 'Tomato', buyingPrice: 3500, unit: 'Quintal' },
+            { cropName: 'Potato', buyingPrice: 1520, unit: 'Quintal' }
+          ]
+        }
+      ];
+      setBuyersList(seeded);
+      try {
+        localStorage.setItem('agromart_buyer_profiles', JSON.stringify(seeded));
+      } catch(e){}
+    }
+  }, []);
+
+  const filteredBuyers = useMemo(() => {
+    return buyersList.filter(b => {
+      const matchesSearch = !mktSearch || 
+        b.shopName.toLowerCase().includes(mktSearch.toLowerCase()) || 
+        b.ownerName.toLowerCase().includes(mktSearch.toLowerCase()) || 
+        b.buyingRates?.some((r: any) => r.cropName.toLowerCase().includes(mktSearch.toLowerCase()));
+      
+      const matchesType = mktBuyerType === 'All' || b.businessType === mktBuyerType;
+      
+      const matchesDistance = mktDistance === 'All' || 
+        (mktDistance === '5' && (b.distance ?? 0) <= 5) || 
+        (mktDistance === '15' && (b.distance ?? 0) <= 15) || 
+        (mktDistance === '50' && (b.distance ?? 0) <= 50);
+        
+      const matchesVerified = !mktVerifiedOnly || b.isVerified;
+      
+      return matchesSearch && matchesType && matchesDistance && matchesVerified;
+    }).sort((a, b) => {
+      if (mktSortBy === 'distance') return (a.distance ?? 0) - (b.distance ?? 0);
+      if (mktSortBy === 'rating') return b.ratings - a.ratings;
+      if (mktSortBy === 'price') {
+        const maxPriceA = Math.max(...(a.buyingRates?.map((r: any) => r.buyingPrice) || [0]));
+        const maxPriceB = Math.max(...(b.buyingRates?.map((r: any) => r.buyingPrice) || [0]));
+        return maxPriceB - maxPriceA;
+      }
+      return 0;
+    });
+  }, [buyersList, mktSearch, mktBuyerType, mktDistance, mktVerifiedOnly, mktSortBy]);
+
+  const handleSendOfferSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!offerCropName.trim() || !offerQty.trim() || !offerPrice.trim()) {
+      alert('Please fill out all required fields');
+      return;
+    }
+    
+    const offerPayload = {
+      id: `offer-${Date.now()}`,
+      farmerId: user?.id || 'mock-farmer',
+      farmerName: user?.user_metadata?.fullName || 'Mock Farmer',
+      buyerId: offerTargetBuyer?.id,
+      buyerName: offerTargetBuyer?.shopName,
+      cropName: offerCropName.trim(),
+      quantity: Number(offerQty),
+      unit: offerUnit,
+      price: Number(offerPrice),
+      notes: offerNotes,
+      status: 'pending',
+      date: new Date().toISOString()
+    };
+    
+    try {
+      const stored = localStorage.getItem('agromart_crop_offers');
+      const offers = stored ? JSON.parse(stored) : [];
+      localStorage.setItem('agromart_crop_offers', JSON.stringify([offerPayload, ...offers]));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_crop_offers' }));
+    } catch(e){}
+    
+    pushNotification('new_offer', `Crop offer sent to ${offerTargetBuyer?.shopName} for ${offerQty} ${offerUnit} of ${offerCropName}.`, 'farmer');
+    
+    setIsOfferModalOpen(false);
+    setOfferCropName('');
+    setOfferQty('');
+    setOfferPrice('');
+    setOfferNotes('');
+    alert('Crop offer sent successfully!');
+  };
+
+  const handleStartChatWithBuyer = (buyerName: string) => {
+    const existing = threads.find(t => t.buyerName === buyerName);
+    if (existing) {
+      setActiveThreadId(existing.id);
+      setActiveTab('chat');
+      return;
+    }
+    
+    const newThread: ChatThread = {
+      id: `t-${Date.now()}`,
+      cropId: 'inquiry',
+      cropName: 'Inquiry',
+      buyerName,
+      farmerName: user?.user_metadata?.fullName || 'Mock Farmer',
+      messages: [
+        {
+          id: `msg-${Date.now()}`,
+          senderRole: 'farmer',
+          text: `Hello ${buyerName}, I saw your buying rates on the Virtual Market. I would like to discuss selling my harvest.`,
+          timestamp: new Date().toISOString()
+        }
+      ],
+      lastUpdated: new Date().toISOString(),
+      unreadForBuyer: true,
+      unreadForFarmer: false
+    };
+    
+    const updated = [newThread, ...threads];
+    setThreads(updated);
+    try {
+      localStorage.setItem('agromart_chats', JSON.stringify(updated));
+    } catch(e){}
+    
+    setActiveThreadId(newThread.id);
+    setActiveTab('chat');
+  };
+
   // ── Profile Edit Fields ──
   const [profileName, setProfileName] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
@@ -409,9 +897,19 @@ export default function FarmerDashboard() {
   const [profileAddress, setProfileAddress] = useState('');
   const [profileFarmSize, setProfileFarmSize] = useState('');
   const [profileFarmingType, setProfileFarmingType] = useState('organic');
-  const [profileCrops, setProfileCrops] = useState<string[]>([]);
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileCrops, setProfileCrops] = useState('');
+  const [isEditingProfile, setIsEditingProfile] = useState(true);
   const [profileSaveSuccess, setProfileSaveSuccess] = useState('');
+  const [profileBankName, setProfileBankName] = useState('');
+  const [profileBankAccount, setProfileBankAccount] = useState('');
+  const [profileBankIfsc, setProfileBankIfsc] = useState('');
+  const [profileGatNumber, setProfileGatNumber] = useState('');
+  const [profileSoilType, setProfileSoilType] = useState('black');
+
+  // ── VoIP Call States ──
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [callModalCallee, setCallModalCallee] = useState('');
+
 
   // ── Demands ──
   const [demands, setDemands] = useState<CropDemand[]>([]);
@@ -512,17 +1010,30 @@ export default function FarmerDashboard() {
       setProfileAddress(meta.address || '');
       setProfileFarmSize(meta.farm_size || '');
       setProfileFarmingType(meta.farming_type || 'organic');
-      setProfileCrops(meta.main_crops || []);
+      let cropsList = '';
+      if (Array.isArray(meta.main_crops)) {
+        cropsList = meta.main_crops.join(', ');
+      } else if (typeof meta.main_crops === 'string' && meta.main_crops) {
+        try {
+          const parsed = JSON.parse(meta.main_crops);
+          if (Array.isArray(parsed)) {
+            cropsList = parsed.join(', ');
+          } else {
+            cropsList = meta.main_crops;
+          }
+        } catch {
+          cropsList = meta.main_crops;
+        }
+      }
+      setProfileCrops(cropsList);
+
+      setProfileBankName(meta.bank_name || '');
+      setProfileBankAccount(meta.bank_account || '');
+      setProfileBankIfsc(meta.bank_ifsc || '');
+      setProfileGatNumber(meta.gat_number || '');
+      setProfileSoilType(meta.soil_type || 'black');
     }
   }, [user]);
-
-  const handleProfileCropToggle = (cropId: string) => {
-    if (profileCrops.includes(cropId)) {
-      setProfileCrops(profileCrops.filter(c => c !== cropId));
-    } else {
-      setProfileCrops([...profileCrops, cropId]);
-    }
-  };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -539,7 +1050,12 @@ export default function FarmerDashboard() {
       address: profileAddress,
       farm_size: profileFarmSize,
       farming_type: profileFarmingType,
-      main_crops: profileCrops,
+      main_crops: profileCrops.split(',').map(s => s.trim()).filter(Boolean),
+      bank_name: profileBankName,
+      bank_account: profileBankAccount,
+      bank_ifsc: profileBankIfsc,
+      gat_number: profileGatNumber,
+      soil_type: profileSoilType,
     };
 
     try {
@@ -557,7 +1073,7 @@ export default function FarmerDashboard() {
       setCropLocation(loc);
 
       setProfileSaveSuccess(language === 'mr' ? 'प्रोफाइल यशस्वीरित्या जतन केली!' : 'Profile saved successfully!');
-      setIsEditingProfile(false);
+      setIsEditingProfile(true); // Keep it editable
       
       const notif = pushNotification('listing_approved', 'Profile details updated successfully.', 'farmer');
       if (notif) triggerToast(notif.id, 'listing_approved', 'Profile Updated ✓');
@@ -685,6 +1201,13 @@ export default function FarmerDashboard() {
     window.addEventListener('toggle-mobile-menu', handleToggle);
     return () => window.removeEventListener('toggle-mobile-menu', handleToggle);
   }, []);
+
+  // Auto-select first thread when chat tab opens
+  useEffect(() => {
+    if (activeTab === 'chat' && !activeThreadId && threads.length > 0) {
+      setActiveThreadId(threads[0].id);
+    }
+  }, [activeTab, threads]);
 
   // ─── Mark as Read ───────────────────────────────────────────────────────────
   const handleMarkRead = (id: string) => {
@@ -815,21 +1338,73 @@ export default function FarmerDashboard() {
     e.preventDefault();
     const errors: Record<string, string> = {};
     if (!cropName.trim()) errors.name = 'Crop name is required';
-    if (!cropQty.trim() || isNaN(Number(cropQty)) || Number(cropQty) <= 0) errors.qty = 'Enter a valid quantity';
-    if (!cropPrice.trim() || isNaN(Number(cropPrice)) || Number(cropPrice) <= 0) errors.price = 'Enter a valid price';
+
+    const cleanQtyStr = devanagariToEnglish(cropQty).trim();
+    const qtyNum = Number(cleanQtyStr);
+    if (!cleanQtyStr || isNaN(qtyNum) || qtyNum <= 0) {
+      errors.qty = getPositiveNumberError(language);
+    }
+
+    const cleanPriceStr = devanagariToEnglish(cropPrice).trim();
+    const priceNum = Number(cleanPriceStr);
+    if (!cleanPriceStr || isNaN(priceNum) || priceNum <= 0) {
+      errors.price = getPositiveNumberError(language);
+    }
+
     if (!cropHarvestDate) errors.harvestDate = 'Harvest date is required';
     if (!cropLocation.trim()) errors.location = 'Location is required';
+
+    // Limit validation check during submit
+    if (isRateAvailable && allowedMinPrice !== null && allowedMaxPrice !== null) {
+      if (priceNum < allowedMinPrice) {
+        let msg = '';
+        if (language === 'mr') {
+          msg = 'तुम्ही टाकलेली किंमत चालू बाजारभावापेक्षा खूप कमी आहे.';
+        } else if (language === 'hi') {
+          msg = 'आपके द्वारा दर्ज की गई कीमत वर्तमान बाजार भाव से बहुत कम है।';
+        } else {
+          msg = 'The entered price is too low compared to the current market rate.';
+        }
+        errors.price = msg;
+      } else if (priceNum > allowedMaxPrice) {
+        let msg = '';
+        if (language === 'mr') {
+          msg = 'तुम्ही टाकलेली किंमत चालू बाजारभावापेक्षा खूप जास्त आहे.';
+        } else if (language === 'hi') {
+          msg = 'आपके द्वारा दर्ज की गई कीमत वर्तमान बाजार भाव से बहुत अधिक है।';
+        } else {
+          msg = 'The entered price is too high compared to the current market rate.';
+        }
+        errors.price = msg;
+      }
+    }
+
     if (Object.keys(errors).length > 0) { setFormErrors(errors); return; }
 
+    const cleanAuctionHours = Number(devanagariToEnglish(cropAuctionHours));
+
     const cropData: any = {
-      name: cropName.trim(), category: cropCategory, quantity: Number(cropQty), unit: cropUnit,
-      expected_price: Number(cropPrice), description: cropDescription.trim() || null,
-      harvest_date: cropHarvestDate, quality_type: cropQualityType, location: cropLocation.trim(), status: cropStatus,
+      name: cropName.trim(), 
+      category: cropCategory, 
+      quantity: qtyNum, 
+      unit: cropUnit,
+      expected_price: priceNum, 
+      description: cropDescription.trim() || null,
+      harvest_date: cropHarvestDate, 
+      quality_type: cropQualityType, 
+      location: cropLocation.trim(),
+      status: isRateAvailable ? cropStatus : 'Pending Review',
       is_auction: cropIsAuction,
-      auction_end_time: cropIsAuction ? new Date(Date.now() + Number(cropAuctionHours) * 60 * 60 * 1000).toISOString() : undefined,
+      auction_end_time: cropIsAuction ? new Date(Date.now() + cleanAuctionHours * 60 * 60 * 1000).toISOString() : undefined,
       bids: cropIsAuction ? [] : undefined,
-      highest_bid: cropIsAuction ? Number(cropPrice) : undefined,
+      highest_bid: cropIsAuction ? priceNum : undefined,
+      market_rate_status: isRateAvailable ? 'Available' : 'Unavailable',
     };
+
+    if (!isRateAvailable) {
+      cropData.status = 'Pending Review';
+      cropData.needs_admin_review = true;
+    }
 
     if (editingCrop) {
       if (user) { try { await supabase.from('crops').update(cropData).eq('id', editingCrop.id); } catch {} }
@@ -846,8 +1421,14 @@ export default function FarmerDashboard() {
       }
       const newListing: ActiveListing = { id: newId, farmer_id: user?.id || 'mock-farmer', ...cropData, views: 0, offers: 0 };
       setListings(prev => [newListing, ...prev]);
-      const notif = pushNotification('listing_approved', `Crop listed: "${cropName}" is now live.`, 'farmer');
-      if (notif) triggerToast(notif.id, 'listing_approved', `Listed: ${cropName}`);
+      const notif = pushNotification(
+        'listing_approved',
+        isRateAvailable 
+          ? `Crop listed: "${cropName}" is now live.` 
+          : `Crop listed: "${cropName}" is pending admin review.`,
+        'farmer'
+      );
+      if (notif) triggerToast(notif.id, 'listing_approved', isRateAvailable ? `Listed: ${cropName}` : `Pending: ${cropName}`);
     }
     setIsAddModalOpen(false);
     resetForm();
@@ -1369,22 +1950,28 @@ export default function FarmerDashboard() {
                           <span className="flex items-center gap-1"><Eye className="w-4 h-4" />{list.views ?? 0}</span>
                           <span className="flex items-center gap-1"><MessageSquare className="w-4 h-4 text-primary-500" />{list.offers ?? 0}</span>
                         </div>
-                        <div className="relative">
-                          <select
-                            value={list.status}
-                            onChange={e => handleStatusChange(list.id, e.target.value as any)}
-                            className={`pl-3 pr-6 py-1 rounded-full text-[10px] font-black uppercase border cursor-pointer focus:outline-none appearance-none min-w-[90px] text-center ${
-                              list.status === 'Available' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200/40'
-                              : list.status === 'Reserved' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200/40'
-                              : 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 border-red-200/40'
-                            }`}
-                          >
-                            <option value="Available">Available</option>
-                            <option value="Reserved">Reserved</option>
-                            <option value="Sold">Sold</option>
-                          </select>
-                          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[6px] pointer-events-none font-black text-earth-400">▼</span>
-                        </div>
+                        {list.status === 'Pending Review' ? (
+                          <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-500/20">
+                            {language === 'mr' ? 'पुनरावलोकन प्रलंबित' : language === 'hi' ? 'समीक्षा लंबित' : 'Pending Review'}
+                          </span>
+                        ) : (
+                          <div className="relative">
+                            <select
+                              value={list.status}
+                              onChange={e => handleStatusChange(list.id, e.target.value as any)}
+                              className={`pl-3 pr-6 py-1 rounded-full text-[10px] font-black uppercase border cursor-pointer focus:outline-none appearance-none min-w-[90px] text-center ${
+                                list.status === 'Available' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200/40'
+                                : list.status === 'Reserved' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200/40'
+                                : 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 border-red-200/40'
+                              }`}
+                            >
+                              <option value="Available">Available</option>
+                              <option value="Reserved">Reserved</option>
+                              <option value="Sold">Sold</option>
+                            </select>
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[6px] pointer-events-none font-black text-earth-400">▼</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1533,7 +2120,7 @@ export default function FarmerDashboard() {
                 </p>
               </div>
               <button
-                onClick={() => setActiveTab('market_suggestions')}
+                onClick={() => setActiveTab('ai_insights')}
                 className="w-full py-2.5 rounded-xl border border-border hover:border-primary-500 text-xs font-black text-foreground hover:text-primary-600 transition-all cursor-pointer text-center"
               >
                 {language === 'mr' ? 'दर अंदाज पहा →' : language === 'hi' ? 'कीमत पूर्वानुमान →' : 'View Forecasts →'}
@@ -1623,6 +2210,172 @@ export default function FarmerDashboard() {
                 {language === 'mr' ? 'तक्रार नोंदवा →' : language === 'hi' ? 'शिकायत दर्ज करें →' : 'Get Help →'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── VIRTUAL MARKETPLACE TAB ────────────────────────────────────────── */}
+      {activeTab === 'marketplace' && (
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
+            <div>
+              <h2 className="text-2xl font-black text-foreground">
+                {language === 'mr' ? 'बाजारपेठ खरेदीदार' : language === 'hi' ? 'बाजार खरीदार' : 'Virtual Market Directory'}
+              </h2>
+              <p className="text-xs font-semibold text-earth-500 mt-1">Discover and connect with wholesalers, exporters, and retailers</p>
+            </div>
+          </div>
+
+          {/* Search & Filters */}
+          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between p-5 bg-card border border-border rounded-2xl">
+            <div className="relative flex-grow max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-earth-400" />
+              <input 
+                type="text" 
+                placeholder={language === 'mr' ? 'खरेदीदार किंवा पीक शोधा...' : language === 'hi' ? 'खरीदार या फसल खोजें...' : 'Search buyers or crops...'}
+                value={mktSearch}
+                onChange={e => setMktSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500" 
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={mktBuyerType}
+                onChange={e => setMktBuyerType(e.target.value)}
+                className="px-3 py-2.5 rounded-xl border border-border bg-background text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+              >
+                <option value="All">All Types</option>
+                <option value="Wholesaler">Wholesaler</option>
+                <option value="Exporter">Exporter</option>
+                <option value="Retailer">Retailer</option>
+                <option value="Processor">Processor</option>
+              </select>
+
+              <select
+                value={mktDistance}
+                onChange={e => setMktDistance(e.target.value)}
+                className="px-3 py-2.5 rounded-xl border border-border bg-background text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+              >
+                <option value="All">Any Distance</option>
+                <option value="5">Within 5 KM</option>
+                <option value="15">Within 15 KM</option>
+                <option value="50">Within 50 KM</option>
+              </select>
+
+              <select
+                value={mktSortBy}
+                onChange={e => setMktSortBy(e.target.value)}
+                className="px-3 py-2.5 rounded-xl border border-border bg-background text-xs font-black text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+              >
+                <option value="distance">Sort by Distance</option>
+                <option value="rating">Sort by Rating</option>
+                <option value="price">Sort by Best Price</option>
+              </select>
+
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-extrabold text-foreground ml-2">
+                <input 
+                  type="checkbox" 
+                  checked={mktVerifiedOnly} 
+                  onChange={e => setMktVerifiedOnly(e.target.checked)} 
+                  className="rounded border-border text-primary-600 focus:ring-primary-500 cursor-pointer w-4 h-4" 
+                />
+                <span>Verified Only</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Buyers Grid */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filteredBuyers.map((buyer: BuyerProfile) => (
+              <div key={buyer.id} className="bg-card border border-border rounded-3xl overflow-hidden hover-lift flex flex-col justify-between shadow-sm">
+                <div>
+                  {/* Banner & Avatar */}
+                  <div className="relative h-32 w-full bg-earth-100">
+                    <img src={buyer.bannerImage} alt="Banner" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    
+                    <div className="absolute bottom-3 left-4 flex items-end gap-3">
+                      <div className="w-12 h-12 rounded-xl border-2 border-card overflow-hidden shrink-0 shadow bg-background">
+                        <img src={buyer.profilePhoto} alt="Avatar" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="text-white">
+                        <h4 className="font-extrabold text-sm flex items-center gap-1">
+                          {buyer.shopName}
+                          {buyer.isVerified && <ShieldCheck className="w-4 h-4 text-emerald-400 fill-emerald-400/20" />}
+                        </h4>
+                        <span className="text-[10px] opacity-90 font-bold">{buyer.ownerName} · {buyer.businessType}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Body details */}
+                  <div className="p-5 flex flex-col gap-4">
+                    <div className="flex items-center justify-between text-xs font-semibold text-earth-500">
+                      <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{buyer.distance} KM away</span>
+                      <span className="flex items-center gap-1 text-amber-500"><Star className="w-3.5 h-3.5 fill-amber-500" />{buyer.ratings} ({buyer.reviewsCount})</span>
+                    </div>
+
+                    {/* Crops buying */}
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-earth-400">Buying Rates</span>
+                      <div className="flex flex-col gap-1.5">
+                        {buyer.buyingRates?.map((rate: any, i: number) => (
+                          <div key={i} className="flex items-center justify-between py-1.5 px-3 rounded-lg bg-earth-50/50 dark:bg-earth-900/10 border border-border/40 text-xs">
+                            <span className="font-bold text-foreground">{rate.cropName}</span>
+                            <span className="font-extrabold text-emerald-600 dark:text-emerald-500">₹{rate.buyingPrice}/{rate.unit}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="px-5 pb-5 pt-2 border-t border-border/40 grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => {
+                      const tNoContact = language === 'mr' ? 'संपर्क क्रमांक उपलब्ध नाही' : language === 'hi' ? 'संपर्क नंबर उपलब्ध नहीं है' : 'Contact number not available';
+                      if (buyer.contactNumber) {
+                        window.location.href = `tel:${buyer.contactNumber.replace(/\s+/g, '')}`;
+                      } else {
+                        alert(tNoContact);
+                      }
+                    }}
+                    className="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>{language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}</span>
+                  </button>
+                  <button 
+                    onClick={() => handleStartChatWithBuyer(buyer.shopName)}
+                    className="py-2.5 rounded-xl border border-border hover:bg-earth-100 dark:hover:bg-earth-900 text-foreground font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>{language === 'mr' ? 'चॅट करा' : language === 'hi' ? 'चैट करें' : 'Chat'}</span>
+                  </button>
+                  <button 
+                    onClick={() => { setOfferTargetBuyer(buyer); setOfferCropName(buyer.buyingRates?.[0]?.cropName || ''); setIsOfferModalOpen(true); }}
+                    className="col-span-2 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Send Crop Offer</span>
+                  </button>
+                  <button 
+                    onClick={() => handleOpenBuyerProfile(buyer.shopName)}
+                    className="col-span-2 py-2 rounded-xl text-center text-xs font-black text-primary-600 hover:text-primary-700 hover:underline cursor-pointer"
+                  >
+                    View Details & Route →
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {filteredBuyers.length === 0 && (
+              <div className="col-span-3 py-16 text-center text-sm font-semibold text-earth-500 bg-card border border-border rounded-3xl">
+                No buyers found matching your criteria. Try adjusting your filters.
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1770,10 +2523,30 @@ export default function FarmerDashboard() {
           {/* Chat Panel */}
           <div className="lg:col-span-8 rounded-2xl border border-border bg-card flex flex-col overflow-hidden">
             {!activeThread ? (
-              <div className="flex-grow flex items-center justify-center text-earth-500 text-sm font-semibold">
-                <div className="text-center">
-                  <MessageCircle className="w-12 h-12 mx-auto mb-3 text-earth-300" />
-                  Select a conversation to start chatting
+              <div className="flex-grow flex flex-col">
+                <div className="flex-grow flex items-center justify-center text-earth-500 text-sm font-semibold p-8">
+                  <div className="text-center">
+                    <MessageCircle className="w-12 h-12 mx-auto mb-3 text-earth-300" />
+                    <p className="font-bold text-foreground text-sm">{language === 'mr' ? 'संभाषण निवडा' : language === 'hi' ? 'बातचीत चुनें' : 'Select a conversation'}</p>
+                    <p className="text-xs text-earth-500 mt-1">{language === 'mr' ? 'डाव्या बाजूच्या यादीतून खरेदीदार निवडा' : language === 'hi' ? 'बाईं सूची से खरीदार चुनें' : 'Pick a buyer from the list on the left'}</p>
+                  </div>
+                </div>
+                {/* Always-visible input bar even when no thread selected */}
+                <div className="p-4 border-t border-border flex gap-3 bg-background/30">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    placeholder={language === 'mr' ? 'प्रथम वरील यादीतून संभाषण निवडा...' : language === 'hi' ? 'पहले ऊपर से बातचीत चुनें...' : 'Select a conversation above first...'}
+                    disabled
+                    className="flex-grow px-4 py-2.5 rounded-xl border border-border bg-background/50 text-sm text-earth-400 font-semibold opacity-60 cursor-not-allowed"
+                  />
+                  <button
+                    disabled
+                    className="p-3 rounded-xl bg-primary-600 text-white opacity-40 cursor-not-allowed"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             ) : (
@@ -1789,12 +2562,25 @@ export default function FarmerDashboard() {
                       <div className="text-[10px] font-bold text-earth-500">{activeThread.cropName}</div>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => handleOpenBuyerProfile(activeThread.buyerName)}
-                    className="px-3.5 py-1.5 rounded-lg border border-primary-500/20 text-primary-600 dark:text-primary-400 font-extrabold text-xs hover:bg-primary-50 dark:hover:bg-primary-950/20 cursor-pointer transition-colors"
-                  >
-                    View Profile
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const buyer = buyersList.find(b => b.shopName === activeThread.buyerName);
+                        const contactNum = buyer ? buyer.contactNumber : '+91 98765 43210';
+                        window.location.href = `tel:${contactNum.replace(/\s+/g, '')}`;
+                      }}
+                      className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>{language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}</span>
+                    </button>
+                    <button 
+                      onClick={() => handleOpenBuyerProfile(activeThread.buyerName)}
+                      className="px-3.5 py-1.5 rounded-lg border border-primary-500/20 text-primary-600 dark:text-primary-400 font-extrabold text-xs hover:bg-primary-50 dark:hover:bg-primary-950/20 cursor-pointer transition-colors"
+                    >
+                      View Profile
+                    </button>
+                  </div>
                 </div>
 
                 {/* Messages */}
@@ -1823,7 +2609,7 @@ export default function FarmerDashboard() {
                 </div>
 
                 {/* Input */}
-                <div className="p-4 border-t border-border flex gap-3">
+                <div className="p-4 border-t border-border flex gap-3 bg-background/30">
                   <input
                     type="text"
                     value={chatInput}
@@ -1994,219 +2780,311 @@ export default function FarmerDashboard() {
           </div>
 
           {/* Farmer Profile Information Section */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b border-border pb-5">
-              <div>
-                <h3 className="text-lg font-black text-foreground">
-                  {language === 'mr' ? 'नोंदणीकृत तपशील' : language === 'hi' ? 'पंजीकृत विवरण' : 'Registered Profile Details'}
-                </h3>
-                <p className="text-xs font-semibold text-earth-500">
-                  {language === 'mr' ? 'नोंदणी दरम्यान भरलेली तुमची वैयक्तिक आणि शेतीची माहिती.' : 'Your personal and farm details entered during registration.'}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setIsEditingProfile(prev => !prev);
-                  setProfileSaveSuccess('');
-                }}
-                className="px-4 py-2 rounded-xl border border-primary-500/20 text-primary-600 dark:text-primary-400 font-extrabold text-xs hover:bg-primary-50 dark:hover:bg-primary-950/20 transition-all cursor-pointer"
-              >
-                {isEditingProfile ? (language === 'mr' ? 'रद्द करा' : 'Cancel') : (language === 'mr' ? 'माहिती बदला (Edit)' : 'Edit Profile')}
-              </button>
-            </div>
-
+          <div className="flex flex-col gap-6">
             {profileSaveSuccess && (
-              <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black">
+              <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black transition-all">
                 {profileSaveSuccess}
               </div>
             )}
 
-            {!isEditingProfile ? (
-              // READ-ONLY VIEW
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 text-sm font-semibold">
-                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
-                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'पूर्ण नाव' : 'Full Name'}</span>
-                  <span className="text-foreground">{profileName || '—'}</span>
+            <form onSubmit={handleSaveProfile} className="flex flex-col gap-8">
+              {/* 1. Personal Details */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-foreground">
+                      {language === 'mr' ? 'वैयक्तिक माहिती' : language === 'hi' ? 'व्यक्तिगत विवरण' : 'Personal Details'}
+                    </h3>
+                    <p className="text-xs font-semibold text-earth-500">
+                      {language === 'mr' ? 'तुमचे पूर्ण नाव आणि संपर्क माहिती.' : language === 'hi' ? 'आपका पूरा नाम और संपर्क विवरण।' : 'Your full name and contact information.'}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
-                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'मोबाईल नंबर' : 'Phone Number'}</span>
-                  <span className="text-foreground">{profilePhone || '—'}</span>
-                </div>
-                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
-                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'ईमेल पत्ता' : 'Email Address'}</span>
-                  <span className="text-foreground">{profileEmail || '—'}</span>
-                </div>
-                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
-                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'शेती आकारमान (एकर)' : 'Farm Size (Acres)'}</span>
-                  <span className="text-foreground">{profileFarmSize ? `${profileFarmSize} Acres` : '—'}</span>
-                </div>
-                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
-                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'शेतीचा प्रकार' : 'Farming Type'}</span>
-                  <span className="text-foreground capitalize">{profileFarmingType || '—'}</span>
-                </div>
-                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5">
-                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'मुख्य पिके' : 'Main Crops'}</span>
-                  <span className="text-foreground capitalize">
-                    {profileCrops.length > 0 
-                      ? profileCrops.map(cid => cropOptions.find(o => o.id === cid)?.[language === 'mr' ? 'mr' : language === 'hi' ? 'hi' : 'en'] || cid).join(', ') 
-                      : '—'}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1 border-b border-border/40 pb-2.5 md:col-span-2">
-                  <span className="text-xs text-earth-500 font-black uppercase tracking-wider">{language === 'mr' ? 'ठिकाण / पत्ता' : 'Location & Address'}</span>
-                  <span className="text-foreground">
-                    {[profileAddress, profileVillage, profileTaluka, profileDistrict, profileState].filter(Boolean).join(', ')} 
-                    {profilePincode ? ` (${profilePincode})` : ''}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              // EDITABLE FORM VIEW
-              <form onSubmit={handleSaveProfile} className="flex flex-col gap-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'पूर्ण नाव' : 'Full Name'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'पूर्ण नाव' : language === 'hi' ? 'पूरा नाम' : 'Full Name'}
+                    </label>
                     <input
                       type="text"
                       value={profileName}
                       onChange={e => setProfileName(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                       required
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'मोबाईल नंबर' : 'Phone Number'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'मोबाईल नंबर' : language === 'hi' ? 'मोबाइल नंबर' : 'Phone Number'}
+                    </label>
                     <input
                       type="text"
                       value={profilePhone}
                       onChange={e => setProfilePhone(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'ईमेल पत्ता' : 'Email Address'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'ईमेल पत्ता' : language === 'hi' ? 'ईमेल पता' : 'Email Address'}
+                    </label>
                     <input
                       type="email"
                       value={profileEmail}
                       onChange={e => setProfileEmail(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* 2. Farm & Land Details */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                    <Sprout className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-foreground">
+                      {language === 'mr' ? 'शेती आणि जमीन तपशील' : language === 'hi' ? 'कृषि और भूमि विवरण' : 'Farm & Land Details'}
+                    </h3>
+                    <p className="text-xs font-semibold text-earth-500">
+                      {language === 'mr' ? 'तुमच्या शेतीचे क्षेत्रफळ, माती आणि पिकांची माहिती.' : language === 'hi' ? 'आपके खेत का आकार, मिट्टी और फसलों की जानकारी।' : 'Your farm size, soil type, and crop details.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'शेती आकारमान (एकर)' : 'Farm Size (Acres)'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'शेती आकारमान (एकर)' : language === 'hi' ? 'खेत का आकार (एकड़)' : 'Farm Size (Acres)'}
+                    </label>
                     <input
                       type="number"
                       value={profileFarmSize}
                       onChange={e => setProfileFarmSize(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'शेतीचा प्रकार' : 'Farming Type'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'शेतीचा प्रकार' : language === 'hi' ? 'खेती का प्रकार' : 'Farming Type'}
+                    </label>
                     <select
                       value={profileFarmingType}
                       onChange={e => setProfileFarmingType(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer transition-all"
                     >
-                      <option value="organic">Organic (सेंद्रिय)</option>
-                      <option value="chemical">Chemical (रासायनिक)</option>
-                      <option value="mix">Mixed / Traditional (मिश्र/पारंपरिक)</option>
+                      <option value="organic">{language === 'mr' ? 'सेंद्रिय (Organic)' : language === 'hi' ? 'जैविक (Organic)' : 'Organic'}</option>
+                      <option value="chemical">{language === 'mr' ? 'रासायनिक (Chemical)' : language === 'hi' ? 'रासायनिक (Chemical)' : 'Chemical'}</option>
+                      <option value="mix">{language === 'mr' ? 'मिश्र/पारंपरिक (Mixed)' : language === 'hi' ? 'मिश्रित/पारंपरिक (Mixed)' : 'Mixed / Traditional'}</option>
                     </select>
                   </div>
-                  <div className="flex flex-col gap-1.5 md:col-span-2">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'मुख्य पिके' : 'Main Crops'}</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {cropOptions.map(crop => {
-                        const isSelected = profileCrops.includes(crop.id);
-                        return (
-                          <button
-                            key={crop.id}
-                            type="button"
-                            onClick={() => handleProfileCropToggle(crop.id)}
-                            className={`p-2.5 rounded-xl border flex items-center justify-between font-bold text-xs transition-all cursor-pointer ${
-                              isSelected
-                                ? 'border-primary-500 bg-primary-50/15 dark:bg-primary-950/20 text-primary-600 dark:text-primary-400'
-                                : 'border-border bg-background text-earth-650'
-                            }`}
-                          >
-                            <span>{crop[language === 'mr' ? 'mr' : language === 'hi' ? 'hi' : 'en'] || crop.en}</span>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-primary-500" />}
-                          </button>
-                        );
-                      })}
-                    </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'गट / सर्व्हे क्रमांक' : language === 'hi' ? 'गट / सर्वे नंबर' : 'Gat / Survey Number'}
+                    </label>
+                    <input
+                      type="text"
+                      value={profileGatNumber}
+                      onChange={e => setProfileGatNumber(e.target.value)}
+                      placeholder="e.g. 142/A"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'मातीचा प्रकार' : language === 'hi' ? 'मिट्टी का प्रकार' : 'Soil Type'}
+                    </label>
+                    <select
+                      value={profileSoilType}
+                      onChange={e => setProfileSoilType(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer transition-all"
+                    >
+                      <option value="black">{language === 'mr' ? 'काळी माती (Black Soil)' : language === 'hi' ? 'काली मिट्टी (Black Soil)' : 'Black Soil'}</option>
+                      <option value="red">{language === 'mr' ? 'तांबडी माती (Red Soil)' : language === 'hi' ? 'लाल मिट्टी (Red Soil)' : 'Red Soil'}</option>
+                      <option value="sandy">{language === 'mr' ? 'वालुकामय माती (Sandy Soil)' : language === 'hi' ? 'बलुई मिट्टी (Sandy Soil)' : 'Sandy Soil'}</option>
+                      <option value="loamy">{language === 'mr' ? 'दुमट माती (Loamy Soil)' : language === 'hi' ? 'दोमट मिट्टी (Loamy Soil)' : 'Loamy Soil'}</option>
+                      <option value="clayey">{language === 'mr' ? 'चिकन माती (Clayey Soil)' : language === 'hi' ? 'चिकनी मिट्टी (Clayey Soil)' : 'Clayey Soil'}</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 md:col-span-4">
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'मुख्य पिके' : language === 'hi' ? 'मुख्य फसलें' : 'Main Crops'}
+                    </label>
+                    <input
+                      type="text"
+                      value={profileCrops}
+                      onChange={e => setProfileCrops(e.target.value)}
+                      placeholder={language === 'mr' ? 'उदा. गहू, तांदूळ, कापूस (स्वल्पविराम देऊन वेगळे करा)' : language === 'hi' ? 'उदा. गेहूं, चावल, कपास (अल्पविराम से अलग करें)' : 'e.g. Wheat, Rice, Cotton (separated by commas)'}
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                    />
+                    <p className="text-[10px] text-earth-500 font-bold mt-1">
+                      {language === 'mr' ? '* पिकांची नावे स्वल्पविराम (,) देऊन लिहा जेणेकरून तुम्ही एकाधिक पिके जोडू शकता.' : language === 'hi' ? '* फसलों के नाम अल्पविराम (,) से अलग करके लिखें ताकि आप कई फसलें जोड़ सकें।' : '* Separate crop names with commas (,) to add multiple crops.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Address Details */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-foreground">
+                      {language === 'mr' ? 'पत्ता तपशील' : language === 'hi' ? 'पता विवरण' : 'Address Details'}
+                    </h3>
+                    <p className="text-xs font-semibold text-earth-500">
+                      {language === 'mr' ? 'तुमचा संपर्क पत्ता आणि गाव.' : language === 'hi' ? 'आपका संपर्क पता और गाँव।' : 'Your contact address and village.'}
+                    </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'गाव / शहर' : 'Village / City'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'गाव / शहर' : language === 'hi' ? 'गाँव / शहर' : 'Village / City'}
+                    </label>
                     <input
                       type="text"
                       value={profileVillage}
                       onChange={e => setProfileVillage(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'तालुका' : 'Taluka'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'तालुका' : language === 'hi' ? 'तालुका' : 'Taluka'}
+                    </label>
                     <input
                       type="text"
                       value={profileTaluka}
                       onChange={e => setProfileTaluka(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'जिल्हा' : 'District'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'जिल्हा' : language === 'hi' ? 'जिला' : 'District'}
+                    </label>
                     <input
                       type="text"
                       value={profileDistrict}
                       onChange={e => setProfileDistrict(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'राज्य' : 'State'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'राज्य' : language === 'hi' ? 'राज्य' : 'State'}
+                    </label>
                     <input
                       type="text"
                       value={profileState}
                       onChange={e => setProfileState(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="flex flex-col gap-1.5 md:col-span-3">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'पूर्ण पत्ता' : 'Full Address'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'पूर्ण पत्ता' : language === 'hi' ? 'पूरा पता' : 'Full Address'}
+                    </label>
                     <input
                       type="text"
                       value={profileAddress}
                       onChange={e => setProfileAddress(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-foreground">{language === 'mr' ? 'पिनकोड' : 'Pincode'}</label>
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'पिनकोड' : language === 'hi' ? 'पिनकोड' : 'Pincode'}
+                    </label>
                     <input
                       type="text"
                       maxLength={6}
                       value={profilePincode}
                       onChange={e => setProfilePincode(e.target.value.replace(/\D/g, ''))}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                     />
                   </div>
                 </div>
+              </div>
 
-                <button
-                  type="submit"
-                  className="w-full mt-3 py-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-sm shadow cursor-pointer transition-colors"
-                >
-                  {language === 'mr' ? 'बदल जतन करा (Save Changes)' : 'Save Changes'}
-                </button>
-              </form>
-            )}
+              {/* 4. Bank Account Details */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 border-b border-border pb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-950/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                    <Landmark className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-foreground">
+                      {language === 'mr' ? 'बँक खाते तपशील' : language === 'hi' ? 'बैंक खाता विवरण' : 'Bank Account Details'}
+                    </h3>
+                    <p className="text-xs font-semibold text-earth-500">
+                      {language === 'mr' ? 'थेट बँक खात्यात पैसे जमा करण्यासाठी बँक माहिती.' : language === 'hi' ? 'सीधे बैंक खाते में भुगतान प्राप्त करने के लिए बैंक विवरण।' : 'Your banking details for receiving direct payments.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'बँकेचे नाव' : language === 'hi' ? 'बैंक का नाम' : 'Bank Name'}
+                    </label>
+                    <input
+                      type="text"
+                      value={profileBankName}
+                      onChange={e => setProfileBankName(e.target.value)}
+                      placeholder="e.g. State Bank of India"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'खाते क्रमांक' : language === 'hi' ? 'खाता संख्या' : 'Account Number'}
+                    </label>
+                    <input
+                      type="text"
+                      value={profileBankAccount}
+                      onChange={e => setProfileBankAccount(e.target.value)}
+                      placeholder="e.g. 123456789012"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-foreground">
+                      {language === 'mr' ? 'आयएफएससी (IFSC) कोड' : language === 'hi' ? 'आईएफएससी (IFSC) कोड' : 'IFSC Code'}
+                    </label>
+                    <input
+                      type="text"
+                      value={profileBankIfsc}
+                      onChange={e => setProfileBankIfsc(e.target.value.toUpperCase())}
+                      placeholder="e.g. SBIN0001234"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-extrabold text-base shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <CheckCircle className="w-5 h-5" />
+                {language === 'mr' ? 'माहिती जतन करा (Save Changes)' : language === 'hi' ? 'विवरण सहेजें (Save Changes)' : 'Save Profile Changes'}
+              </button>
+            </form>
           </div>
         </div>
       )}
@@ -2224,9 +3102,9 @@ export default function FarmerDashboard() {
         <FarmerEducationCenter language={language} userId={user?.id || 'default'} />
       )}
 
-      {/* ── MARKET SUGGESTIONS TAB ───────────────────────────────────────────── */}
-      {activeTab === 'market_suggestions' && (
-        <BestSellingSuggestions language={language} />
+      {/* ── AI INSIGHTS TAB ───────────────────────────────────────────── */}
+      {activeTab === 'ai_insights' && (
+        <AIInsightsDashboard language={language} />
       )}
 
       {/* ── SUPPORT TAB ──────────────────────────────────────────────────────── */}
@@ -2293,11 +3171,14 @@ export default function FarmerDashboard() {
                   className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-sm ${formErrors.name ? 'border-red-500' : 'border-border'}`} />
                 {formErrors.name && <span className="text-[10px] font-bold text-red-500">{formErrors.name}</span>}
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-foreground">Category</label>
                   <select value={cropCategory} onChange={e => setCropCategory(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
-                    {['Grains', 'Vegetables', 'Fruits', 'Oilseeds', 'Pulses', 'Spices'].map(c => <option key={c}>{c}</option>)}
+                    {['Grains', 'Vegetables', 'Fruits', 'Oilseeds', 'Pulses', 'Spices', 'Fiber Crop', 'Commercial Crop'].map(c => (
+                      <option key={c} value={c}>{getLocalizedCategoryLabel(c, language)}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -2310,7 +3191,7 @@ export default function FarmerDashboard() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-foreground">Quantity *</label>
-                  <input type="number" placeholder="e.g. 24" value={cropQty} onChange={e => { setCropQty(e.target.value); if (formErrors.qty) setFormErrors({ ...formErrors, qty: '' }); }}
+                  <input type="text" placeholder="e.g. 24" value={cropQty} onChange={e => { setCropQty(e.target.value); if (formErrors.qty) setFormErrors({ ...formErrors, qty: '' }); }}
                     className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.qty ? 'border-red-500' : 'border-border'}`} />
                   {formErrors.qty && <span className="text-[10px] font-bold text-red-500">{formErrors.qty}</span>}
                 </div>
@@ -2324,9 +3205,36 @@ export default function FarmerDashboard() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-foreground">Expected Price (₹/unit) *</label>
-                  <input type="number" placeholder="e.g. 3500" value={cropPrice} onChange={e => { setCropPrice(e.target.value); if (formErrors.price) setFormErrors({ ...formErrors, price: '' }); }}
+                  <input type="text" placeholder="e.g. 3500" value={cropPrice} onChange={e => { setCropPrice(e.target.value); if (formErrors.price) setFormErrors({ ...formErrors, price: '' }); }}
                     className={`w-full px-4 py-2.5 rounded-xl border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 ${formErrors.price ? 'border-red-500' : 'border-border'}`} />
                   {formErrors.price && <span className="text-[10px] font-bold text-red-500">{formErrors.price}</span>}
+                  
+                  {/* Market Rate Validation UI */}
+                  {isRateAvailable && matchedRateVal !== null && (
+                    <div className="flex flex-col gap-0.5 mt-1 text-[11px] font-semibold text-earth-600 dark:text-earth-400">
+                      <div>
+                        {language === 'mr' ? 'चालू बाजारभाव: ' : language === 'hi' ? 'वर्तमान बाजार भाव: ' : 'Current market rate: '}
+                        <span className="font-extrabold text-foreground">₹{matchedRateVal.toLocaleString('en-IN')}/{getLocalizedUnitLabel(matchedRateUnit, language)}</span>
+                      </div>
+                      <div>
+                        {language === 'mr' ? 'परवानगी असलेली श्रेणी: ' : language === 'hi' ? 'अनुमत मूल्य सीमा: ' : 'Allowed price range: '}
+                        <span className="font-extrabold text-foreground">₹{allowedMinPrice?.toLocaleString('en-IN')} - ₹{allowedMaxPrice?.toLocaleString('en-IN')}/{getLocalizedUnitLabel(matchedRateUnit, language)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {!isRateAvailable && (
+                    <div className="mt-1 p-2 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200/40 text-[10px] font-bold text-amber-700 dark:text-amber-400 flex items-start gap-1">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      <span>
+                        {language === 'mr' 
+                          ? 'या पिकासाठी बाजारभाव उपलब्ध नाही. Admin review करेल.' 
+                          : language === 'hi' 
+                            ? 'इस फसल के लिए बाजार भाव उपलब्ध नहीं है। Admin review करेगा।' 
+                            : 'Market rate is not available for this crop. Admin will review this listing.'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-foreground">Location *</label>
@@ -2346,7 +3254,7 @@ export default function FarmerDashboard() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-bold text-foreground">Listing Status</label>
                     <select value={cropStatus} onChange={e => setCropStatus(e.target.value as any)} className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
-                      {['Available', 'Reserved', 'Sold'].map(s => <option key={s}>{s}</option>)}
+                      {['Available', 'Reserved', 'Sold', 'Pending Review'].map(s => <option key={s}>{s}</option>)}
                     </select>
                   </div>
                 )}
@@ -2382,13 +3290,21 @@ export default function FarmerDashboard() {
                 <textarea rows={2} placeholder="Soil specs, moisture content, organic certifications..." value={cropDescription} onChange={e => setCropDescription(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
               </div>
-              <button type="submit" className="w-full py-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-base shadow-md transition-colors cursor-pointer mt-2">
+              <button type="submit" disabled={!!formErrors.price} className="w-full py-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-base shadow-md transition-colors cursor-pointer mt-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 {editingCrop ? 'Save Changes' : 'List Harvest'}
               </button>
             </form>
           </div>
         </div>
       )}
+
+      {/* Secure VoIP Call Modal */}
+      <SecureCallModal
+        isOpen={isCallModalOpen}
+        calleeName={callModalCallee}
+        onClose={() => setIsCallModalOpen(false)}
+        language={language}
+      />
 
       {/* OTP Verification Modal */}
       {isOtpModalOpen && (
@@ -2534,7 +3450,62 @@ export default function FarmerDashboard() {
         <BuyerProfileModal
           profile={selectedBuyerProfile}
           onClose={() => setSelectedBuyerProfile(null)}
+          onCall={() => { setSelectedBuyerProfile(null); handleStartWebCall(selectedBuyerProfile.ownerName); }}
+          onMessage={() => { handleStartChatWithBuyer(selectedBuyerProfile.shopName); }}
+          onSendOffer={() => { setOfferTargetBuyer(selectedBuyerProfile); setSelectedBuyerProfile(null); setOfferCropName(selectedBuyerProfile.buyingRates?.[0]?.cropName || ''); setIsOfferModalOpen(true); }}
+          onRequestVisit={() => { alert(`Visit request sent to ${selectedBuyerProfile.shopName}! They will contact you shortly.`); setSelectedBuyerProfile(null); }}
+          language={language}
         />
+      )}
+
+      {/* Send Crop Offer Modal */}
+      {isOfferModalOpen && offerTargetBuyer && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-2xl relative">
+            <button onClick={() => { setIsOfferModalOpen(false); setOfferTargetBuyer(null); }} className="absolute top-4 right-4 p-2 rounded-lg bg-earth-100 dark:bg-earth-900 text-earth-500 hover:text-foreground cursor-pointer">
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-black text-foreground mb-4 flex items-center gap-2">
+              <PlusCircle className="w-5 h-5 text-emerald-500" />
+              <span>Send Crop Offer</span>
+            </h3>
+            <p className="text-xs text-earth-500 font-bold mb-6">Offering crop harvest directly to {offerTargetBuyer.shopName}</p>
+            <form onSubmit={handleSendOfferSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-foreground">Crop Name *</label>
+                <input type="text" placeholder="e.g. Premium Soybean" value={offerCropName} onChange={e => setOfferCropName(e.target.value)} required
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-foreground">Quantity *</label>
+                  <input type="number" placeholder="e.g. 20" value={offerQty} onChange={e => setOfferQty(e.target.value)} required
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-foreground">Unit</label>
+                  <select value={offerUnit} onChange={e => setOfferUnit(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
+                    {['Quintals', 'Tons', 'kg', 'Bags'].map(u => <option key={u}>{u}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-foreground">Offered Price (₹/unit) *</label>
+                <input type="number" placeholder="e.g. 4500" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} required
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-foreground">Notes / Message (Optional)</label>
+                <textarea rows={2} placeholder="Organic specifications, moisture levels, quality details..." value={offerNotes} onChange={e => setOfferNotes(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+              </div>
+              <button type="submit" className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base shadow-md transition-colors cursor-pointer mt-2">
+                Send Offer
+              </button>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Notification Slide-out Panel */}

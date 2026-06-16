@@ -6,9 +6,22 @@ import { BuyerProfileCard } from './BuyerProfileCard';
 interface BuyerProfileModalProps {
   profile: BuyerProfile;
   onClose: () => void;
+  onCall?: () => void;
+  onMessage?: () => void;
+  onSendOffer?: () => void;
+  onRequestVisit?: () => void;
+  language?: 'en' | 'mr' | 'hi';
 }
 
-export function BuyerProfileModal({ profile, onClose }: BuyerProfileModalProps) {
+export function BuyerProfileModal({ 
+  profile, 
+  onClose,
+  onCall,
+  onMessage,
+  onSendOffer,
+  onRequestVisit,
+  language
+}: BuyerProfileModalProps) {
   return (
     <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 sm:p-6">
       <div 
@@ -24,7 +37,14 @@ export function BuyerProfileModal({ profile, onClose }: BuyerProfileModalProps) 
           <X className="w-5 h-5" />
         </button>
         
-        <BuyerProfileCard profile={profile} />
+        <BuyerProfileCard 
+          profile={profile} 
+          onCall={onCall}
+          onMessage={onMessage}
+          onSendOffer={onSendOffer}
+          onRequestVisit={onRequestVisit}
+          language={language}
+        />
       </div>
     </div>
   );

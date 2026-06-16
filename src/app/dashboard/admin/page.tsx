@@ -22,7 +22,7 @@ import EmergencyAlerts from '@/components/alerts/EmergencyAlerts';
 type AdminTab = 'overview' | 'users' | 'listings' | 'reports' | 'market' | 'analytics' | 'alerts' | 'education' | 'support';
 type UserRole = 'farmer' | 'buyer' | 'admin';
 type VerificationLevel = 'none' | 'otp' | 'gst' | 'kyc' | 'full';
-type ListingStatus = 'Available' | 'Reserved' | 'Sold' | 'Flagged' | 'Removed';
+type ListingStatus = 'Available' | 'Reserved' | 'Sold' | 'Flagged' | 'Removed' | 'Pending Review';
 type ReportStatus = 'Open' | 'Investigating' | 'Resolved' | 'Dismissed';
 type ReportType = 'spam' | 'fake_listing' | 'fraud' | 'inappropriate' | 'price_manipulation';
 type SortDirection = 'asc' | 'desc';
@@ -151,6 +151,7 @@ const statusBadge = (status: string) => {
     Sold: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
     Flagged: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
     Removed: 'bg-earth-200 text-earth-600 dark:bg-earth-800 dark:text-earth-400',
+    'Pending Review': 'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-500/30',
     Open: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
     Investigating: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
     Resolved: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
@@ -216,6 +217,45 @@ export default function AdminDashboard() {
     window.addEventListener('toggle-mobile-menu', handleToggle);
     return () => window.removeEventListener('toggle-mobile-menu', handleToggle);
   }, []);
+
+  // Fetch crop listings from Supabase crops table on mount
+  React.useEffect(() => {
+    const fetchCrops = async () => {
+      try {
+        const { data, error } = await supabase.from('crops').select('*');
+        if (!error && data) {
+          const dbListings: AdminListing[] = data.map((c: any) => ({
+            id: c.id,
+            cropName: c.name,
+            farmerName: c.farmer_name || 'Farmer',
+            farmerId: c.farmer_id || 'unknown',
+            category: c.category,
+            quantity: c.quantity,
+            unit: c.unit,
+            pricePerUnit: c.expected_price,
+            location: c.location,
+            status: c.status === 'Available' && c.market_rate_status === 'Unavailable' ? 'Pending Review' : c.status,
+            postedAt: c.created_at ? c.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
+            views: c.views ?? Math.floor(Math.random() * 200 + 15),
+            offers: c.offers ?? 0,
+            flagCount: c.flag_count ?? 0,
+            quality: c.quality_type || 'Grade A',
+          }));
+          
+          setListings(prev => {
+            const merged = [
+              ...dbListings,
+              ...SEED_LISTINGS.filter(sl => !dbListings.some(dbl => dbl.id === sl.id))
+            ];
+            return merged;
+          });
+        }
+      } catch (e) {
+        console.warn('Admin fetch crops failed:', e);
+      }
+    };
+    fetchCrops();
+  }, [supabase]);
 
   // ── Users State ──
   const [users, setUsers] = useState<AdminUser[]>(SEED_USERS);
@@ -287,17 +327,32 @@ export default function AdminDashboard() {
   };
 
   // ── Listing Actions ──
-  const handleRemoveListing = (id: string) => {
+  const handleRemoveListing = async (id: string) => {
     if (!confirm('Remove this listing from the marketplace?')) return;
     setListings(prev => prev.map(l => l.id === id ? { ...l, status: 'Removed' } : l));
+    try {
+      await supabase.from('crops').update({ status: 'Removed' }).eq('id', id);
+    } catch (e) {
+      console.warn(e);
+    }
   };
 
-  const handleFlagListing = (id: string) => {
+  const handleFlagListing = async (id: string) => {
     setListings(prev => prev.map(l => l.id === id ? { ...l, status: 'Flagged', flagCount: l.flagCount + 1 } : l));
+    try {
+      await supabase.from('crops').update({ status: 'Flagged' }).eq('id', id);
+    } catch (e) {
+      console.warn(e);
+    }
   };
 
-  const handleApproveListing = (id: string) => {
+  const handleApproveListing = async (id: string) => {
     setListings(prev => prev.map(l => l.id === id ? { ...l, status: 'Available', flagCount: 0 } : l));
+    try {
+      await supabase.from('crops').update({ status: 'Available', market_rate_status: 'Available' }).eq('id', id);
+    } catch (e) {
+      console.warn(e);
+    }
     const listing = listings.find(l => l.id === id);
     if (listing) {
       pushAdminNotif('listing_approved', `Your listing "${listing.cropName}" was reviewed and approved by admin.`, 'farmer');
@@ -854,7 +909,7 @@ export default function AdminDashboard() {
                 className="pl-9 pr-4 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 w-64" />
             </div>
             <div className="flex gap-2 flex-wrap">
-              {(['all', 'Available', 'Flagged', 'Reserved', 'Sold', 'Removed'] as const).map(s => (
+              {(['all', 'Available', 'Pending Review', 'Flagged', 'Reserved', 'Sold', 'Removed'] as const).map(s => (
                 <button key={s} onClick={() => setListingStatusFilter(s)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-black cursor-pointer transition-all ${listingStatusFilter === s ? 'bg-red-500 text-white shadow-md' : 'border border-border text-earth-600 hover:bg-earth-50 dark:hover:bg-earth-900'}`}>
                   {s === 'all' ? 'All' : s}
@@ -895,7 +950,7 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-4 py-4">
                       <div className="flex items-center justify-center gap-1.5">
-                        {l.status === 'Flagged' && (
+                        {(l.status === 'Flagged' || l.status === 'Pending Review') && (
                           <button onClick={() => handleApproveListing(l.id)}
                             className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 text-[10px] font-black cursor-pointer hover:bg-emerald-200 transition-colors">Approve</button>
                         )}
@@ -934,7 +989,7 @@ export default function AdminDashboard() {
                   <span>{l.location}</span>
                 </div>
                 <div className="flex gap-2">
-                  {l.status === 'Flagged' && <button onClick={() => handleApproveListing(l.id)} className="flex-1 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-[11px] font-black cursor-pointer">Approve</button>}
+                  {(l.status === 'Flagged' || l.status === 'Pending Review') && <button onClick={() => handleApproveListing(l.id)} className="flex-1 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-[11px] font-black cursor-pointer">Approve</button>}
                   {l.status === 'Available' && <button onClick={() => handleFlagListing(l.id)} className="flex-1 py-1.5 rounded-lg bg-amber-100 text-amber-700 text-[11px] font-black cursor-pointer">Flag</button>}
                   {l.status !== 'Removed' && <button onClick={() => handleRemoveListing(l.id)} className="flex-1 py-1.5 rounded-lg bg-red-100 text-red-600 text-[11px] font-black cursor-pointer">Remove</button>}
                 </div>

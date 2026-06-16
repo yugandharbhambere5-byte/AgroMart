@@ -7,6 +7,21 @@ export interface Review {
   date: string; // ISO date string or formatted date
 }
 
+export interface BuyerCropRate {
+  cropName: string;
+  buyingPrice: number;
+  unit: string;
+}
+
+export interface BuyerDeal {
+  id: string;
+  cropName: string;
+  quantity: number;
+  unit: string;
+  amount: number;
+  date: string;
+}
+
 export interface BuyerProfile {
   id: string;
   shopName: string;
@@ -25,5 +40,8 @@ export interface BuyerProfile {
   timings: string; // e.g., "09:00 AM - 08:00 PM"
   memberSince: string; // ISO date string
   reviews?: Review[];
+  buyingRates?: BuyerCropRate[];
+  recentDeals?: BuyerDeal[];
+  distance?: number;
 }
 
