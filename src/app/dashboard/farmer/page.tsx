@@ -23,7 +23,7 @@ import ExpenseTracker from '@/components/finance/ExpenseTracker';
 import ProfitCalculator from '@/components/finance/ProfitCalculator';
 import {
   initialDemandsSeed, initialChatsSeed, mockCrops, getSimulatedReply,
-  CropDemand, ChatThread, Message
+  CropDemand, ChatThread, Message, getLocalizedMessageText
 } from '../buyer/page';
 import { TransactionHistory } from '@/components/finance/TransactionHistory';
 import { Transaction } from '@/types/transaction';
@@ -1537,7 +1537,7 @@ export default function FarmerDashboard() {
     // Simulate buyer reply
     setIsTyping(true);
     const activeThread = threads.find(t => t.id === activeThreadId);
-    const reply = getSimulatedReply(chatInput.trim(), activeThread?.cropName ?? '', 'farmer');
+    const reply = getSimulatedReply(chatInput.trim(), activeThread?.cropName ?? '', 'farmer', language);
     setTimeout(() => {
       const replyMsg: Message = {
         id: `m-${Date.now() + 1}`,
@@ -2513,7 +2513,7 @@ export default function FarmerDashboard() {
                     {thread.unreadForFarmer && <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />}
                   </div>
                   <div className="text-[11px] text-earth-400 font-semibold truncate pl-10">
-                    {thread.messages[thread.messages.length - 1]?.text ?? '...'}
+                    {getLocalizedMessageText(thread.messages[thread.messages.length - 1]?.id, thread.messages[thread.messages.length - 1]?.text ?? '...', language)}
                   </div>
                 </button>
               ))
@@ -2592,7 +2592,7 @@ export default function FarmerDashboard() {
                           ? 'bg-primary-600 text-white rounded-br-none'
                           : 'bg-earth-100 dark:bg-earth-800 text-foreground rounded-bl-none'
                       }`}>
-                        {msg.text}
+                        {getLocalizedMessageText(msg.id, msg.text, language)}
                       </div>
                     </div>
                   ))}

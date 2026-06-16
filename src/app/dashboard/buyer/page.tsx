@@ -277,8 +277,73 @@ export const initialChatsSeed: ChatThread[] = [
   }
 ];
 
-export const getSimulatedReply = (userMsg: string, cropName: string, userRole: 'buyer' | 'farmer'): string => {
+export const getSimulatedReply = (userMsg: string, cropName: string, userRole: 'buyer' | 'farmer', lang?: string): string => {
   const msg = userMsg.toLowerCase();
+  
+  if (lang === 'mr') {
+    if (userRole === 'buyer') {
+      if (msg.includes('किंमत') || msg.includes('दर') || msg.includes('सूट') || msg.includes('कमी') || msg.includes('भाव') || msg.includes('price') || msg.includes('rate') || msg.includes('discount')) {
+        return `${cropName} साठी, मी खात्री करू इच्छितो की आपल्या दोघांनाही योग्य सौदा मिळेल. दर्जा उत्कृष्ट असल्याने, मी मोठ्या प्रमाणावरील खरेदीवर २% सूट देऊ शकतो, पण त्यापेक्षा कमी नाही. तुमचा काय विचार आहे?`;
+      }
+      if (msg.includes('प्रमाण') || msg.includes('टन') || msg.includes('किलो') || msg.includes('पिशवी') || msg.includes('quantity') || msg.includes('vol') || msg.includes('ton')) {
+        return `आमच्या गोदामात सध्या लिस्ट केलेले प्रमाण उपलब्ध आहे. जर तुम्हाला लिस्ट केलेल्या प्रमाणापेक्षा जास्त हवे असेल, तर मला सांगा, मी आमच्या सहकारी संस्थेतील शेजारच्या शेतकऱ्यांकडे विचारणा करू शकतो.`;
+      }
+      if (msg.includes('वाहतूक') || msg.includes('डिलिव्हरी') || msg.includes('पाठवणे') || msg.includes('गाडी') || msg.includes('पत्ता') || msg.includes('delivery') || msg.includes('transport') || msg.includes('shipping')) {
+        return `आम्ही महाराष्ट्रात आहोत आणि उद्या सकाळपर्यंत माल लोड करू शकतो. वाहतुकीदरम्यान ताजेपणा टिकवून ठेवण्यासाठी आम्ही तापमान-नियंत्रित वाहनांचा वापर करण्याचा सल्ला देतो.`;
+      }
+      if (msg.includes('नमस्कार') || msg.includes('हाय') || msg.includes('हॅलो') || msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+        return `नमस्कार! ${cropName} च्या खरेदीबद्दल संपर्क साधल्याबद्दल धन्यवाद. आज आम्ही तुम्हाला काय मदत करू शकतो?`;
+      }
+      return `माहितीबद्दल धन्यवाद. मी ${cropName} च्या अटींचे पुनरावलोकन करतो आणि गोदामातील उपलब्धता तपासतो. मी लवकरच तुमच्याशी संपर्क साधतो.`;
+    } else {
+      if (msg.includes('किंमत') || msg.includes('दर') || msg.includes('सहमत') || msg.includes('पैसे') || msg.includes('price') || msg.includes('rate') || msg.includes('agree')) {
+        return `उत्कृष्ट, दरावर सहमत झाल्याबद्दल धन्यवाद. आम्ही लगेचच ऍग्रोमार्ट एस्क्रो खात्यात पैसे जमा करू जेणेकरून तुम्ही काढणी सुरू करू शकाल.`;
+      }
+      if (msg.includes('प्रमाण') || msg.includes('मागणी') || msg.includes('टन') || msg.includes('quantity') || msg.includes('volume')) {
+        return `आमच्याकडे नियमित घाऊक मागणी आहे. माल आल्यावर गुणवत्ता तपासणीत उत्तीर्ण झाल्यास, आम्ही तुमच्या शेतासोबत साप्ताहिक डिलिव्हरीचा करार करू.`;
+      }
+      if (msg.includes('तयार') || msg.includes('लोड') || msg.includes('गाडी') || msg.includes('निघाली') || msg.includes('ready') || msg.includes('dispatch') || msg.includes('delivery')) {
+        return `उत्कृष्ट, ट्रक निघताच ड्रायव्हरचे संपर्क तपशील आणि वाहतूक मॅनिफेस्ट पाठवा. आमची टीम तपासणीसाठी तयार आहे.`;
+      }
+      if (msg.includes('नमस्कार') || msg.includes('हाय') || msg.includes('हॅलो') || msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+        return `नमस्कार! आम्ही खरेदीचे तपशील निश्चित करू इच्छितो. तुम्ही आमच्या किंमतीत आणि वेळेत माल देऊ शकाल का ते सांगा.`;
+      }
+      return `समजले. माल तयार झाल्यावर आम्हाला कळवा. आम्ही या व्यापारासाठी उत्सुक आहोत!`;
+    }
+  }
+
+  if (lang === 'hi') {
+    if (userRole === 'buyer') {
+      if (msg.includes('कीमत') || msg.includes('दर') || msg.includes('छूट') || msg.includes('कम') || msg.includes('भाव') || msg.includes('price') || msg.includes('rate') || msg.includes('discount')) {
+        return `${cropName} के लिए, मैं सुनिश्चित करना चाहता हूँ कि हम दोनों को सही सौदा मिले। गुणवत्ता प्रीमियम होने के कारण, मैं थोक खरीद पर २% छूट दे सकता हूँ, लेकिन इससे कम नहीं। आपका क्या विचार है?`;
+      }
+      if (msg.includes('मात्रा') || msg.includes('टन') || msg.includes('किलो') || msg.includes('बोरी') || msg.includes('quantity') || msg.includes('vol') || msg.includes('ton')) {
+        return `हमारे गोदाम में वर्तमान में लिस्ट की गई मात्रा उपलब्ध है। यदि आपको लिस्ट की गई मात्रा से अधिक चाहिए, तो मुझे बताएं, मैं सहकारी समिति के पड़ोसी किसानों से पूछ सकता हूँ।`;
+      }
+      if (msg.includes('परिवहन') || msg.includes('डिलिवरी') || msg.includes('भेजना') || msg.includes('गाड़ी') || msg.includes('पता') || msg.includes('delivery') || msg.includes('transport') || msg.includes('shipping')) {
+        return `हम महाराष्ट्र में स्थित हैं और कल सुबह तक माल लोड कर सकते हैं। परिवहन के दौरान ताजगी बनाए रखने के लिए हम तापमान-नियंत्रित वाहनों का उपयोग करने की सलाह देते हैं।`;
+      }
+      if (msg.includes('नमस्कार') || msg.includes('नमस्ते') || msg.includes('हाय') || msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+        return `नमस्कार! ${cropName} की खरीद के बारे में संपर्क करने के लिए धन्यवाद। आज हम आपकी क्या सहायता कर सकते हैं?`;
+      }
+      return `जानकारी के लिए धन्यवाद। मैं ${cropName} की शर्तों की समीक्षा करता हूँ और गोदाम में उपलब्धता की जांच करता हूँ। मैं जल्द ही आपसे संपर्क करूँगा।`;
+    } else {
+      if (msg.includes('कीमत') || msg.includes('दर') || msg.includes('सहमत') || msg.includes('पैसे') || msg.includes('price') || msg.includes('rate') || msg.includes('agree')) {
+        return `बहुत बढ़िया, दर पर सहमत होने के लिए धन्यवाद। हम तुरंत एग्रोमार्ट एस्क्रो खाते में राशि जमा कर देंगे ताकि आप कटाई शुरू कर सकें।`;
+      }
+      if (msg.includes('मात्रा') || msg.includes('मांग') || msg.includes('टन') || msg.includes('quantity') || msg.includes('volume')) {
+        return `हमारे पास नियमित थोक मांग है। माल आने पर गुणवत्ता जांच पास होने के बाद, हम आपके खेत के साथ साप्ताहिक आपूर्ति का अनुबंध करेंगे।`;
+      }
+      if (msg.includes('तैयार') || msg.includes('लोड') || msg.includes('गाड़ी') || msg.includes('निकली') || msg.includes('ready') || msg.includes('dispatch') || msg.includes('delivery')) {
+        return `उत्कृष्ट, जैसे ही ट्रक निकले, ड्राइवर के संपर्क विवरण और परिवहन मेनिफेस्ट साझा करें। हमारी टीम निरीक्षण के लिए तैयार है।`;
+      }
+      if (msg.includes('नमस्कार') || msg.includes('नमस्ते') || msg.includes('हाय') || msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+        return `नमस्कार! हम खरीद के विवरण को अंतिम रूप देना चाहते हैं। कृपया बताएं कि क्या आप हमारी कीमत और समय सीमा के मापदंडों को पूरा कर सकते हैं।`;
+      }
+      return `समझ गया। माल तैयार होने पर कृपया हमें सूचित करें। हम इस व्यापार चैनल को शुरू करने के लिए उत्सुक हैं!`;
+    }
+  }
+
   if (userRole === 'buyer') {
     if (msg.includes('price') || msg.includes('rate') || msg.includes('discount') || msg.includes('negotiable') || msg.includes('cost')) {
       return `For ${cropName}, I want to make sure we both get a fair deal. Since quality is premium, I can offer a 2% discount on bulk, but not much lower. What price were you thinking?`;
@@ -558,7 +623,7 @@ const chatLabels = {
   }
 };
 
-const getLocalizedMessageText = (msgId: string, defaultText: string, lang: string) => {
+export const getLocalizedMessageText = (msgId: string, defaultText: string, lang: string) => {
   const translations: Record<string, Record<string, string>> = {
     m1: {
       en: 'Hello Ramesh, I saw your listing for Organic Durum Wheat. Is the price of ₹24,500 per Ton negotiable for a bulk order of 10 tons?',
@@ -1088,7 +1153,7 @@ export default function BuyerDashboard() {
       setIsTyping(true);
       const delay = setTimeout(() => {
         setIsTyping(false);
-        const replyText = getSimulatedReply(lastMsg.text, activeThread.cropName, 'buyer');
+        const replyText = getSimulatedReply(lastMsg.text, activeThread.cropName, 'buyer', language);
         const replyMsg: Message = {
           id: `m-rep-${Date.now()}`,
           senderRole: 'farmer',
@@ -2746,7 +2811,7 @@ export default function BuyerDashboard() {
                         <div className="text-xs font-black text-primary-500 truncate mt-0.5">{thread.cropName}</div>
                         {lastMsg && (
                           <p className="text-xs text-earth-500 font-medium truncate mt-1 leading-relaxed">
-                            {lastMsg.senderRole === 'buyer' ? 'You: ' : ''}{lastMsg.text}
+                            {lastMsg.senderRole === 'buyer' ? 'You: ' : ''}{getLocalizedMessageText(lastMsg.id, lastMsg.text, language)}
                           </p>
                         )}
                       </div>
@@ -2843,7 +2908,7 @@ export default function BuyerDashboard() {
                                 : 'bg-card border-border text-foreground rounded-tl-none'
                             }`}>
                               {/* Message Text */}
-                              <p className="text-xs font-semibold leading-relaxed break-words whitespace-pre-wrap">{msg.text}</p>
+                              <p className="text-xs font-semibold leading-relaxed break-words whitespace-pre-wrap">{getLocalizedMessageText(msg.id, msg.text, language)}</p>
                               
                               {/* Footer (timestamp + tag) */}
                               <div className={`flex items-center gap-2 mt-1.5 text-[9px] font-bold self-end uppercase ${

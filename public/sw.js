@@ -40,7 +40,7 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/images/')
   ) {
     event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
+      caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
         if (cachedResponse) {
           return cachedResponse;
         }
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          return caches.match(event.request);
+          return caches.match(event.request, { ignoreSearch: true });
         })
     );
   }

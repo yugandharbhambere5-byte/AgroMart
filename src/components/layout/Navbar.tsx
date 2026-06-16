@@ -65,7 +65,7 @@ export function Navbar() {
     return (
       <button
         onClick={toggleTheme}
-        className="p-3 rounded-xl bg-earth-100 hover:bg-primary-100 text-earth-700 hover:text-primary-700 dark:bg-earth-800 dark:hover:bg-primary-900/30 dark:text-earth-300 dark:hover:text-primary-400 transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-primary-500 cursor-pointer group/theme"
+        className="p-2.5 sm:p-3 rounded-xl bg-earth-100 hover:bg-primary-100 text-earth-700 hover:text-primary-700 dark:bg-earth-800 dark:hover:bg-primary-900/30 dark:text-earth-300 dark:hover:text-primary-400 transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-primary-500 cursor-pointer group/theme"
         aria-label="Toggle dark mode"
       >
         {theme === 'dark' ? (
@@ -86,11 +86,11 @@ export function Navbar() {
       <div className="w-full max-w-none px-4 sm:px-6 lg:px-12">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform duration-300">
-              <Sprout className="w-5.5 h-5.5 text-white group-hover:rotate-12 transition-transform duration-300" />
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2.5 group shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-md shadow-primary-500/20 group-hover:scale-105 transition-transform duration-300">
+              <Sprout className="w-5 sm:w-5.5 h-5 sm:h-5.5 text-white group-hover:rotate-12 transition-transform duration-300" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-foreground">
+            <span className="text-lg sm:text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
               Agro<span className="text-primary-500">Mart</span>
             </span>
           </Link>
@@ -182,7 +182,7 @@ export function Navbar() {
           </div>
 
           {/* Mobile Menu Controls */}
-          <div className="flex md:hidden items-center gap-2">
+          <div className="flex md:hidden items-center gap-1.5 sm:gap-2">
             {/* Show Login or Dashboard/Logout directly on the header screen */}
             {user ? (
               <div className="flex items-center gap-1.5">
@@ -204,9 +204,9 @@ export function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="px-3.5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-black shadow-md shadow-primary-500/10 transition-all active:scale-95"
+                className="px-2.5 sm:px-3.5 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-black shadow-md shadow-primary-500/10 transition-all active:scale-95 whitespace-nowrap shrink-0"
               >
-                {t.common.signIn}
+                {t.auth.signInLink || t.common.signIn}
               </Link>
             )}
 
