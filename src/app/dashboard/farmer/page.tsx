@@ -1700,31 +1700,9 @@ export default function FarmerDashboard() {
     setThreads(updatedThreads);
     localStorage.setItem('agromart_chats', JSON.stringify(updatedThreads));
     setChatInput('');
-
-    // Simulate buyer reply
-    setIsTyping(true);
-    const activeThread = threads.find(t => t.id === activeThreadId);
-    const reply = getSimulatedReply(chatInput.trim(), activeThread?.cropName ?? '', 'farmer', language);
-    setTimeout(() => {
-      const replyMsg: Message = {
-        id: `m-${Date.now() + 1}`,
-        senderRole: 'buyer',
-        text: reply,
-        timestamp: new Date().toISOString(),
-        discussionType: 'general',
-      };
-      setThreads(prev => {
-        const upd = prev.map(t =>
-          t.id === activeThreadId
-            ? { ...t, messages: [...t.messages, replyMsg], lastUpdated: new Date().toISOString(), unreadForFarmer: true }
-            : t
-        );
-        localStorage.setItem('agromart_chats', JSON.stringify(upd));
-        return upd;
-      });
-      setIsTyping(false);
-    }, 1800);
   };
+
+
 
   // ─── Chart data ──────────────────────────────────────────────────────────────
   const earningsPoints = [35, 50, 42, 68, 85, 90, 115];

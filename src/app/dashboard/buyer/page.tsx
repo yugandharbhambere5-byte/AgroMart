@@ -1146,45 +1146,7 @@ export default function BuyerDashboard() {
     return () => window.removeEventListener('storage', handleStorageDemands);
   }, []);
 
-  // Buyer Dashboard Farmer replier simulation
-  useEffect(() => {
-    if (threads.length === 0 || !activeThreadId) return;
-    const activeThread = threads.find(t => t.id === activeThreadId);
-    if (!activeThread) return;
-    const messages = activeThread.messages;
-    if (messages.length === 0) return;
-    const lastMsg = messages[messages.length - 1];
 
-    if (lastMsg.senderRole === 'buyer') {
-      setIsTyping(true);
-      const delay = setTimeout(() => {
-        setIsTyping(false);
-        const replyText = getSimulatedReply(lastMsg.text, activeThread.cropName, 'buyer', language);
-        const replyMsg: Message = {
-          id: `m-rep-${Date.now()}`,
-          senderRole: 'farmer',
-          text: replyText,
-          timestamp: new Date().toISOString(),
-          discussionType: lastMsg.discussionType || 'general'
-        };
-        const updated = threads.map(t => {
-          if (t.id === activeThreadId) {
-            return {
-              ...t,
-              messages: [...t.messages, replyMsg],
-              lastUpdated: new Date().toISOString(),
-              unreadForBuyer: true,
-              unreadForFarmer: false
-            };
-          }
-          return t;
-        });
-        setThreads(updated);
-        localStorage.setItem('agromart_chats', JSON.stringify(updated));
-      }, 1500);
-      return () => clearTimeout(delay);
-    }
-  }, [threads, activeThreadId]);
 
   const startChatWithFarmer = (crop: ActiveListing) => {
     const existing = threads.find(t => t.cropId === crop.id);
