@@ -670,14 +670,14 @@ export default function BuyerDashboard() {
   const [activeCallRecipient, setActiveCallRecipient] = useState<string | null>(null);
 
   const getFarmerProfileByName = (name: string): FarmerProfile => {
-    const farmer = mockFarmers.find(f => f.name === name) || mockFarmers[0];
+    const farmer = farmersList.find(f => f.name === name) || farmersList[0] || mockFarmers[0];
     return {
-      id: `farmer-${name.replace(/\s+/g, '-').toLowerCase()}`,
+      id: farmer.id || `farmer-${name.replace(/\s+/g, '-').toLowerCase()}`,
       name: farmer.name,
-      contactNumber: '+91 98765 43210',
-      address: `${farmer.location.split(' ')[0]}, Maharashtra, India`,
-      isVerified: farmer.certified,
-      ratings: farmer.rating,
+      contactNumber: farmer.contactNumber || '+91 98765 43210',
+      address: farmer.location || `${farmer.location?.split?.(' ')[0] || 'Maharashtra'}, India`,
+      isVerified: farmer.certified || farmer.isVerified || false,
+      ratings: farmer.rating || farmer.ratings || 5.0,
       reviewsCount: 42,
       memberSince: '2022',
       trustScore: 95,
@@ -985,6 +985,7 @@ export default function BuyerDashboard() {
   const [userLocation, setUserLocation] = useState('');
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
   const [buyerProfile, setBuyerProfile] = useState<BuyerProfile | null>(null);
+  const [farmersList, setFarmersList] = useState<any[]>(mockFarmers);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [hasFetchedProfile, setHasFetchedProfile] = useState(false);
@@ -1302,6 +1303,52 @@ export default function BuyerDashboard() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
       setUser(session?.user ?? null);
     });
+
+    // Load registered farmers from database table farmer_profiles
+    const loadDbFarmers = async () => {
+      try {
+        const { data: dbFarmers, error } = await supabase.from('farmer_profiles').select('*');
+        if (!error && dbFarmers && dbFarmers.length > 0) {
+          const mappedDbFarmers = dbFarmers.map((f: any) => ({
+            name: f.name,
+            location: f.address || 'Maharashtra',
+            rating: Number(f.ratings || 5.0),
+            activeCrops: f.active_crops || 'Wheat, Cotton',
+            certified: !!f.is_verified,
+            contactNumber: f.contact_number || '+91 98765 00000',
+            id: f.id
+          }));
+          const merged = [...mappedDbFarmers, ...mockFarmers.filter(mf => !mappedDbFarmers.some((db: any) => db.name === mf.name))];
+          setFarmersList(merged);
+        }
+      } catch (e) {
+        console.warn('Failed to load DB farmers:', e);
+      }
+    };
+    loadDbFarmers();
+
+  // Sync active buyer name in local chat threads
+  useEffect(() => {
+    if (!user) return;
+    const buyerShopName = buyerProfile?.shopName || user.user_metadata?.shopName || user.user_metadata?.fullName || 'Premium Agro Buyers';
+    if (buyerShopName && buyerShopName !== 'Premium Agro Buyers') {
+      setThreads(prev => {
+        let changed = false;
+        const updated = prev.map(t => {
+          if (t.buyerName === 'Premium Agro Buyers') {
+            changed = true;
+            return { ...t, buyerName: buyerShopName };
+          }
+          return t;
+        });
+        if (changed) {
+          localStorage.setItem('agromart_chats', JSON.stringify(updated));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updated) }));
+        }
+        return updated;
+      });
+    }
+  }, [buyerProfile, user]);
 
     // Attempt to load from database if active table, synchronizing with localStorage
     const loadDbCrops = async () => {
@@ -2366,14 +2413,14 @@ export default function BuyerDashboard() {
                       type: 'crop' as const
                     };
                   }),
-                  ...mockFarmers.map((f, idx) => {
+                  ...farmersList.map((f, idx) => {
                     let locKey = 'pune';
                     if (f.location.toLowerCase().includes('nashik')) locKey = 'nashik';
                     else if (f.location.toLowerCase().includes('manchar')) locKey = 'manchar';
                     else if (f.location.toLowerCase().includes('baramati')) locKey = 'baramati';
                     const fCoords = getCoordinates(locKey);
                     return {
-                      id: `farmer-pin-${idx}`,
+                      id: f.id || `farmer-pin-${idx}`,
                       lat: fCoords.lat,
                       lon: fCoords.lon,
                       label: f.name,
@@ -2605,7 +2652,7 @@ export default function BuyerDashboard() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              {mockFarmers.map((f, i) => {
+              {farmersList.map((f, i) => {
                 let locKey = 'pune';
                 if (f.location.toLowerCase().includes('nashik')) locKey = 'nashik';
                 else if (f.location.toLowerCase().includes('manchar')) locKey = 'manchar';
@@ -2617,7 +2664,7 @@ export default function BuyerDashboard() {
                   <div key={i} className="p-5 rounded-2xl bg-earth-50/50 dark:bg-earth-950/20 border border-border flex flex-col gap-3">
                     <div className="flex justify-between items-start">
                       <span className="text-sm font-extrabold text-foreground">{f.name}</span>
-                      <span className="text-xs font-black text-amber-500">{f.rating}★</span>
+                      <span className="text-xs font-black text-amber-500">{f.rating || f.ratings}★</span>
                     </div>
                     <div className="flex flex-col gap-1 text-xs text-earth-500 font-semibold">
                       <span className="flex items-center gap-1.5 justify-between">
@@ -2632,7 +2679,7 @@ export default function BuyerDashboard() {
                     <div className="flex items-center justify-between gap-1 border-t border-border/40 pt-2 mt-1">
                       <button
                         onClick={() => {
-                          setSelectedCropMarkerId(`farmer-pin-${i}`);
+                          setSelectedCropMarkerId(f.id || `farmer-pin-${i}`);
                           setRouteDestination(fCoords);
                         }}
                         className="text-[9px] font-black uppercase text-primary-500 hover:underline cursor-pointer"
@@ -2877,9 +2924,7 @@ export default function BuyerDashboard() {
                         {thread.revealContactFarmer && thread.revealContactBuyer ? (
                           <button
                             onClick={() => {
-                              const fProfile = getFarmerProfileByName(thread.farmerName);
-                              const contactNum = fProfile ? fProfile.contactNumber : '+91 98765 43210';
-                              window.location.href = `tel:${contactNum.replace(/\s+/g, '')}`;
+                              setActiveCallRecipient(thread.farmerName);
                             }}
                             className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow"
                           >
@@ -4356,11 +4401,8 @@ export default function BuyerDashboard() {
           profile={selectedFarmerProfile}
           language={language}
           onCall={() => {
-            if (selectedFarmerProfile.contactNumber) {
-              window.location.href = `tel:${selectedFarmerProfile.contactNumber.replace(/\s+/g, '')}`;
-            } else {
-              alert(language === 'mr' ? 'संपर्क क्रमांक उपलब्ध नाही' : language === 'hi' ? 'संपर्क नंबर उपलब्ध नहीं है' : 'Contact number not available');
-            }
+            setActiveCallRecipient(selectedFarmerProfile.name);
+            setSelectedFarmerProfile(null);
           }}
           onMessage={() => {
             startChatWithFarmerName(selectedFarmerProfile.name);

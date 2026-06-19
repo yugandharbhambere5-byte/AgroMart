@@ -193,9 +193,8 @@ export function FarmerProfileModal({
             <div className="flex flex-wrap gap-3">
               <button 
                 onClick={() => {
-                  if (profile.contactNumber) {
-                    window.location.href = `tel:${profile.contactNumber.replace(/\s+/g, '')}`;
-                    if (onCall) onCall();
+                  if (onCall) {
+                    onCall();
                   } else {
                     alert(t.noContact);
                   }

@@ -694,13 +694,15 @@ export default function FarmerDashboard() {
 
   // Load Buyers on Mount
   useEffect(() => {
-    let saved = null;
-    try {
-      saved = localStorage.getItem('agromart_buyer_profiles');
-    } catch(e){}
-    if (saved) {
-      setBuyersList(JSON.parse(saved));
-    } else {
+    const loadBuyers = async () => {
+      let activeBuyers = [];
+      try {
+        const saved = localStorage.getItem('agromart_buyer_profiles');
+        if (saved) {
+          activeBuyers = JSON.parse(saved);
+        }
+      } catch(e){}
+
       const seeded = [
         {
           id: 'b-mahesh',
@@ -773,11 +775,49 @@ export default function FarmerDashboard() {
           ]
         }
       ];
-      setBuyersList(seeded);
+
+      if (activeBuyers.length === 0) {
+        activeBuyers = seeded;
+      }
+
       try {
-        localStorage.setItem('agromart_buyer_profiles', JSON.stringify(seeded));
-      } catch(e){}
-    }
+        const { data: dbBuyers, error } = await supabase.from('buyer_profiles').select('*');
+        if (!error && dbBuyers && dbBuyers.length > 0) {
+          const mappedDbBuyers = dbBuyers.map((b: any) => ({
+            id: b.id,
+            shopName: b.shop_name,
+            ownerName: b.owner_name,
+            profilePhoto: b.profile_photo || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80',
+            bannerImage: b.banner_image || 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
+            contactNumber: b.contact_number || '+91 98765 00000',
+            address: b.address,
+            googleMapsUrl: b.google_maps_url || 'https://maps.google.com',
+            businessType: (b.business_type as any) || 'Wholesaler',
+            gstNumber: b.gst_number || '',
+            isVerified: !!b.is_verified,
+            ratings: Number(b.ratings || 5.0),
+            reviewsCount: Number(b.reviews_count || 0),
+            workingDays: b.working_days || 'Monday - Saturday',
+            timings: b.timings || '09:00 AM - 06:00 PM',
+            memberSince: b.created_at || new Date().toISOString(),
+            distance: 8.5,
+            buyingRates: b.buying_rates || [
+              { cropName: 'Cotton', buyingPrice: 9000, unit: 'Quintal' },
+              { cropName: 'Wheat', buyingPrice: 2450, unit: 'Quintal' }
+            ]
+          }));
+
+          const merged = [...mappedDbBuyers, ...activeBuyers.filter((ab: any) => !mappedDbBuyers.some((db: any) => db.id === ab.id || db.shopName === ab.shopName))];
+          setBuyersList(merged);
+          localStorage.setItem('agromart_buyer_profiles', JSON.stringify(merged));
+        } else {
+          setBuyersList(activeBuyers);
+        }
+      } catch (e) {
+        setBuyersList(activeBuyers);
+      }
+    };
+    loadBuyers();
   }, []);
 
   const filteredBuyers = useMemo(() => {
@@ -1254,6 +1294,29 @@ export default function FarmerDashboard() {
     window.addEventListener('storage', handleStorageChats);
     return () => window.removeEventListener('storage', handleStorageChats);
   }, []);
+
+  // Sync active farmer name in local chat threads
+  useEffect(() => {
+    if (!user) return;
+    const farmerFullName = profileName || user.user_metadata?.fullName || user.user_metadata?.full_name || 'Ramesh Patil';
+    if (farmerFullName && farmerFullName !== 'Ramesh Patil') {
+      setThreads(prev => {
+        let changed = false;
+        const updated = prev.map(t => {
+          if (t.farmerName === 'Ramesh Patil') {
+            changed = true;
+            return { ...t, farmerName: farmerFullName };
+          }
+          return t;
+        });
+        if (changed) {
+          localStorage.setItem('agromart_chats', JSON.stringify(updated));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updated) }));
+        }
+        return updated;
+      });
+    }
+  }, [profileName, user]);
 
   // Listen for cross-tab notification updates (storage event only fires for OTHER tabs, not same tab)
   useEffect(() => {
@@ -2711,9 +2774,8 @@ export default function FarmerDashboard() {
                     {activeThread.revealContactFarmer && activeThread.revealContactBuyer ? (
                       <button
                         onClick={() => {
-                          const buyer = buyersList.find(b => b.shopName === activeThread.buyerName);
-                          const contactNum = buyer ? buyer.contactNumber : '+91 98765 43210';
-                          window.location.href = `tel:${contactNum.replace(/\s+/g, '')}`;
+                          setCallModalCallee(activeThread.buyerName);
+                          setIsCallModalOpen(true);
                         }}
                         className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow"
                       >
