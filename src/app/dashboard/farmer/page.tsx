@@ -824,8 +824,21 @@ export default function FarmerDashboard() {
               uniqueMerged.push(buyer);
             }
           }
-          setBuyersList(uniqueMerged);
-          localStorage.setItem('agromart_buyer_profiles', JSON.stringify(uniqueMerged));
+          
+          const registeredExists = uniqueMerged.some((b: any) => 
+            b.id && 
+            (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+          );
+
+          let finalBuyers = uniqueMerged;
+          if (registeredExists) {
+            finalBuyers = uniqueMerged.filter((b: any) => 
+              b.id && 
+              (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+            );
+          }
+          setBuyersList(finalBuyers);
+          localStorage.setItem('agromart_buyer_profiles', JSON.stringify(finalBuyers));
         } else {
           const uniqueActive: any[] = [];
           const seen = new Set();
@@ -836,7 +849,20 @@ export default function FarmerDashboard() {
               uniqueActive.push(buyer);
             }
           }
-          setBuyersList(uniqueActive);
+
+          const registeredExists = uniqueActive.some((b: any) => 
+            b.id && 
+            (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+          );
+
+          let finalBuyers = uniqueActive;
+          if (registeredExists) {
+            finalBuyers = uniqueActive.filter((b: any) => 
+              b.id && 
+              (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+            );
+          }
+          setBuyersList(finalBuyers);
         }
       } catch (e) {
         const uniqueActive: any[] = [];
@@ -848,7 +874,20 @@ export default function FarmerDashboard() {
             uniqueActive.push(buyer);
           }
         }
-        setBuyersList(uniqueActive);
+
+        const registeredExists = uniqueActive.some((b: any) => 
+          b.id && 
+          (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+        );
+
+        let finalBuyers = uniqueActive;
+        if (registeredExists) {
+          finalBuyers = uniqueActive.filter((b: any) => 
+            b.id && 
+            (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+          );
+        }
+        setBuyersList(finalBuyers);
       }
     };
     loadBuyers();
@@ -1006,6 +1045,26 @@ export default function FarmerDashboard() {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // ── Registered Buyer Filtering ──
+  const registeredBuyer = useMemo(() => {
+    return buyersList.find((b: any) => 
+      b.id && 
+      (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+    );
+  }, [buyersList]);
+
+  const visibleThreads = useMemo(() => {
+    if (!registeredBuyer) return threads;
+    const regName = registeredBuyer.shopName || registeredBuyer.ownerName;
+    return threads.filter(t => t.buyerName === regName);
+  }, [threads, registeredBuyer]);
+
+  const visibleDemands = useMemo(() => {
+    if (!registeredBuyer) return demands;
+    const regName = registeredBuyer.shopName || registeredBuyer.ownerName;
+    return demands.filter(d => d.buyer_name === regName);
+  }, [demands, registeredBuyer]);
 
   const trustScore = (isOtpVerified ? 30 : 0) + (isGstVerified ? 35 : 0) + (isKycVerified ? 35 : 0);
 
@@ -1492,7 +1551,7 @@ export default function FarmerDashboard() {
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [threads, activeThreadId]);
+  }, [visibleThreads, activeThreadId]);
 
   // Listen for menu toggle event from layout header
   useEffect(() => {
@@ -1506,10 +1565,10 @@ export default function FarmerDashboard() {
 
   // Auto-select first thread when chat tab opens
   useEffect(() => {
-    if (activeTab === 'chat' && !activeThreadId && threads.length > 0) {
-      setActiveThreadId(threads[0].id);
+    if (activeTab === 'chat' && !activeThreadId && visibleThreads.length > 0) {
+      setActiveThreadId(visibleThreads[0].id);
     }
-  }, [activeTab, threads]);
+  }, [activeTab, visibleThreads]);
 
   // ─── Mark as Read ───────────────────────────────────────────────────────────
   const handleMarkRead = (id: string) => {
@@ -1954,7 +2013,7 @@ export default function FarmerDashboard() {
     setParsedDemandLocation(parsedLoc || null);
   };
 
-  const filteredDemands = demands.filter(d => {
+  const filteredDemands = visibleDemands.filter(d => {
     const matchSearch = 
       (d.crop_name.toLowerCase().includes(demandSearch.toLowerCase()) ||
        d.buyer_name.toLowerCase().includes(demandSearch.toLowerCase()) ||
@@ -1964,7 +2023,7 @@ export default function FarmerDashboard() {
     return matchSearch && matchCat && d.status === 'Open';
   });
 
-  const activeThread = threads.find(t => t.id === activeThreadId);
+  const activeThread = visibleThreads.find(t => t.id === activeThreadId);
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const trustLevelLabel = trustScore >= 70 ? 'Verified Farmer' : trustScore >= 30 ? 'Partially Verified' : 'Unverified';
@@ -2016,13 +2075,13 @@ export default function FarmerDashboard() {
                   <tab.icon className="w-5 h-5 shrink-0" />
                   <span className={`truncate ${isSidebarOpen ? '' : 'hidden'}`}>{tab.label}</span>
                   
-                  {isSidebarOpen && tab.id === 'demands' && demands.filter(d => d.status === 'Open').length > 0 && (
+                  {isSidebarOpen && tab.id === 'demands' && visibleDemands.filter(d => d.status === 'Open').length > 0 && (
                     <span className={`ml-auto px-1.5 py-0.5 rounded-full text-[9px] font-black ${isSelected ? 'bg-white text-primary-605' : 'bg-primary-600 text-white'}`}>
-                      {demands.filter(d => d.status === 'Open').length}
+                      {visibleDemands.filter(d => d.status === 'Open').length}
                     </span>
                   )}
                   
-                  {isSidebarOpen && tab.id === 'chat' && threads.some(t => t.unreadForFarmer) && (
+                  {isSidebarOpen && tab.id === 'chat' && visibleThreads.some(t => t.unreadForFarmer) && (
                     <span className="w-2 h-2 rounded-full bg-red-500 ml-auto" />
                   )}
                 </button>
@@ -2092,12 +2151,12 @@ export default function FarmerDashboard() {
                 >
                   <tab.icon className="w-5 h-5" />
                   <span>{tab.label}</span>
-                  {tab.id === 'demands' && demands.filter(d => d.status === 'Open').length > 0 && (
+                  {tab.id === 'demands' && visibleDemands.filter(d => d.status === 'Open').length > 0 && (
                     <span className="ml-auto px-1.5 py-0.5 rounded-full bg-primary-600 text-white text-[9px] font-black">
-                      {demands.filter(d => d.status === 'Open').length}
+                      {visibleDemands.filter(d => d.status === 'Open').length}
                     </span>
                   )}
-                  {tab.id === 'chat' && threads.some(t => t.unreadForFarmer) && (
+                  {tab.id === 'chat' && visibleThreads.some(t => t.unreadForFarmer) && (
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 ml-auto" />
                   )}
                 </button>
@@ -2841,10 +2900,10 @@ export default function FarmerDashboard() {
             <h3 className="text-base font-black text-foreground px-2 pt-2">
               {language === 'mr' ? 'संदेश धागे' : language === 'hi' ? 'संदेश धागे' : 'Message Threads'}
             </h3>
-            {threads.length === 0 ? (
+            {visibleThreads.length === 0 ? (
               <div className="py-12 text-center text-sm text-earth-500 font-semibold">No chats yet.</div>
             ) : (
-              threads.map(thread => (
+              visibleThreads.map(thread => (
                 <button
                   key={thread.id}
                   onClick={() => setActiveThreadId(thread.id)}
