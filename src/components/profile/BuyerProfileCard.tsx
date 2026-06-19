@@ -27,12 +27,16 @@ export function BuyerProfileCard({
   return (
     <div className="w-full bg-card rounded-3xl overflow-hidden shadow-xl border border-border animate-fade-in">
       {/* Banner & Avatar */}
-      <div className="relative h-48 sm:h-56 w-full">
-        <img 
-          src={profile.bannerImage || "https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80"} 
-          alt="Shop Banner" 
-          className="w-full h-full object-cover"
-        />
+      <div className="relative h-48 sm:h-56 w-full bg-earth-200 dark:bg-earth-800">
+        {profile.bannerImage ? (
+          <img 
+            src={profile.bannerImage} 
+            alt="Shop Banner" 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-earth-200 dark:bg-earth-800" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         
         {onEdit && (

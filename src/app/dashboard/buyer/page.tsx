@@ -1386,7 +1386,7 @@ export default function BuyerDashboard() {
       setThreads(prev => {
         let changed = false;
         const updated = prev.map(t => {
-          if (t.buyerName === 'Premium Agro Buyers') {
+          if (t.buyerName === 'Premium Agro Buyers' || t.buyerName === 'Mahesh Agro Traders') {
             changed = true;
             return { ...t, buyerName: buyerShopName };
           }

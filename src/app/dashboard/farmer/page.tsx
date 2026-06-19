@@ -349,8 +349,8 @@ export default function FarmerDashboard() {
       id: `mock-buyer-${buyerName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
       shopName: buyerName,
       ownerName: buyerName.includes('Patil') || buyerName.includes('Traders') ? 'Rajesh Patil' : 'Amit Gupta',
-      profilePhoto: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80',
-      bannerImage: 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
+      profilePhoto: '',
+      bannerImage: '',
       contactNumber: '+91 98765 43210',
       address,
       googleMapsUrl: `https://maps.google.com/?q=${encodeURIComponent(address)}`,
@@ -794,8 +794,8 @@ export default function FarmerDashboard() {
             id: b.id,
             shopName: b.shop_name,
             ownerName: b.owner_name,
-            profilePhoto: b.profile_photo || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80',
-            bannerImage: b.banner_image || 'https://images.unsplash.com/photo-1595123550441-d377e017de6a?auto=format&fit=crop&q=80',
+            profilePhoto: b.profile_photo || '',
+            bannerImage: b.banner_image || '',
             contactNumber: b.contact_number || '+91 98765 00000',
             address: b.address,
             googleMapsUrl: b.google_maps_url || 'https://maps.google.com',
@@ -814,14 +814,41 @@ export default function FarmerDashboard() {
             ]
           }));
 
-          const merged = [...mappedDbBuyers, ...activeBuyers.filter((ab: any) => !mappedDbBuyers.some((db: any) => db.id === ab.id || db.shopName === ab.shopName))];
-          setBuyersList(merged);
-          localStorage.setItem('agromart_buyer_profiles', JSON.stringify(merged));
+          const merged = [...mappedDbBuyers, ...activeBuyers];
+          const uniqueMerged: any[] = [];
+          const seen = new Set();
+          for (const buyer of merged) {
+            const key = buyer.shopName.toLowerCase().trim();
+            if (!seen.has(key)) {
+              seen.add(key);
+              uniqueMerged.push(buyer);
+            }
+          }
+          setBuyersList(uniqueMerged);
+          localStorage.setItem('agromart_buyer_profiles', JSON.stringify(uniqueMerged));
         } else {
-          setBuyersList(activeBuyers);
+          const uniqueActive: any[] = [];
+          const seen = new Set();
+          for (const buyer of activeBuyers) {
+            const key = buyer.shopName.toLowerCase().trim();
+            if (!seen.has(key)) {
+              seen.add(key);
+              uniqueActive.push(buyer);
+            }
+          }
+          setBuyersList(uniqueActive);
         }
       } catch (e) {
-        setBuyersList(activeBuyers);
+        const uniqueActive: any[] = [];
+        const seen = new Set();
+        for (const buyer of activeBuyers) {
+          const key = buyer.shopName.toLowerCase().trim();
+          if (!seen.has(key)) {
+            seen.add(key);
+            uniqueActive.push(buyer);
+          }
+        }
+        setBuyersList(uniqueActive);
       }
     };
     loadBuyers();
@@ -1334,8 +1361,11 @@ export default function FarmerDashboard() {
   useEffect(() => {
     if (buyersList.length === 0) return;
     
-    // Find the first registered buyer (whose ID doesn't start with 'mock-')
-    const registeredBuyer = buyersList.find((b: any) => b.id && !b.id.startsWith('mock-'));
+    // Find the first registered buyer (whose ID starts with 'mock-user-' or is a real non-mock UUID)
+    const registeredBuyer = buyersList.find((b: any) => 
+      b.id && 
+      (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+    );
     if (!registeredBuyer) return;
 
     const registeredBuyerName = registeredBuyer.shopName || registeredBuyer.ownerName;
@@ -1345,7 +1375,7 @@ export default function FarmerDashboard() {
     setDemands(prev => {
       let changed = false;
       const updated = prev.map((d: any) => {
-        if (d.buyer_name === 'Premium Agro Buyers') {
+        if (d.buyer_name === 'Premium Agro Buyers' || d.buyer_name === 'Mahesh Agro Traders') {
           changed = true;
           return { ...d, buyer_name: registeredBuyerName, buyer_id: registeredBuyer.id };
         }
@@ -1362,7 +1392,7 @@ export default function FarmerDashboard() {
     setThreads(prev => {
       let changed = false;
       const updated = prev.map((t: any) => {
-        if (t.buyerName === 'Premium Agro Buyers') {
+        if (t.buyerName === 'Premium Agro Buyers' || t.buyerName === 'Mahesh Agro Traders') {
           changed = true;
           return { ...t, buyerName: registeredBuyerName };
         }
@@ -2605,13 +2635,23 @@ export default function FarmerDashboard() {
               <div key={buyer.id} className="bg-card border border-border rounded-3xl overflow-hidden hover-lift flex flex-col justify-between shadow-sm">
                 <div>
                   {/* Banner & Avatar */}
-                  <div className="relative h-32 w-full bg-earth-100">
-                    <img src={buyer.bannerImage} alt="Banner" className="w-full h-full object-cover" />
+                  <div className="relative h-32 w-full bg-earth-200 dark:bg-earth-800">
+                    {buyer.bannerImage ? (
+                      <img src={buyer.bannerImage} alt="Banner" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-earth-200 dark:bg-earth-800" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                     
                     <div className="absolute bottom-3 left-4 flex items-end gap-3">
-                      <div className="w-12 h-12 rounded-xl border-2 border-card overflow-hidden shrink-0 shadow bg-background">
-                        <img src={buyer.profilePhoto} alt="Avatar" className="w-full h-full object-cover" />
+                      <div className="w-12 h-12 rounded-xl border-2 border-card overflow-hidden shrink-0 shadow bg-background flex items-center justify-center">
+                        {buyer.profilePhoto ? (
+                          <img src={buyer.profilePhoto} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-earth-300 dark:bg-earth-700 flex items-center justify-center text-earth-600 dark:text-earth-300 font-extrabold text-lg uppercase">
+                            {buyer.shopName.charAt(0)}
+                          </div>
+                        )}
                       </div>
                       <div className="text-white">
                         <h4 className="font-extrabold text-sm flex items-center gap-1">
