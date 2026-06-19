@@ -1047,24 +1047,23 @@ export default function FarmerDashboard() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // ── Registered Buyer Filtering ──
-  const registeredBuyer = useMemo(() => {
-    return buyersList.find((b: any) => 
+  const visibleThreads = useMemo(() => {
+    const registeredExists = buyersList.some((b: any) => 
       b.id && 
       (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
     );
-  }, [buyersList]);
-
-  const visibleThreads = useMemo(() => {
-    if (!registeredBuyer) return threads;
-    const regName = registeredBuyer.shopName || registeredBuyer.ownerName;
-    return threads.filter(t => t.buyerName === regName);
-  }, [threads, registeredBuyer]);
+    if (!registeredExists) return threads;
+    return threads.filter(t => t.buyerName !== 'Premium Agro Buyers' && t.buyerName !== 'Mahesh Agro Traders');
+  }, [threads, buyersList]);
 
   const visibleDemands = useMemo(() => {
-    if (!registeredBuyer) return demands;
-    const regName = registeredBuyer.shopName || registeredBuyer.ownerName;
-    return demands.filter(d => d.buyer_name === regName);
-  }, [demands, registeredBuyer]);
+    const registeredExists = buyersList.some((b: any) => 
+      b.id && 
+      (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
+    );
+    if (!registeredExists) return demands;
+    return demands.filter(d => d.buyer_name !== 'Premium Agro Buyers' && d.buyer_name !== 'Mahesh Agro Traders');
+  }, [demands, buyersList]);
 
   const trustScore = (isOtpVerified ? 30 : 0) + (isGstVerified ? 35 : 0) + (isKycVerified ? 35 : 0);
 
@@ -1416,54 +1415,7 @@ export default function FarmerDashboard() {
     }
   }, [profileName, user]);
 
-  // Sync registered buyer name in local demands and chat threads
-  useEffect(() => {
-    if (buyersList.length === 0) return;
-    
-    // Find the first registered buyer (whose ID starts with 'mock-user-' or is a real non-mock UUID)
-    const registeredBuyer = buyersList.find((b: any) => 
-      b.id && 
-      (b.id.startsWith('mock-user-') || (!b.id.startsWith('mock-buyer-') && !b.id.startsWith('b-')))
-    );
-    if (!registeredBuyer) return;
 
-    const registeredBuyerName = registeredBuyer.shopName || registeredBuyer.ownerName;
-    if (!registeredBuyerName) return;
-
-    // Update demands
-    setDemands(prev => {
-      let changed = false;
-      const updated = prev.map((d: any) => {
-        if (d.buyer_name === 'Premium Agro Buyers' || d.buyer_name === 'Mahesh Agro Traders') {
-          changed = true;
-          return { ...d, buyer_name: registeredBuyerName, buyer_id: registeredBuyer.id };
-        }
-        return d;
-      });
-      if (changed) {
-        localStorage.setItem('agromart_crop_demands', JSON.stringify(updated));
-        localStorage.setItem('agromart_demands', JSON.stringify(updated));
-      }
-      return updated;
-    });
-
-    // Update threads
-    setThreads(prev => {
-      let changed = false;
-      const updated = prev.map((t: any) => {
-        if (t.buyerName === 'Premium Agro Buyers' || t.buyerName === 'Mahesh Agro Traders') {
-          changed = true;
-          return { ...t, buyerName: registeredBuyerName };
-        }
-        return t;
-      });
-      if (changed) {
-        localStorage.setItem('agromart_chats', JSON.stringify(updated));
-        window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updated) }));
-      }
-      return updated;
-    });
-  }, [buyersList]);
 
   // Listen for cross-tab notification updates (storage event only fires for OTHER tabs, not same tab)
   useEffect(() => {
