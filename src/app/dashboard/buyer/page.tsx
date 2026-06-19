@@ -2921,26 +2921,15 @@ export default function BuyerDashboard() {
                           ))}
                         </div>
 
-                        {thread.revealContactFarmer && thread.revealContactBuyer ? (
-                          <button
-                            onClick={() => {
-                              setActiveCallRecipient(thread.farmerName);
-                            }}
-                            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>{language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}</span>
-                          </button>
-                        ) : (
-                          <button
-                            disabled
-                            className="px-3.5 py-1.5 rounded-lg bg-gray-300 dark:bg-gray-800 text-gray-500 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed opacity-60"
-                            title="Agree to reveal contact details to call"
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>{language === 'mr' ? 'फोन बंद' : language === 'hi' ? 'फोन बंद' : 'Phone Hidden'}</span>
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            setActiveCallRecipient(thread.farmerName);
+                          }}
+                          className="w-10 h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center cursor-pointer transition-all shadow-md hover:scale-105 shrink-0"
+                          title={language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}
+                        >
+                          <Phone className="w-5 h-5" />
+                        </button>
                         <button
                           onClick={() => {
                             const prof = getFarmerProfileByName(thread.farmerName);
@@ -2952,30 +2941,6 @@ export default function BuyerDashboard() {
                         </button>
                       </div>
                     </div>
-
-                    {/* Contact Share Agreement Banner */}
-                    {(!thread.revealContactFarmer || !thread.revealContactBuyer) && (
-                      <div className="p-3 bg-earth-50/50 dark:bg-earth-950/20 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold">
-                        <span className="text-earth-550 dark:text-earth-400 flex items-center gap-1.5">
-                          🔒 Phone numbers hidden. Both parties must agree to share contact numbers to call.
-                        </span>
-                        <div className="flex items-center gap-2">
-                          {!thread.revealContactBuyer ? (
-                            <button
-                              type="button"
-                              onClick={() => handleAgreeToShareContact(thread.id, 'buyer')}
-                              className="px-3.5 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-[10px] uppercase cursor-pointer transition-colors"
-                            >
-                              Reveal Contact Number
-                            </button>
-                          ) : (
-                            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1">
-                              ⏳ Shared! Waiting for farmer...
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
                     
                     {/* Messages Container */}
                     <div className="flex-grow p-5 overflow-y-auto space-y-4 bg-background/10">

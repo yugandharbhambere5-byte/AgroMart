@@ -1266,11 +1266,12 @@ export default function FarmerDashboard() {
   // Load demands from localStorage or seed
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const stored = localStorage.getItem('agromart_demands');
+    const stored = localStorage.getItem('agromart_crop_demands') || localStorage.getItem('agromart_demands');
     if (stored) {
       try { setDemands(JSON.parse(stored)); } catch { setDemands(initialDemandsSeed); }
     } else {
       setDemands(initialDemandsSeed);
+      try { localStorage.setItem('agromart_crop_demands', JSON.stringify(initialDemandsSeed)); } catch {}
     }
   }, []);
 
@@ -1286,13 +1287,16 @@ export default function FarmerDashboard() {
   }, []);
 
   useEffect(() => {
-    const handleStorageChats = (e: StorageEvent) => {
+    const handleStorageEvents = (e: StorageEvent) => {
       if (e.key === 'agromart_chats' && e.newValue) {
         setThreads(JSON.parse(e.newValue));
       }
+      if (e.key === 'agromart_crop_demands' && e.newValue) {
+        setDemands(JSON.parse(e.newValue));
+      }
     };
-    window.addEventListener('storage', handleStorageChats);
-    return () => window.removeEventListener('storage', handleStorageChats);
+    window.addEventListener('storage', handleStorageEvents);
+    return () => window.removeEventListener('storage', handleStorageEvents);
   }, []);
 
   // Sync active farmer name in local chat threads
@@ -1317,6 +1321,52 @@ export default function FarmerDashboard() {
       });
     }
   }, [profileName, user]);
+
+  // Sync registered buyer name in local demands and chat threads
+  useEffect(() => {
+    if (buyersList.length === 0) return;
+    
+    // Find the first registered buyer (whose ID doesn't start with 'mock-')
+    const registeredBuyer = buyersList.find((b: any) => b.id && !b.id.startsWith('mock-'));
+    if (!registeredBuyer) return;
+
+    const registeredBuyerName = registeredBuyer.shopName || registeredBuyer.ownerName;
+    if (!registeredBuyerName) return;
+
+    // Update demands
+    setDemands(prev => {
+      let changed = false;
+      const updated = prev.map((d: any) => {
+        if (d.buyer_name === 'Premium Agro Buyers') {
+          changed = true;
+          return { ...d, buyer_name: registeredBuyerName, buyer_id: registeredBuyer.id };
+        }
+        return d;
+      });
+      if (changed) {
+        localStorage.setItem('agromart_crop_demands', JSON.stringify(updated));
+        localStorage.setItem('agromart_demands', JSON.stringify(updated));
+      }
+      return updated;
+    });
+
+    // Update threads
+    setThreads(prev => {
+      let changed = false;
+      const updated = prev.map((t: any) => {
+        if (t.buyerName === 'Premium Agro Buyers') {
+          changed = true;
+          return { ...t, buyerName: registeredBuyerName };
+        }
+        return t;
+      });
+      if (changed) {
+        localStorage.setItem('agromart_chats', JSON.stringify(updated));
+        window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updated) }));
+      }
+      return updated;
+    });
+  }, [buyersList]);
 
   // Listen for cross-tab notification updates (storage event only fires for OTHER tabs, not same tab)
   useEffect(() => {
@@ -2771,27 +2821,16 @@ export default function FarmerDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {activeThread.revealContactFarmer && activeThread.revealContactBuyer ? (
-                      <button
-                        onClick={() => {
-                          setCallModalCallee(activeThread.buyerName);
-                          setIsCallModalOpen(true);
-                        }}
-                        className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow"
-                      >
-                        <Phone className="w-3.5 h-3.5" />
-                        <span>{language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}</span>
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        className="px-3.5 py-1.5 rounded-lg bg-gray-300 dark:bg-gray-800 text-gray-500 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed opacity-60"
-                        title="Agree to reveal contact details to call"
-                      >
-                        <Phone className="w-3.5 h-3.5" />
-                        <span>{language === 'mr' ? 'फोन बंद' : language === 'hi' ? 'फोन बंद' : 'Phone Hidden'}</span>
-                      </button>
-                    )}
+                    <button
+                      onClick={() => {
+                        setCallModalCallee(activeThread.buyerName);
+                        setIsCallModalOpen(true);
+                      }}
+                      className="w-10 h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center cursor-pointer transition-all shadow-md hover:scale-105 shrink-0"
+                      title={language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}
+                    >
+                      <Phone className="w-5 h-5" />
+                    </button>
                     <button 
                       onClick={() => handleOpenBuyerProfile(activeThread.buyerName)}
                       className="px-3.5 py-1.5 rounded-lg border border-primary-500/20 text-primary-600 dark:text-primary-400 font-extrabold text-xs hover:bg-primary-50 dark:hover:bg-primary-950/20 cursor-pointer transition-colors"
@@ -2800,30 +2839,6 @@ export default function FarmerDashboard() {
                     </button>
                   </div>
                 </div>
-
-                {/* Contact Share Agreement Banner */}
-                {(!activeThread.revealContactFarmer || !activeThread.revealContactBuyer) && (
-                  <div className="p-3 bg-earth-50/50 dark:bg-earth-950/20 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold">
-                    <span className="text-earth-550 dark:text-earth-400 flex items-center gap-1.5">
-                      🔒 Phone numbers hidden. Both parties must agree to share contact numbers to call.
-                    </span>
-                    <div className="flex items-center gap-2">
-                      {!activeThread.revealContactFarmer ? (
-                        <button
-                          type="button"
-                          onClick={() => handleAgreeToShareContact(activeThread.id, 'farmer')}
-                          className="px-3.5 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-[10px] uppercase cursor-pointer transition-colors"
-                        >
-                          Reveal Contact Number
-                        </button>
-                      ) : (
-                        <span className="text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1">
-                          ⏳ Shared! Waiting for buyer...
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
 
                 {/* Messages */}
                 <div className="flex-grow overflow-y-auto p-4 flex flex-col gap-3">
