@@ -2897,7 +2897,7 @@ export default function FarmerDashboard() {
                 </div>
 
                 {/* Messages */}
-                <div className="flex-grow overflow-y-auto p-4 flex flex-col gap-3">
+                <div className="flex-grow max-h-[360px] overflow-y-auto p-4 flex flex-col gap-3">
                   {activeThread.messages.map(msg => (
                     <div key={msg.id} className={`flex ${msg.senderRole === 'farmer' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm font-semibold leading-relaxed ${

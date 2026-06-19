@@ -2943,7 +2943,7 @@ export default function BuyerDashboard() {
                     </div>
                     
                     {/* Messages Container */}
-                    <div className="flex-grow p-5 overflow-y-auto space-y-4 bg-background/10">
+                    <div className="flex-grow max-h-[360px] p-5 overflow-y-auto space-y-4 bg-background/10">
                       {thread.messages.map((msg) => {
                         const isSelf = msg.senderRole === 'buyer';
                         return (
