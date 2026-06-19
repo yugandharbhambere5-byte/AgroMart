@@ -2039,7 +2039,7 @@ export default function BuyerDashboard() {
     memberSince: '2023-01-15T00:00:00.000Z'
   };
 
-  const displayFullName = user?.user_metadata?.fullName || user?.user_metadata?.full_name || 'Buyer';
+  const displayShopName = buyerProfile?.shopName || user?.user_metadata?.shopName || user?.user_metadata?.fullName || user?.user_metadata?.full_name || 'Buyer';
   const trustLevelLabel = trustScore === 100 ? t.verification.verifiedBuyer : t.verification.verifiedBadge;
 
   return (
@@ -2052,10 +2052,10 @@ export default function BuyerDashboard() {
           {/* Logo or Profile Info */}
           <div className={`flex flex-col items-center text-center pb-5 border-b border-border gap-3 ${isSidebarOpen ? '' : 'hidden'}`}>
             <div className="w-16 h-16 rounded-full bg-primary-100 dark:bg-primary-950 flex items-center justify-center text-primary-600 font-black text-2xl uppercase border border-primary-500/10">
-              {displayFullName.charAt(0)}
+              {displayShopName.charAt(0)}
             </div>
             <div>
-              <h4 className="font-extrabold text-foreground text-base leading-tight">{displayFullName}</h4>
+              <h4 className="font-extrabold text-foreground text-base leading-tight">{displayShopName}</h4>
               <p className="text-xs text-earth-500 font-bold mt-1 uppercase tracking-wider">{userLocation || 'Akola Hub'}</p>
             </div>
             {trustScore > 0 && (
