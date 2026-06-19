@@ -311,6 +311,13 @@ export default function FarmerDashboard() {
   };
 
   const handleOpenBuyerProfile = (buyerName: string) => {
+    // Look up in buyersList first to avoid fake/mock information when profile exists
+    const existing = buyersList.find((b: any) => b.shopName === buyerName || b.ownerName === buyerName || b.id === buyerName);
+    if (existing) {
+      setSelectedBuyerProfile(existing);
+      return;
+    }
+
     // Determine business type & details based on name
     let busType: BuyerProfile['businessType'] = 'Wholesaler';
     let address = 'Shop No. 12, APMC Market Yard, Pune, Maharashtra';
