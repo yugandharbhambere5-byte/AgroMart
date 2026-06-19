@@ -2664,10 +2664,18 @@ export default function BuyerDashboard() {
                 const distance = getDistanceInKm(userCoords.lat, userCoords.lon, fCoords.lat, fCoords.lon);
                 
                 return (
-                  <div key={i} className="p-5 rounded-2xl bg-earth-50/50 dark:bg-earth-950/20 border border-border flex flex-col gap-3">
+                  <div 
+                    key={i} 
+                    onClick={() => {
+                      const prof = getFarmerProfileByName(f.name);
+                      setSelectedFarmerProfile(prof);
+                    }}
+                    className="p-5 rounded-2xl bg-earth-50/50 dark:bg-earth-950/20 border border-border flex flex-col gap-3 hover:border-primary-500 cursor-pointer transition-all hover:shadow-sm"
+                  >
                     <div className="flex justify-between items-start">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           const prof = getFarmerProfileByName(f.name);
                           setSelectedFarmerProfile(prof);
                         }}
@@ -2689,7 +2697,8 @@ export default function BuyerDashboard() {
                     
                     <div className="flex items-center justify-between gap-1 border-t border-border/40 pt-2 mt-1">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setSelectedCropMarkerId(f.id || `farmer-pin-${i}`);
                           setRouteDestination(fCoords);
                         }}
@@ -2701,6 +2710,7 @@ export default function BuyerDashboard() {
                       <a
                         href={`https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lon}&destination=${fCoords.lat},${fCoords.lon}&travelmode=driving`}
                         target="_blank"
+                        onClick={(e) => e.stopPropagation()}
                         className="text-[9px] font-black uppercase text-earth-500 hover:underline"
                       >
                         🚗 Directions
