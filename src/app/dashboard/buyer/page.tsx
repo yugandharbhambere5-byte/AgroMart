@@ -7,7 +7,7 @@ import {
   Search, Filter, Heart, ArrowRight, ShieldCheck, TrendingUp, Info, MapPin, Tag,
   ShoppingCart, Send, LayoutDashboard, Star, CheckCircle, Clock, X, Check,
   AlertTriangle, IndianRupee, LogOut, ArrowDownRight, Compass, MessageSquare, Sparkles, Globe,
-  PlusCircle, Bell, Timer, Gavel, HelpCircle, Menu, Sprout, Loader2
+  PlusCircle, Bell, Timer, Gavel, HelpCircle, Menu, Sprout, Loader2, Phone
 } from 'lucide-react';
 import { useTranslation, Language } from '@/context/LanguageContext';
 import { HelpCenter } from '@/components/support/HelpCenter';
@@ -95,6 +95,8 @@ export interface ChatThread {
   unreadForBuyer: boolean;
   unreadForFarmer: boolean;
   demandId?: string;
+  revealContactFarmer?: boolean;
+  revealContactBuyer?: boolean;
 }
 
 export interface CropDemand {
@@ -225,6 +227,8 @@ export const initialChatsSeed: ChatThread[] = [
     lastUpdated: '2026-06-09T14:30:00.000Z',
     unreadForBuyer: false,
     unreadForFarmer: false,
+    revealContactFarmer: false,
+    revealContactBuyer: false,
     messages: [
       {
         id: 'm1',
@@ -258,6 +262,8 @@ export const initialChatsSeed: ChatThread[] = [
     lastUpdated: '2026-06-08T10:15:00.000Z',
     unreadForBuyer: false,
     unreadForFarmer: true,
+    revealContactFarmer: false,
+    revealContactBuyer: false,
     messages: [
       {
         id: 'm4',
@@ -1262,6 +1268,22 @@ export default function BuyerDashboard() {
     setChatInput('');
   };
 
+  const handleAgreeToShareContact = (threadId: string, role: 'farmer' | 'buyer') => {
+    const updated = threads.map(t => {
+      if (t.id === threadId) {
+        return {
+          ...t,
+          revealContactFarmer: role === 'farmer' ? true : t.revealContactFarmer,
+          revealContactBuyer: role === 'buyer' ? true : t.revealContactBuyer,
+        };
+      }
+      return t;
+    });
+    setThreads(updated);
+    localStorage.setItem('agromart_chats', JSON.stringify(updated));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updated) }));
+  };
+
   const handleDetectBuyerLocation = () => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
       alert('Geolocation is not supported by your browser.');
@@ -1958,7 +1980,8 @@ export default function BuyerDashboard() {
   const filteredCrops = crops.filter(crop => {
     // Search filter
     const matchesSearch = crop.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          crop.location.toLowerCase().includes(searchQuery.toLowerCase());
+                          crop.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (crop.farmer_name || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     // Category filter
     const matchesCategory = categoryFilter === 'All' || crop.category === categoryFilter;
@@ -2835,9 +2858,9 @@ export default function BuyerDashboard() {
                 return (
                   <>
                     {/* Thread Header */}
-                    <div className="p-4 border-b border-border flex items-center justify-between gap-4 bg-background/20">
+                    <div className="p-4 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-background/20">
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-extrabold text-base text-foreground flex items-center gap-1">
                             <span>{thread.farmerName}</span>
                             {isFarmerVerified(thread.farmerName, thread.cropId) && (
@@ -2869,25 +2892,83 @@ export default function BuyerDashboard() {
                         </div>
                         <p className="text-xs text-earth-500 font-bold mt-0.5">Discussion on: <span className="text-primary-500 font-black">{thread.cropName}</span></p>
                       </div>
-                      
-                      {/* Discussion Type Filter */}
-                      <div className="flex items-center gap-1.5 shrink-0 bg-background/50 border border-border p-1 rounded-xl">
-                        <span className="text-[9px] font-extrabold text-earth-500 uppercase px-2">Tag:</span>
-                        {(['general', 'price', 'quantity', 'delivery'] as const).map(type => (
+
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Discussion Type Filter */}
+                        <div className="flex items-center gap-1.5 bg-background/50 border border-border p-1 rounded-xl mr-2">
+                          <span className="text-[9px] font-extrabold text-earth-500 uppercase px-2">Tag:</span>
+                          {(['general', 'price', 'quantity', 'delivery'] as const).map(type => (
+                            <button
+                              key={type}
+                              onClick={() => setChatCategory(type)}
+                              className={`px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase transition-all cursor-pointer ${
+                                chatCategory === type
+                                  ? 'bg-primary-600 text-white shadow-xs'
+                                  : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
+                              }`}
+                            >
+                              {type}
+                            </button>
+                          ))}
+                        </div>
+
+                        {thread.revealContactFarmer && thread.revealContactBuyer ? (
                           <button
-                            key={type}
-                            onClick={() => setChatCategory(type)}
-                            className={`px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase transition-all cursor-pointer ${
-                              chatCategory === type
-                                ? 'bg-primary-600 text-white shadow-xs'
-                                : 'text-earth-550 hover:bg-earth-100 dark:hover:bg-earth-900'
-                            }`}
+                            onClick={() => {
+                              const fProfile = getFarmerProfileByName(thread.farmerName);
+                              const contactNum = fProfile ? fProfile.contactNumber : '+91 98765 43210';
+                              window.location.href = `tel:${contactNum.replace(/\s+/g, '')}`;
+                            }}
+                            className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow"
                           >
-                            {type}
+                            <Phone className="w-3.5 h-3.5" />
+                            <span>{language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}</span>
                           </button>
-                        ))}
+                        ) : (
+                          <button
+                            disabled
+                            className="px-3.5 py-1.5 rounded-lg bg-gray-300 dark:bg-gray-800 text-gray-500 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed opacity-60"
+                            title="Agree to reveal contact details to call"
+                          >
+                            <Phone className="w-3.5 h-3.5" />
+                            <span>{language === 'mr' ? 'फोन बंद' : language === 'hi' ? 'फोन बंद' : 'Phone Hidden'}</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            const prof = getFarmerProfileByName(thread.farmerName);
+                            setSelectedFarmerProfile(prof);
+                          }}
+                          className="px-3.5 py-1.5 rounded-lg border border-primary-500/20 text-primary-600 dark:text-primary-400 font-extrabold text-xs hover:bg-primary-50 dark:hover:bg-primary-950/20 cursor-pointer transition-colors"
+                        >
+                          View Profile
+                        </button>
                       </div>
                     </div>
+
+                    {/* Contact Share Agreement Banner */}
+                    {(!thread.revealContactFarmer || !thread.revealContactBuyer) && (
+                      <div className="p-3 bg-earth-50/50 dark:bg-earth-950/20 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold">
+                        <span className="text-earth-550 dark:text-earth-400 flex items-center gap-1.5">
+                          🔒 Phone numbers hidden. Both parties must agree to share contact numbers to call.
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {!thread.revealContactBuyer ? (
+                            <button
+                              type="button"
+                              onClick={() => handleAgreeToShareContact(thread.id, 'buyer')}
+                              className="px-3.5 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-[10px] uppercase cursor-pointer transition-colors"
+                            >
+                              Reveal Contact Number
+                            </button>
+                          ) : (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1">
+                              ⏳ Shared! Waiting for farmer...
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Messages Container */}
                     <div className="flex-grow p-5 overflow-y-auto space-y-4 bg-background/10">

@@ -785,6 +785,7 @@ export default function FarmerDashboard() {
       const matchesSearch = !mktSearch || 
         b.shopName.toLowerCase().includes(mktSearch.toLowerCase()) || 
         b.ownerName.toLowerCase().includes(mktSearch.toLowerCase()) || 
+        b.businessType.toLowerCase().includes(mktSearch.toLowerCase()) ||
         b.buyingRates?.some((r: any) => r.cropName.toLowerCase().includes(mktSearch.toLowerCase()));
       
       const matchesType = mktBuyerType === 'All' || b.businessType === mktBuyerType;
@@ -872,7 +873,9 @@ export default function FarmerDashboard() {
       ],
       lastUpdated: new Date().toISOString(),
       unreadForBuyer: true,
-      unreadForFarmer: false
+      unreadForFarmer: false,
+      revealContactFarmer: false,
+      revealContactBuyer: false
     };
     
     const updated = [newThread, ...threads];
@@ -1240,6 +1243,16 @@ export default function FarmerDashboard() {
     } else {
       setThreads(initialChatsSeed);
     }
+  }, []);
+
+  useEffect(() => {
+    const handleStorageChats = (e: StorageEvent) => {
+      if (e.key === 'agromart_chats' && e.newValue) {
+        setThreads(JSON.parse(e.newValue));
+      }
+    };
+    window.addEventListener('storage', handleStorageChats);
+    return () => window.removeEventListener('storage', handleStorageChats);
   }, []);
 
   // Listen for cross-tab notification updates (storage event only fires for OTHER tabs, not same tab)
@@ -1654,6 +1667,22 @@ export default function FarmerDashboard() {
   };
 
   // ─── Chat ────────────────────────────────────────────────────────────────────
+  const handleAgreeToShareContact = (threadId: string, role: 'farmer' | 'buyer') => {
+    const updated = threads.map(t => {
+      if (t.id === threadId) {
+        return {
+          ...t,
+          revealContactFarmer: role === 'farmer' ? true : t.revealContactFarmer,
+          revealContactBuyer: role === 'buyer' ? true : t.revealContactBuyer,
+        };
+      }
+      return t;
+    });
+    setThreads(updated);
+    localStorage.setItem('agromart_chats', JSON.stringify(updated));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updated) }));
+  };
+
   const handleSendMessage = () => {
     if (!chatInput.trim() || !activeThreadId) return;
     const newMsg: Message = {
@@ -2701,17 +2730,28 @@ export default function FarmerDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        const buyer = buyersList.find(b => b.shopName === activeThread.buyerName);
-                        const contactNum = buyer ? buyer.contactNumber : '+91 98765 43210';
-                        window.location.href = `tel:${contactNum.replace(/\s+/g, '')}`;
-                      }}
-                      className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>{language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}</span>
-                    </button>
+                    {activeThread.revealContactFarmer && activeThread.revealContactBuyer ? (
+                      <button
+                        onClick={() => {
+                          const buyer = buyersList.find(b => b.shopName === activeThread.buyerName);
+                          const contactNum = buyer ? buyer.contactNumber : '+91 98765 43210';
+                          window.location.href = `tel:${contactNum.replace(/\s+/g, '')}`;
+                        }}
+                        className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>{language === 'mr' ? 'कॉल करा' : language === 'hi' ? 'कॉल करें' : 'Call'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className="px-3.5 py-1.5 rounded-lg bg-gray-300 dark:bg-gray-800 text-gray-500 font-extrabold text-xs flex items-center justify-center gap-1.5 cursor-not-allowed opacity-60"
+                        title="Agree to reveal contact details to call"
+                      >
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>{language === 'mr' ? 'फोन बंद' : language === 'hi' ? 'फोन बंद' : 'Phone Hidden'}</span>
+                      </button>
+                    )}
                     <button 
                       onClick={() => handleOpenBuyerProfile(activeThread.buyerName)}
                       className="px-3.5 py-1.5 rounded-lg border border-primary-500/20 text-primary-600 dark:text-primary-400 font-extrabold text-xs hover:bg-primary-50 dark:hover:bg-primary-950/20 cursor-pointer transition-colors"
@@ -2720,6 +2760,30 @@ export default function FarmerDashboard() {
                     </button>
                   </div>
                 </div>
+
+                {/* Contact Share Agreement Banner */}
+                {(!activeThread.revealContactFarmer || !activeThread.revealContactBuyer) && (
+                  <div className="p-3 bg-earth-50/50 dark:bg-earth-950/20 border-b border-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold">
+                    <span className="text-earth-550 dark:text-earth-400 flex items-center gap-1.5">
+                      🔒 Phone numbers hidden. Both parties must agree to share contact numbers to call.
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {!activeThread.revealContactFarmer ? (
+                        <button
+                          type="button"
+                          onClick={() => handleAgreeToShareContact(activeThread.id, 'farmer')}
+                          className="px-3.5 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-[10px] uppercase cursor-pointer transition-colors"
+                        >
+                          Reveal Contact Number
+                        </button>
+                      ) : (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1">
+                          ⏳ Shared! Waiting for buyer...
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Messages */}
                 <div className="flex-grow overflow-y-auto p-4 flex flex-col gap-3">
