@@ -39,6 +39,8 @@ function RegisterForm() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+91');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Location fields
   const [stateName, setStateName] = useState('');
@@ -195,6 +197,18 @@ function RegisterForm() {
         setErrorMsg(`Please enter your ${contactMethod === 'email' ? 'email address' : 'mobile number'}.`);
         return;
       }
+      if (!password) {
+        setErrorMsg('Please enter a password.');
+        return;
+      }
+      if (password.length < 6) {
+        setErrorMsg('Password must be at least 6 characters long.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setErrorMsg('Passwords do not match.');
+        return;
+      }
     } else if (step === 2) {
       if (!stateName.trim() || !district.trim() || !taluka.trim() || !village.trim() || !pincode.trim() || !address.trim()) {
         setErrorMsg('Please fill in all geographical address fields.');
@@ -263,30 +277,90 @@ function RegisterForm() {
         metadata.google_maps_link = googleMapsLink || null;
       }
 
+      let signUpResult;
       if (contactMethod === 'email') {
-        const { error } = await supabase.auth.signInWithOtp({
+        signUpResult = await supabase.auth.signUp({
           email: contactVal,
+          password: password,
           options: {
-            shouldCreateUser: true,
             data: metadata,
           },
         });
-        if (error) throw error;
-        router.push(`/verify?email=${encodeURIComponent(contactVal)}&isSignUp=true`);
       } else {
-        const { error } = await supabase.auth.signInWithOtp({
+        signUpResult = await supabase.auth.signUp({
           phone: contactVal,
+          password: password,
           options: {
-            shouldCreateUser: true,
             data: metadata,
           },
         });
-        if (error) throw error;
-        router.push(`/verify?phone=${encodeURIComponent(contactVal)}&isSignUp=true`);
       }
+      
+      if (signUpResult.error) throw signUpResult.error;
+
+      const userId = signUpResult.data.user?.id;
+      if (userId) {
+        // Insert to profiles table
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: userId,
+          full_name: fullName,
+          email: contactMethod === 'email' ? contactVal : '',
+          phone: contactMethod === 'phone' ? contactVal : '',
+          role,
+          state: stateName,
+          district,
+          taluka,
+          village,
+          address,
+          pincode,
+          preferred_language: preferredLang,
+          google_map_link: googleMapsLink || null,
+          latitude: null,
+          longitude: null
+        });
+        if (profileError) {
+          console.error('Error inserting into profiles:', profileError);
+        }
+
+        // Insert to role-specific tables
+        if (role === 'farmer') {
+          const { error: farmerError } = await supabase.from('farmer_profiles').insert({
+            id: userId,
+            user_id: userId,
+            farm_size: farmSize,
+            main_crops: selectedCrops,
+            farming_type: farmingType,
+            name: fullName,
+            address: address,
+            contact_number: contactMethod === 'phone' ? contactVal : '',
+            ratings: 5.0,
+            reviews_count: 0
+          });
+          if (farmerError) console.error('Error inserting into farmer_profiles:', farmerError);
+        } else {
+          const { error: buyerError } = await supabase.from('buyer_profiles').insert({
+            id: userId,
+            user_id: userId,
+            shop_name: shopName,
+            owner_name: fullName,
+            business_type: businessType,
+            gst_number: gstNumber || null,
+            shop_address: shopAddress,
+            address: address,
+            contact_number: contactMethod === 'phone' ? contactVal : '',
+            working_days: 'Monday - Saturday',
+            timings: '09:00 AM - 06:00 PM',
+            ratings: 5.0,
+            reviews_count: 0
+          });
+          if (buyerError) console.error('Error inserting into buyer_profiles:', buyerError);
+        }
+      }
+
+      router.push(`/verify?${contactMethod}=${encodeURIComponent(contactVal)}&isSignUp=true`);
     } catch (err: any) {
-      console.error('Registration OTP Dispatch Error:', err);
-      setErrorMsg(err.message || 'Failed to dispatch registration passcode. Please check your credentials.');
+      console.error('Registration Submit Error:', err);
+      setErrorMsg(err.message || 'Failed to submit registration. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -496,6 +570,44 @@ function RegisterForm() {
                 </span>
               </div>
             )}
+
+            {/* Password input */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="wizard-password" className="text-sm font-bold text-foreground">
+                Password / पासवर्ड
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-4 text-earth-455 pointer-events-none select-none text-base">🔑</span>
+                <input
+                  id="wizard-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Confirm Password input */}
+            <div className="flex flex-col gap-2">
+              <label htmlFor="wizard-confirm-password" className="text-sm font-bold text-foreground">
+                Confirm Password / पासवर्डची खात्री करा
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-4 text-earth-455 pointer-events-none select-none text-base">🔑</span>
+                <input
+                  id="wizard-confirm-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                  required
+                />
+              </div>
+            </div>
           </div>
         )}
 

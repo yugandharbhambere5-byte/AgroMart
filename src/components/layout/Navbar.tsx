@@ -98,13 +98,13 @@ export function Navbar() {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <Link
-              href="#about"
+              href="/#about"
               className="text-base font-semibold text-earth-600 hover:text-primary-500 dark:text-earth-300 dark:hover:text-primary-400 transition-colors"
             >
               {t.common.about}
             </Link>
             <Link
-              href="#features"
+              href="/#features"
               className="text-base font-semibold text-earth-600 hover:text-primary-500 dark:text-earth-300 dark:hover:text-primary-400 transition-colors"
             >
               {t.common.features}
@@ -301,14 +301,14 @@ export function Navbar() {
           </div>
 
           <Link
-            href="#about"
+            href="/#about"
             onClick={() => setMobileMenuOpen(false)}
             className="text-lg font-bold text-earth-700 dark:text-earth-200 hover:text-primary-500 py-2 border-b border-earth-100 dark:border-earth-800"
           >
             {t.about.badge}
           </Link>
           <Link
-            href="#features"
+            href="/#features"
             onClick={() => setMobileMenuOpen(false)}
             className="text-lg font-bold text-earth-700 dark:text-earth-200 hover:text-primary-500 py-2 border-b border-earth-100 dark:border-earth-800"
           >

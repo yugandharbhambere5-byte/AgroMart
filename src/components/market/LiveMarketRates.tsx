@@ -223,7 +223,10 @@ const getChangePercent = (today: number, yesterday: number) => {
   return ((today - yesterday) / yesterday) * 100;
 };
 
-const formatINR = (n: number) => `₹${n.toLocaleString('en-IN')}`;
+const formatINR = (n: number) => {
+  if (n === undefined || n === null || isNaN(n)) return '₹0';
+  return `₹${n.toLocaleString('en-IN')}`;
+};
 
 const qualityColors: Record<string, string> = {
   Premium: 'bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-400',
@@ -669,11 +672,11 @@ function RatesTable({ rates, onEdit, isAdmin, lang }: {
           </tr>
         </thead>
         <tbody className="divide-y divide-border">
-          {sorted.map(rate => {
+          {sorted.map((rate, index) => {
             const change = getChangePercent(rate.todayRate, rate.yesterdayRate);
             const cropName = lang === 'mr' ? rate.cropMr : lang === 'hi' ? rate.cropHi : rate.crop;
             return (
-              <tr key={rate.id} className="hover:bg-earth-50/50 dark:hover:bg-earth-950/30 transition-colors group">
+              <tr key={`${rate.id}-${index}`} className="hover:bg-earth-50/50 dark:hover:bg-earth-950/30 transition-colors group">
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full shrink-0 ${rate.trending === 'up' ? 'bg-emerald-500' : rate.trending === 'down' ? 'bg-red-500' : 'bg-earth-400'}`} />
@@ -835,7 +838,7 @@ export function LiveMarketRates() {
           const todayRate = Math.round(c.baseRate * (0.95 + Math.random() * 0.1));
           const yesterdayRate = Math.round(todayRate * (1 + (Math.random() - 0.5) * 0.04));
           return {
-            id: `gen-mandi-${Date.now()}-${i}`,
+            id: `gen-mandi-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${i}`,
             crop: c.crop,
             cropHi: c.cropHi,
             cropMr: c.cropMr,
@@ -910,7 +913,7 @@ export function LiveMarketRates() {
         const todayRate = Math.round(baseTodayRate * (0.94 + Math.random() * 0.12));
         const yesterdayRate = Math.round(todayRate * (1 + (Math.random() - 0.5) * 0.05));
         return {
-          id: `gen-crop-mandi-${Date.now()}-${idx}`,
+          id: `gen-crop-mandi-${Date.now()}-${Math.random().toString(36).substring(2, 9)}-${idx}`,
           crop: cropNameEn,
           cropHi: cropNameHi,
           cropMr: cropNameMr,
@@ -1287,8 +1290,8 @@ export function LiveMarketRates() {
           {/* Rates Grid or Table */}
           {viewMode === 'cards' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filtered.length > 0 ? filtered.map(rate => (
-                <div key={rate.id} className="relative">
+              {filtered.length > 0 ? filtered.map((rate, index) => (
+                <div key={`${rate.id}-${index}`} className="relative">
                   <RateCard rate={rate} onEdit={setEditingRate} isAdmin={isAdmin} lang={language} />
                   {isAdmin && (
                     <button

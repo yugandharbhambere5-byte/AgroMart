@@ -1525,63 +1525,59 @@ export default function BuyerDashboard() {
     console.log('[DEBUG] Saving profile data to Supabase:', dbData);
 
     try {
-      let activeTable = 'buyer_profiles';
+      // 1. Save to profiles
+      const profileDbData = {
+        full_name: updatedProfile.ownerName,
+        phone: updatedProfile.contactNumber,
+        address: updatedProfile.address,
+        google_map_link: updatedProfile.googleMapsUrl,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
       
-      // Check if row already exists in buyer_profiles
-      let { data: existingRows, error: checkError } = await supabase
+      if (existingProfile) {
+        await supabase
+          .from('profiles')
+          .update(profileDbData)
+          .eq('id', user.id);
+      } else {
+        await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email || '',
+            role: 'buyer',
+            ...profileDbData
+          });
+      }
+
+      // 2. Save to buyer_profiles
+      const { data: existingBuyerProfile } = await supabase
         .from('buyer_profiles')
         .select('id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .single();
 
-      let existingRow = existingRows && existingRows.length > 0 ? existingRows[0] : null;
-
-      if (checkError) {
-        console.warn('[DEBUG] Error checking buyer_profiles table, switching to profiles table:', checkError.message);
-        activeTable = 'profiles';
-        
-        // Check profiles table
-        const fallbackCheck = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id);
-        
-        existingRow = fallbackCheck.data && fallbackCheck.data.length > 0 ? fallbackCheck.data[0] : null;
-      }
-
-      let saveResponse: any = null;
-
-      if (activeTable === 'buyer_profiles') {
-        if (existingRow) {
-          saveResponse = await supabase
-            .from('buyer_profiles')
-            .update(dbData)
-            .eq('user_id', user.id)
-            .select();
-        } else {
-          saveResponse = await supabase
-            .from('buyer_profiles')
-            .insert({ ...dbData, user_id: user.id })
-            .select();
-        }
+      if (existingBuyerProfile) {
+        await supabase
+          .from('buyer_profiles')
+          .update(dbData)
+          .eq('user_id', user.id);
       } else {
-        if (existingRow) {
-          saveResponse = await supabase
-            .from('profiles')
-            .update(dbData)
-            .eq('id', user.id)
-            .select();
-        } else {
-          saveResponse = await supabase
-            .from('profiles')
-            .insert({ ...dbData, id: user.id })
-            .select();
-        }
-      }
-
-      console.log('[DEBUG] Update response:', saveResponse);
-
-      if (saveResponse?.error) {
-        throw saveResponse.error;
+        await supabase
+          .from('buyer_profiles')
+          .insert({
+            id: user.id,
+            user_id: user.id,
+            ratings: 5.0,
+            reviews_count: 0,
+            ...dbData
+          });
       }
 
       setBuyerProfile(updatedProfile);

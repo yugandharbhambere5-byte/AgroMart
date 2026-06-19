@@ -995,44 +995,107 @@ export default function FarmerDashboard() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Sync profile fields when user changes
+  // Sync profile fields from database tables when user changes
   useEffect(() => {
-    if (user) {
-      const meta = user.user_metadata || {};
-      setProfileName(meta.full_name || meta.fullName || '');
-      setProfilePhone(user.phone || meta.phone || '');
-      setProfileEmail(user.email || meta.email || '');
-      setProfileState(meta.state || '');
-      setProfileDistrict(meta.district || '');
-      setProfileTaluka(meta.taluka || '');
-      setProfileVillage(meta.village || '');
-      setProfilePincode(meta.pincode || '');
-      setProfileAddress(meta.address || '');
-      setProfileFarmSize(meta.farm_size || '');
-      setProfileFarmingType(meta.farming_type || 'organic');
-      let cropsList = '';
-      if (Array.isArray(meta.main_crops)) {
-        cropsList = meta.main_crops.join(', ');
-      } else if (typeof meta.main_crops === 'string' && meta.main_crops) {
-        try {
-          const parsed = JSON.parse(meta.main_crops);
-          if (Array.isArray(parsed)) {
-            cropsList = parsed.join(', ');
-          } else {
-            cropsList = meta.main_crops;
-          }
-        } catch {
-          cropsList = meta.main_crops;
-        }
-      }
-      setProfileCrops(cropsList);
+    const fetchProfile = async () => {
+      if (!user) return;
+      try {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        const { data: farmerData } = await supabase
+          .from('farmer_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
 
-      setProfileBankName(meta.bank_name || '');
-      setProfileBankAccount(meta.bank_account || '');
-      setProfileBankIfsc(meta.bank_ifsc || '');
-      setProfileGatNumber(meta.gat_number || '');
-      setProfileSoilType(meta.soil_type || 'black');
-    }
+        if (profileData) {
+          setProfileName(profileData.full_name || '');
+          setProfilePhone(profileData.phone || user.phone || '');
+          setProfileEmail(profileData.email || user.email || '');
+          setProfileState(profileData.state || '');
+          setProfileDistrict(profileData.district || '');
+          setProfileTaluka(profileData.taluka || '');
+          setProfileVillage(profileData.village || '');
+          setProfilePincode(profileData.pincode || '');
+          setProfileAddress(profileData.address || '');
+          
+          const userLoc = [profileData.village, profileData.district, profileData.state].filter(Boolean).join(', ');
+          setUserLocation(userLoc);
+          setCropLocation(userLoc);
+        } else {
+          const meta = user.user_metadata || {};
+          setProfileName(meta.full_name || meta.fullName || '');
+          setProfilePhone(user.phone || meta.phone || '');
+          setProfileEmail(user.email || meta.email || '');
+          setProfileState(meta.state || '');
+          setProfileDistrict(meta.district || '');
+          setProfileTaluka(meta.taluka || '');
+          setProfileVillage(meta.village || '');
+          setProfilePincode(meta.pincode || '');
+          setProfileAddress(meta.address || '');
+        }
+
+        if (farmerData) {
+          setProfileFarmSize(farmerData.farm_size || '');
+          setProfileFarmingType(farmerData.farming_type || 'organic');
+          setProfileBankName(farmerData.bank_name || '');
+          setProfileBankAccount(farmerData.bank_account || '');
+          setProfileBankIfsc(farmerData.bank_ifsc || '');
+          setProfileGatNumber(farmerData.gat_number || '');
+          setProfileSoilType(farmerData.soil_type || 'black');
+
+          let cropsList = '';
+          if (Array.isArray(farmerData.main_crops)) {
+            cropsList = farmerData.main_crops.join(', ');
+          } else if (typeof farmerData.main_crops === 'string' && farmerData.main_crops) {
+            try {
+              const parsed = JSON.parse(farmerData.main_crops);
+              if (Array.isArray(parsed)) {
+                cropsList = parsed.join(', ');
+              } else {
+                cropsList = farmerData.main_crops;
+              }
+            } catch {
+              cropsList = farmerData.main_crops;
+            }
+          }
+          setProfileCrops(cropsList);
+        } else {
+          const meta = user.user_metadata || {};
+          setProfileFarmSize(meta.farm_size || '');
+          setProfileFarmingType(meta.farming_type || 'organic');
+          setProfileBankName(meta.bank_name || '');
+          setProfileBankAccount(meta.bank_account || '');
+          setProfileBankIfsc(meta.bank_ifsc || '');
+          setProfileGatNumber(meta.gat_number || '');
+          setProfileSoilType(meta.soil_type || 'black');
+
+          let cropsList = '';
+          if (Array.isArray(meta.main_crops)) {
+            cropsList = meta.main_crops.join(', ');
+          } else if (typeof meta.main_crops === 'string' && meta.main_crops) {
+            try {
+              const parsed = JSON.parse(meta.main_crops);
+              if (Array.isArray(parsed)) {
+                cropsList = parsed.join(', ');
+              } else {
+                cropsList = meta.main_crops;
+              }
+            } catch {
+              cropsList = meta.main_crops;
+            }
+          }
+          setProfileCrops(cropsList);
+        }
+      } catch (err) {
+        console.warn('Failed to load profile from database tables:', err);
+      }
+    };
+    fetchProfile();
   }, [user]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -1066,6 +1129,81 @@ export default function FarmerDashboard() {
       
       if (data?.user) {
         setUser(data.user);
+      }
+      
+      // Save directly to profiles and farmer_profiles tables
+      const profileDbData = {
+        full_name: profileName,
+        state: profileState,
+        district: profileDistrict,
+        taluka: profileTaluka,
+        village: profileVillage,
+        address: profileAddress,
+        pincode: profilePincode,
+        preferred_language: language,
+        updated_at: new Date().toISOString()
+      };
+
+      const farmerDbData = {
+        farm_size: profileFarmSize,
+        farming_type: profileFarmingType,
+        main_crops: profileCrops.split(',').map(s => s.trim()).filter(Boolean),
+        bank_name: profileBankName,
+        bank_account: profileBankAccount,
+        bank_ifsc: profileBankIfsc,
+        gat_number: profileGatNumber,
+        soil_type: profileSoilType,
+        name: profileName,
+        address: profileAddress,
+        contact_number: profilePhone,
+      };
+
+      // Check and update/insert profiles table
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+      
+      if (existingProfile) {
+        await supabase
+          .from('profiles')
+          .update(profileDbData)
+          .eq('id', user.id);
+      } else {
+        await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email || '',
+            phone: user.phone || '',
+            role: 'farmer',
+            ...profileDbData
+          });
+      }
+
+      // Check and update/insert farmer_profiles table
+      const { data: existingFarmerProfile } = await supabase
+        .from('farmer_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (existingFarmerProfile) {
+        await supabase
+          .from('farmer_profiles')
+          .update(farmerDbData)
+          .eq('user_id', user.id);
+      } else {
+        await supabase
+          .from('farmer_profiles')
+          .insert({
+            id: user.id,
+            user_id: user.id,
+            ratings: 5.0,
+            reviews_count: 0,
+            ...farmerDbData
+          });
       }
       
       const loc = [profileVillage, profileDistrict, profileState].filter(Boolean).join(', ');

@@ -384,8 +384,8 @@ export function BestSellingSuggestions({ language, rates }: SuggestionsProps) {
     }
   }, [selectedCropKey, suggestionData]);
 
-  const activeCrop = suggestionData.find(c => c.cropKey === selectedCropKey) || suggestionData[0];
-  const changeAmt = activeCrop.currentRate - activeCrop.yesterdayRate;
+  const activeCrop = suggestionData.find(c => c.cropKey === selectedCropKey) || suggestionData[0] || CROP_SUGGESTIONS_SEEDS[0];
+  const changeAmt = activeCrop ? (activeCrop.currentRate - activeCrop.yesterdayRate) : 0;
   const isTrendUp = changeAmt > 0;
   const isTrendDown = changeAmt < 0;
 

@@ -10,109 +10,167 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
     if (!cachedMockClient) {
       cachedMockClient = {
         auth: {
-          signInWithPassword: async ({ email, password }: { email?: string; password?: string }) => {
-            console.warn('Mock Supabase client: signInWithPassword mock response triggered');
-            
+          signUp: async ({ email, phone, password, options }: { email?: string; phone?: string; password?: string; options?: any }) => {
+            console.warn('Mock Supabase client: signUp mock response triggered');
             if (typeof window !== 'undefined') {
-              const storedAdmins = localStorage.getItem('agromart_admins');
-              if (storedAdmins) {
-                try {
-                  const admins = JSON.parse(storedAdmins);
-                  const matched = admins.find((a: any) => a.email === email);
-                  if (matched) {
-                    if (matched.password === password) {
-                      if (!matched.isVerified) {
-                        return {
-                          data: { user: null, session: null },
-                          error: { message: 'Your admin account is not verified yet. Please verify your email OTP.' }
-                        };
-                      }
-                      const mockUser = {
-                        id: matched.id || 'mock-admin-' + Date.now(),
-                        email: matched.email,
-                        user_metadata: {
-                          role: 'admin',
-                          full_name: matched.fullName,
-                        }
-                      };
-                      localStorage.setItem('agro-mart-mock-user', JSON.stringify(mockUser));
-                      document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(mockUser))}; path=/`;
-                      return {
-                        data: {
-                          user: mockUser,
-                          session: { user: mockUser, access_token: 'mock-access-token' }
-                        },
-                        error: null
-                      };
-                    } else {
-                      return {
-                        data: { user: null, session: null },
-                        error: { message: 'Invalid password. Please try again.' }
-                      };
-                    }
-                  }
-                } catch (e) {}
+              const storedUsers = localStorage.getItem('agromart_mock_users');
+              let users = storedUsers ? JSON.parse(storedUsers) : [];
+              
+              if (email && users.some((u: any) => u.email === email)) {
+                return { data: { user: null }, error: { message: 'An account with this email already exists.' } };
               }
-            }
-
-            let correctPassword = 'admin123';
-            if (typeof window !== 'undefined') {
-              correctPassword = localStorage.getItem('agro-mart-mock-admin-pass') || 'admin123';
-            }
-
-            const isHardcodedAdmin = 
-              (email === 'admin@agromart.com' && password === correctPassword) ||
-              (email === 'yugandharbhambere5@gmail.com' && password === 'Admin@123');
-
-            if (isHardcodedAdmin) {
-              const isUserReqAdmin = email === 'yugandharbhambere5@gmail.com';
+              if (phone && users.some((u: any) => u.phone === phone)) {
+                return { data: { user: null }, error: { message: 'An account with this mobile number already exists.' } };
+              }
+              
+              const newUserId = 'mock-user-' + Math.random().toString(36).substring(2, 11);
               const mockUser = {
-                id: isUserReqAdmin ? 'mock-admin-yugandhar' : 'mock-admin-12345',
-                email: email,
-                user_metadata: {
-                  role: 'admin',
-                  full_name: isUserReqAdmin ? 'Yugandhar Bhambere' : 'System Administrator',
-                }
+                id: newUserId,
+                email: email || null,
+                phone: phone || null,
+                user_metadata: options?.data || {}
               };
-              if (typeof window !== 'undefined') {
+              
+              users.push({
+                id: newUserId,
+                email: email || null,
+                phone: phone || null,
+                password: password,
+                user_metadata: options?.data || {}
+              });
+              
+              localStorage.setItem('agromart_mock_users', JSON.stringify(users));
+              
+              // Seed profiles tables in localStorage
+              const profilesKey = 'agromart_mock_profiles';
+              const profiles = localStorage.getItem(profilesKey) ? JSON.parse(localStorage.getItem(profilesKey)!) : [];
+              profiles.push({
+                id: newUserId,
+                full_name: options?.data?.full_name || '',
+                email: email || '',
+                phone: phone || '',
+                role: options?.data?.role || 'farmer',
+                state: options?.data?.state || '',
+                district: options?.data?.district || '',
+                taluka: options?.data?.taluka || '',
+                village: options?.data?.village || '',
+                address: options?.data?.address || '',
+                pincode: options?.data?.pincode || '',
+                preferred_language: options?.data?.preferred_language || 'en',
+                google_map_link: options?.data?.google_map_link || '',
+                latitude: options?.data?.latitude || null,
+                longitude: options?.data?.longitude || null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+              localStorage.setItem(profilesKey, JSON.stringify(profiles));
+              
+              if (options?.data?.role === 'farmer') {
+                const fpKey = 'agromart_mock_farmer_profiles';
+                const farmerProfiles = localStorage.getItem(fpKey) ? JSON.parse(localStorage.getItem(fpKey)!) : [];
+                farmerProfiles.push({
+                  id: newUserId,
+                  user_id: newUserId,
+                  farm_size: options?.data?.farm_size || '',
+                  main_crops: options?.data?.main_crops || [],
+                  farming_type: options?.data?.farming_type || 'organic',
+                  name: options?.data?.full_name || '',
+                  address: options?.data?.address || '',
+                  contact_number: phone || '',
+                  ratings: 5.0,
+                  reviews_count: 0
+                });
+                localStorage.setItem(fpKey, JSON.stringify(farmerProfiles));
+              } else {
+                const bpKey = 'agromart_mock_buyer_profiles';
+                const buyerProfiles = localStorage.getItem(bpKey) ? JSON.parse(localStorage.getItem(bpKey)!) : [];
+                buyerProfiles.push({
+                  id: newUserId,
+                  user_id: newUserId,
+                  shop_name: options?.data?.shop_name || '',
+                  owner_name: options?.data?.full_name || '',
+                  business_type: options?.data?.business_type || 'Other',
+                  gst_number: options?.data?.gst_number || '',
+                  shop_address: options?.data?.shop_address || options?.data?.address || '',
+                  address: options?.data?.address || '',
+                  contact_number: phone || '',
+                  working_days: 'Monday - Saturday',
+                  timings: '09:00 AM - 06:00 PM',
+                  ratings: 5.0,
+                  reviews_count: 0
+                });
+                localStorage.setItem(bpKey, JSON.stringify(buyerProfiles));
+              }
+              
+              return { data: { user: mockUser }, error: null };
+            }
+            return { data: { user: null }, error: { message: 'Window is not defined' } };
+          },
+          signInWithPassword: async ({ email, phone, password }: { email?: string; phone?: string; password?: string }) => {
+            console.warn('Mock Supabase client: signInWithPassword mock response triggered');
+            if (typeof window !== 'undefined') {
+              // 1. Check if email/phone match admin
+              let correctPassword = 'admin123';
+              correctPassword = localStorage.getItem('agro-mart-mock-admin-pass') || 'admin123';
+              
+              const isHardcodedAdmin = 
+                (email === 'admin@agromart.com' && password === correctPassword) ||
+                (email === 'yugandharbhambere5@gmail.com' && password === 'Admin@123');
+
+              if (isHardcodedAdmin) {
+                const isUserReqAdmin = email === 'yugandharbhambere5@gmail.com';
+                const mockUser = {
+                  id: isUserReqAdmin ? 'mock-admin-yugandhar' : 'mock-admin-12345',
+                  email: email,
+                  user_metadata: {
+                    role: 'admin',
+                    full_name: isUserReqAdmin ? 'Yugandhar Bhambere' : 'System Administrator',
+                  }
+                };
                 localStorage.setItem('agro-mart-mock-user', JSON.stringify(mockUser));
                 document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(mockUser))}; path=/`;
-                
-                // Also seed into agromart_admins array if not exists so registration lists are consistent
-                try {
-                  const storedAdmins = localStorage.getItem('agromart_admins');
-                  let admins = storedAdmins ? JSON.parse(storedAdmins) : [];
-                  if (!admins.some((a: any) => a.email.toLowerCase() === email.toLowerCase())) {
-                    admins.push({
-                      id: mockUser.id,
-                      fullName: mockUser.user_metadata.full_name,
-                      email: email,
-                      password: password,
-                      isVerified: true
-                    });
-                    localStorage.setItem('agromart_admins', JSON.stringify(admins));
-                  }
-                } catch (e) {}
+                return { data: { user: mockUser, session: { user: mockUser, access_token: 'mock-access-token' } }, error: null };
               }
-              return {
-                data: {
-                  user: mockUser,
-                  session: {
-                    user: mockUser,
-                    access_token: 'mock-access-token',
-                  }
-                },
-                error: null
-              };
+              
+              // 2. Check registered users list
+              const storedUsers = localStorage.getItem('agromart_mock_users');
+              const users = storedUsers ? JSON.parse(storedUsers) : [];
+              
+              const matchedUser = users.find((u: any) => {
+                if (email && u.email === email) return true;
+                if (phone && u.phone === phone) return true;
+                return false;
+              });
+              
+              if (matchedUser) {
+                if (matchedUser.password === password) {
+                  localStorage.setItem('agro-mart-mock-user', JSON.stringify(matchedUser));
+                  document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(matchedUser))}; path=/`;
+                  return {
+                    data: {
+                      user: matchedUser,
+                      session: { user: matchedUser, access_token: 'mock-access-token' }
+                    },
+                    error: null
+                  };
+                } else {
+                  return { data: { user: null, session: null }, error: { message: 'Invalid password. Please try again.' } };
+                }
+              }
             }
-            return {
-              data: { user: null, session: null },
-              error: { message: `Invalid credentials.` }
-            };
+            return { data: { user: null, session: null }, error: { message: 'Account not found. Please register.' } };
           },
           resetPasswordForEmail: async (email: string, options?: any) => {
             console.warn('Mock Supabase client: resetPasswordForEmail mock response triggered for', email);
-            return { data: {}, error: null };
+            if (typeof window !== 'undefined') {
+              const storedUsers = localStorage.getItem('agromart_mock_users');
+              const users = storedUsers ? JSON.parse(storedUsers) : [];
+              const matched = users.some((u: any) => u.email === email) || email === 'admin@agromart.com' || email === 'yugandharbhambere5@gmail.com';
+              if (matched) {
+                return { data: {}, error: null };
+              }
+            }
+            return { data: null, error: { message: 'Email address not found.' } };
           },
           signInWithOtp: async ({ email, phone }: { email?: string; phone?: string }) => {
             console.warn('Mock Supabase client: signInWithOtp mock response triggered');
@@ -122,21 +180,28 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
             console.warn('Mock Supabase client: verifyOtp mock response triggered');
             
             let role = 'farmer';
-            if (email?.includes('buyer') || phone?.endsWith('00')) {
-              role = 'buyer';
-            } else if (email?.includes('admin') || phone?.endsWith('99')) {
-              role = 'admin';
-            } else if (typeof window !== 'undefined') {
+            let id = 'mock-user-12345';
+            let fullName = 'Farmer';
+            
+            if (typeof window !== 'undefined') {
               role = localStorage.getItem('agro-mart-temp-role') || 'farmer';
+              const storedUsers = localStorage.getItem('agromart_mock_users');
+              const users = storedUsers ? JSON.parse(storedUsers) : [];
+              const matched = users.find((u: any) => (email && u.email === email) || (phone && u.phone === phone));
+              if (matched) {
+                role = matched.user_metadata?.role || role;
+                id = matched.id;
+                fullName = matched.user_metadata?.full_name || fullName;
+              }
             }
 
             const mockUser = {
-              id: 'mock-user-12345',
-              email: email || 'farmer@test.com',
+              id,
+              email: email || null,
               phone: phone || null,
               user_metadata: {
                 role: role,
-                full_name: 'Farmer',
+                full_name: fullName,
               }
             };
 
@@ -194,9 +259,6 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
           },
           updateUser: async ({ data, password }: { data?: any; password?: string }) => {
             console.warn('Mock Supabase client: updateUser mock response triggered', data, password);
-            if (password && typeof window !== 'undefined') {
-              localStorage.setItem('agro-mart-mock-admin-pass', password);
-            }
             let user = null;
             if (typeof window !== 'undefined') {
               const stored = localStorage.getItem('agro-mart-mock-user');
@@ -213,6 +275,26 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
                   localStorage.setItem('agro-mart-mock-user', JSON.stringify(updatedUser));
                   document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(updatedUser))}; path=/`;
                   user = updatedUser;
+
+                  // Update matching user in users list
+                  const storedUsers = localStorage.getItem('agromart_mock_users');
+                  if (storedUsers) {
+                    const users = JSON.parse(storedUsers);
+                    const updatedUsers = users.map((u: any) => {
+                      if (u.id === parsed.id) {
+                        return {
+                          ...u,
+                          password: password || u.password,
+                          user_metadata: {
+                            ...u.user_metadata,
+                            ...(data || {})
+                          }
+                        };
+                      }
+                      return u;
+                    });
+                    localStorage.setItem('agromart_mock_users', JSON.stringify(updatedUsers));
+                  }
                 } catch {}
               }
             }
@@ -243,28 +325,101 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
           }
         },
         from: (table: string) => {
+          const getStorageData = () => {
+            if (typeof window === 'undefined') return [];
+            // Map actual tables to key names
+            const key = `agromart_mock_${table}`;
+            const stored = localStorage.getItem(key);
+            return stored ? JSON.parse(stored) : [];
+          };
+          const setStorageData = (data: any) => {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`agromart_mock_${table}`, JSON.stringify(data));
+            }
+          };
           return {
-            select: () => ({
-              eq: () => ({
-                order: () => Promise.resolve({ data: [], error: null }),
-                eq: () => Promise.resolve({ data: [], error: null }),
-                insert: () => Promise.resolve({ data: [], error: null }),
-                delete: () => Promise.resolve({ data: [], error: null }),
-                update: () => Promise.resolve({ data: [], error: null }),
-              }),
-              insert: () => Promise.resolve({ data: [], error: null }),
-              delete: () => Promise.resolve({ data: [], error: null }),
-              update: () => Promise.resolve({ data: [], error: null }),
-            }),
-            insert: () => ({
-              select: () => Promise.resolve({ data: [], error: null }),
-            }),
-            delete: () => ({
-              eq: () => Promise.resolve({ data: [], error: null }),
-            }),
-            update: () => ({
-              eq: () => Promise.resolve({ data: [], error: null }),
-            }),
+            select: (fields?: string) => {
+              return {
+                eq: (column: string, value: any) => {
+                  const buildQuery = () => {
+                    const list = getStorageData();
+                    const filtered = list.filter((x: any) => {
+                      // Check standard field or snake_case key
+                      return x[column] === value || x[column.toLowerCase()] === value || x[column.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] === value;
+                    });
+                    return filtered;
+                  };
+                  return {
+                    single: () => {
+                      const filtered = buildQuery();
+                      return Promise.resolve({ data: filtered[0] || null, error: null });
+                    },
+                    order: (col: string, opt: any) => {
+                      const filtered = buildQuery();
+                      return Promise.resolve({ data: filtered, error: null });
+                    },
+                    eq: (col2: string, val2: any) => {
+                      const list = buildQuery();
+                      const filtered = list.filter((x: any) => x[col2] === val2 || x[col2.toLowerCase()] === val2);
+                      return Promise.resolve({ data: filtered, error: null });
+                    },
+                    // Return raw thenable/promise
+                    then: (onfulfilled: any) => {
+                      const filtered = buildQuery();
+                      return Promise.resolve({ data: filtered, error: null }).then(onfulfilled);
+                    }
+                  };
+                },
+                then: (onfulfilled: any) => {
+                  const list = getStorageData();
+                  return Promise.resolve({ data: list, error: null }).then(onfulfilled);
+                }
+              };
+            },
+            insert: (row: any) => {
+              const list = getStorageData();
+              const rows = Array.isArray(row) ? row : [row];
+              const added: any[] = [];
+              rows.forEach(r => {
+                const newRow = { ...r };
+                if (!newRow.id) newRow.id = r.user_id || 'mock-id-' + Math.random().toString(36).substring(2, 7);
+                list.push(newRow);
+                added.push(newRow);
+              });
+              setStorageData(list);
+              return {
+                select: () => Promise.resolve({ data: added, error: null }),
+                then: (onfulfilled: any) => Promise.resolve({ data: added, error: null }).then(onfulfilled)
+              };
+            },
+            update: (updates: any) => {
+              return {
+                eq: (column: string, value: any) => {
+                  const list = getStorageData();
+                  const updated: any[] = [];
+                  const newList = list.map((x: any) => {
+                    if (x[column] === value || x[column.toLowerCase()] === value || x[column.replace(/_([a-z])/g, (g) => g[1].toUpperCase())] === value) {
+                      const newX = { ...x, ...updates };
+                      updated.push(newX);
+                      return newX;
+                    }
+                    return x;
+                  });
+                  setStorageData(newList);
+                  return Promise.resolve({ data: updated, error: null });
+                }
+              };
+            },
+            delete: () => {
+              return {
+                eq: (column: string, value: any) => {
+                  const list = getStorageData();
+                  const newList = list.filter((x: any) => x[column] !== value && x[column.toLowerCase()] !== value);
+                  setStorageData(newList);
+                  return Promise.resolve({ data: [], error: null });
+                }
+              };
+            }
           };
         },
         storage: {

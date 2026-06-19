@@ -31,61 +31,61 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMsg(null);
 
-    if (role === 'admin') {
-      if (!email.trim() || !password.trim()) {
-        setErrorMsg('Please enter both email and password.');
-        setLoading(false);
-        return;
-      }
-      try {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password: password.trim(),
-        });
-        if (error) throw error;
-        
-        // Redirect directly to admin dashboard on success
-        window.location.href = '/dashboard/admin';
-      } catch (err: any) {
-        console.error('Admin Sign In Error:', err);
-        setErrorMsg(err.message || 'Failed to sign in. Please verify your credentials.');
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
     const targetValue = authMethod === 'email' ? email.trim() : `${countryCode}${phone.trim()}`;
+    const contactField = authMethod === 'email' ? 'email' : 'phone';
+
     if (authMethod === 'email' ? !email.trim() : !phone.trim()) {
       setErrorMsg(authMethod === 'email' ? 'Please enter your email.' : 'Please enter your phone number.');
       setLoading(false);
       return;
     }
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('agro-mart-temp-role', role);
+    if (!password.trim()) {
+      setErrorMsg('Please enter your password.');
+      setLoading(false);
+      return;
     }
 
     try {
-      if (authMethod === 'email') {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: targetValue,
-          options: {
-            shouldCreateUser: false,
-          },
-        });
-        if (error) throw error;
-        router.push(`/verify?email=${encodeURIComponent(targetValue)}`);
+      const signInPayload: any = {
+        password: password.trim()
+      };
+      if (contactField === 'email') {
+        signInPayload.email = targetValue;
       } else {
-        const { error } = await supabase.auth.signInWithOtp({
-          phone: targetValue,
-        });
-        if (error) throw error;
-        router.push(`/verify?phone=${encodeURIComponent(targetValue)}`);
+        signInPayload.phone = targetValue;
       }
+
+      const { data, error } = await supabase.auth.signInWithPassword(signInPayload);
+      if (error) throw error;
+
+      // On successful login, fetch user profile to find their role
+      const user = data.user;
+      let userRole = role; // default fallback
+
+      if (user) {
+        // Query profiles table
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileData) {
+          userRole = profileData.role || userRole;
+        } else if (user.user_metadata?.role) {
+          userRole = user.user_metadata.role;
+        }
+      }
+
+      if (typeof window !== 'undefined' && user) {
+        document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(user))}; path=/`;
+      }
+
+      window.location.href = `/dashboard/${userRole}`;
     } catch (err: any) {
-      console.error('OTP Send Error:', err);
-      setErrorMsg(err.message || 'Failed to send OTP. Please make sure you are registered.');
+      console.error('Sign In Error:', err);
+      setErrorMsg(err.message || 'Failed to sign in. Please verify your credentials.');
     } finally {
       setLoading(false);
     }
@@ -142,13 +142,27 @@ export default function LoginPage() {
       setSuccessMsg('Password updated successfully! Redirecting to dashboard...');
       
       // Auto login after reset
-      await supabase.auth.signInWithPassword({
+      const { data, error: loginErr } = await supabase.auth.signInWithPassword({
         email: resetEmail.trim(),
         password: newPassword.trim(),
       });
 
+      let userRole = role;
+      if (data?.user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+        if (profileData) {
+          userRole = profileData.role || userRole;
+        } else if (data.user.user_metadata?.role) {
+          userRole = data.user.user_metadata.role;
+        }
+      }
+
       setTimeout(() => {
-        window.location.href = '/dashboard/admin';
+        window.location.href = `/dashboard/${userRole}`;
       }, 1500);
     } catch (err: any) {
       console.error('Reset password verification error:', err);
@@ -488,73 +502,111 @@ export default function LoginPage() {
                   </div>
                 </div>
               </>
-            ) : authMethod === 'email' ? (
-              <div className="flex flex-col gap-2">
-                <label htmlFor="login-email" className="text-sm font-bold text-foreground">
-                  {t.auth.emailLabel}
-                </label>
-                <div className="relative flex items-center">
-                  <Mail className="absolute left-4 w-5 h-5 text-earth-455 pointer-events-none" />
-                  <input
-                    id="login-email"
-                    type="email"
-                    placeholder="name@domain.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                    className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
-                  />
-                </div>
-              </div>
             ) : (
-              <div className="flex flex-col gap-2">
-                <label htmlFor="login-phone" className="text-sm font-bold text-foreground">
-                  {t.auth.phoneLabel}
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex items-center min-w-[100px]">
-                    <select
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                      disabled={loading}
-                      className="w-full py-4 pl-3 pr-8 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-sm cursor-pointer appearance-none"
-                    >
-                      <option value="+91">🇮🇳 +91</option>
-                      <option value="+1">🇺🇸 +1</option>
-                      <option value="+44">🇬🇧 +44</option>
-                      <option value="+971">🇦🇪 +971</option>
-                      <option value="+966">🇸🇦 +966</option>
-                      <option value="+977">🇳🇵 +977</option>
-                      <option value="+880">🇧🇩 +880</option>
-                      <option value="+94">🇱🇰 +94</option>
-                      <option value="+92">🇵🇰 +92</option>
-                      <option value="+61">🇦🇺 +61</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-earth-500">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                      </svg>
+              <>
+                {authMethod === 'email' ? (
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="login-email" className="text-sm font-bold text-foreground">
+                      {t.auth.emailLabel}
+                    </label>
+                    <div className="relative flex items-center">
+                      <Mail className="absolute left-4 w-5 h-5 text-earth-455 pointer-events-none" />
+                      <input
+                        id="login-email"
+                        type="email"
+                        placeholder="name@domain.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={loading}
+                        className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                      />
                     </div>
                   </div>
-                  <div className="relative flex-1 flex items-center">
-                    <Phone className="absolute left-4 w-5 h-5 text-earth-450 pointer-events-none" />
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="login-phone" className="text-sm font-bold text-foreground">
+                      {t.auth.phoneLabel}
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex items-center min-w-[100px]">
+                        <select
+                          value={countryCode}
+                          onChange={(e) => setCountryCode(e.target.value)}
+                          disabled={loading}
+                          className="w-full py-4 pl-3 pr-8 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary-500 font-bold text-sm cursor-pointer appearance-none"
+                        >
+                          <option value="+91">🇮🇳 +91</option>
+                          <option value="+1">🇺🇸 +1</option>
+                          <option value="+44">🇬🇧 +44</option>
+                          <option value="+971">🇦🇪 +971</option>
+                          <option value="+966">🇸🇦 +966</option>
+                          <option value="+977">🇳🇵 +977</option>
+                          <option value="+880">🇧🇩 +880</option>
+                          <option value="+94">🇱🇰 +94</option>
+                          <option value="+92">🇵🇰 +92</option>
+                          <option value="+61">🇦🇺 +61</option>
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-earth-500">
+                          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="relative flex-1 flex items-center">
+                        <Phone className="absolute left-4 w-5 h-5 text-earth-450 pointer-events-none" />
+                        <input
+                          id="login-phone"
+                          type="tel"
+                          placeholder="9876543210"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                          disabled={loading}
+                          className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
+                        />
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-earth-500 pl-1">
+                      {t.auth.phoneCodeTip}
+                    </span>
+                  </div>
+                )}
+
+                {/* Password field for Farmer / Buyer */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex justify-between items-center">
+                    <label htmlFor="login-password" className="text-sm font-bold text-foreground">
+                      {language === 'mr' ? 'पासवर्ड' : language === 'hi' ? 'पासवर्ड' : 'Password'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsForgotPassword(true);
+                        setResetStep('request');
+                        setResetEmail(authMethod === 'email' ? email : '');
+                        setErrorMsg(null);
+                        setSuccessMsg(null);
+                      }}
+                      className="text-xs font-bold text-primary-500 hover:text-primary-600 hover:underline cursor-pointer"
+                    >
+                      {language === 'mr' ? 'पासवर्ड विसरलात?' : language === 'hi' ? 'पासवर्ड भूल गए?' : 'Forgot Password?'}
+                    </button>
+                  </div>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-4 text-earth-455 pointer-events-none select-none text-base">🔑</span>
                     <input
-                      id="login-phone"
-                      type="tel"
-                      placeholder="9876543210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      id="login-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       disabled={loading}
                       className="w-full pl-12 pr-4 py-4 rounded-xl border border-border bg-background text-foreground placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold"
                     />
                   </div>
                 </div>
-                <span className="text-xs font-bold text-earth-500 pl-1">
-                  {t.auth.phoneCodeTip}
-                </span>
-              </div>
+              </>
             )}
-
+ 
             <button
               type="submit"
               disabled={loading}
@@ -565,14 +617,9 @@ export default function LoginPage() {
                   <Loader2 className="w-5 h-5 animate-spin" />
                   <span>{t.common.loading}</span>
                 </>
-              ) : role === 'admin' ? (
-                <>
-                  <span>{language === 'mr' ? 'लॉगिन करा' : language === 'hi' ? 'लॉगिन करें' : 'Sign In'}</span>
-                  <ArrowRight className="w-5 h-5" />
-                </>
               ) : (
                 <>
-                  <span>{t.auth.sendOtpBtn}</span>
+                  <span>{language === 'mr' ? 'लॉगिन करा' : language === 'hi' ? 'लॉगिन करें' : 'Sign In'}</span>
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
