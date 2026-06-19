@@ -1319,7 +1319,10 @@ export default function BuyerDashboard() {
             id: f.id
           }));
           const merged = [...mappedDbFarmers, ...mockFarmers.filter(mf => !mappedDbFarmers.some((db: any) => db.name === mf.name))];
-          setFarmersList(merged);
+          const uniqueMerged = merged.filter((item, index, self) =>
+            index === self.findIndex((t) => t.name === item.name)
+          );
+          setFarmersList(uniqueMerged);
         }
       } catch (e) {
         console.warn('Failed to load DB farmers:', e);
@@ -2663,7 +2666,15 @@ export default function BuyerDashboard() {
                 return (
                   <div key={i} className="p-5 rounded-2xl bg-earth-50/50 dark:bg-earth-950/20 border border-border flex flex-col gap-3">
                     <div className="flex justify-between items-start">
-                      <span className="text-sm font-extrabold text-foreground">{f.name}</span>
+                      <button
+                        onClick={() => {
+                          const prof = getFarmerProfileByName(f.name);
+                          setSelectedFarmerProfile(prof);
+                        }}
+                        className="text-sm font-extrabold text-foreground hover:text-primary-600 hover:underline cursor-pointer text-left"
+                      >
+                        {f.name}
+                      </button>
                       <span className="text-xs font-black text-amber-500">{f.rating || f.ratings}★</span>
                     </div>
                     <div className="flex flex-col gap-1 text-xs text-earth-500 font-semibold">
