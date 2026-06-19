@@ -970,6 +970,7 @@ export default function FarmerDashboard() {
   const [selectedDemand, setSelectedDemand] = useState<CropDemand | null>(null);
   const [linkedCropId, setLinkedCropId] = useState('');
   const [respondMode, setRespondMode] = useState<'link' | 'message'>('link');
+  const [respondMessageText, setRespondMessageText] = useState('');
   const [respondedDemandIds, setRespondedDemandIds] = useState<Set<string>>(new Set());
 
   // ── Chat ──
@@ -1780,10 +1781,58 @@ export default function FarmerDashboard() {
 
   const handleSubmitResponse = () => {
     if (!selectedDemand) return;
+
+    if (respondMode === 'message' && respondMessageText.trim()) {
+      const buyerName = selectedDemand.buyer_name;
+      const thread = threads.find(t => t.buyerName === buyerName);
+      const newMsg: Message = {
+        id: `msg-${Date.now()}`,
+        senderRole: 'farmer',
+        text: respondMessageText.trim(),
+        timestamp: new Date().toISOString()
+      };
+      
+      if (thread) {
+        const updatedThreads = threads.map(t => {
+          if (t.id === thread.id) {
+            return {
+              ...t,
+              messages: [...t.messages, newMsg],
+              lastUpdated: new Date().toISOString(),
+              unreadForBuyer: true
+            };
+          }
+          return t;
+        });
+        setThreads(updatedThreads);
+        localStorage.setItem('agromart_chats', JSON.stringify(updatedThreads));
+        window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updatedThreads) }));
+      } else {
+        const newThread: ChatThread = {
+          id: `t-${Date.now()}`,
+          cropId: selectedDemand.id,
+          cropName: selectedDemand.crop_name,
+          buyerName: buyerName,
+          farmerName: user?.user_metadata?.fullName || 'Mock Farmer',
+          messages: [newMsg],
+          lastUpdated: new Date().toISOString(),
+          unreadForBuyer: true,
+          unreadForFarmer: false,
+          revealContactFarmer: false,
+          revealContactBuyer: false
+        };
+        const updatedThreads = [newThread, ...threads];
+        setThreads(updatedThreads);
+        localStorage.setItem('agromart_chats', JSON.stringify(updatedThreads));
+        window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updatedThreads) }));
+      }
+    }
+
     setRespondedDemandIds(prev => new Set([...prev, selectedDemand.id]));
     const notif = pushNotification('new_offer', `You made an offer for "${selectedDemand.crop_name}" from ${selectedDemand.buyer_name}.`, 'buyer');
     if (notif) triggerToast(notif.id, 'new_offer', `Offer sent to ${selectedDemand.buyer_name}`);
     setIsRespondModalOpen(false);
+    setRespondMessageText('');
   };
 
   // ─── Chat ────────────────────────────────────────────────────────────────────
@@ -2885,9 +2934,10 @@ export default function FarmerDashboard() {
                   <button
                     onClick={handleSendMessage}
                     disabled={!chatInput.trim()}
-                    className="p-3 rounded-xl bg-primary-600 hover:bg-primary-700 text-white transition-all cursor-pointer disabled:opacity-50 disabled:cursor-default"
+                    className="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-default text-sm"
                   >
                     <Send className="w-4 h-4" />
+                    <span>{language === 'mr' ? 'पाठवा' : language === 'hi' ? 'भेजें' : 'Send'}</span>
                   </button>
                 </div>
               </>
@@ -3694,7 +3744,13 @@ export default function FarmerDashboard() {
             ) : (
               <div className="flex flex-col gap-3">
                 <label className="text-xs font-bold text-foreground">Message to buyer:</label>
-                <textarea rows={3} placeholder="Describe your crop availability, price, and any terms..." className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" />
+                <textarea 
+                  rows={3} 
+                  value={respondMessageText}
+                  onChange={e => setRespondMessageText(e.target.value)}
+                  placeholder="Describe your crop availability, price, and any terms..." 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none" 
+                />
               </div>
             )}
 
