@@ -1327,29 +1327,6 @@ export default function BuyerDashboard() {
     };
     loadDbFarmers();
 
-  // Sync active buyer name in local chat threads
-  useEffect(() => {
-    if (!user) return;
-    const buyerShopName = buyerProfile?.shopName || user.user_metadata?.shopName || user.user_metadata?.fullName || 'Premium Agro Buyers';
-    if (buyerShopName && buyerShopName !== 'Premium Agro Buyers') {
-      setThreads(prev => {
-        let changed = false;
-        const updated = prev.map(t => {
-          if (t.buyerName === 'Premium Agro Buyers') {
-            changed = true;
-            return { ...t, buyerName: buyerShopName };
-          }
-          return t;
-        });
-        if (changed) {
-          localStorage.setItem('agromart_chats', JSON.stringify(updated));
-          window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updated) }));
-        }
-        return updated;
-      });
-    }
-  }, [buyerProfile, user]);
-
     // Attempt to load from database if active table, synchronizing with localStorage
     const loadDbCrops = async () => {
       let activeCropsList = [...mockCrops];
@@ -1397,6 +1374,29 @@ export default function BuyerDashboard() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Sync active buyer name in local chat threads
+  useEffect(() => {
+    if (!user) return;
+    const buyerShopName = buyerProfile?.shopName || user.user_metadata?.shopName || user.user_metadata?.fullName || 'Premium Agro Buyers';
+    if (buyerShopName && buyerShopName !== 'Premium Agro Buyers') {
+      setThreads(prev => {
+        let changed = false;
+        const updated = prev.map(t => {
+          if (t.buyerName === 'Premium Agro Buyers') {
+            changed = true;
+            return { ...t, buyerName: buyerShopName };
+          }
+          return t;
+        });
+        if (changed) {
+          localStorage.setItem('agromart_chats', JSON.stringify(updated));
+          window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_chats', newValue: JSON.stringify(updated) }));
+        }
+        return updated;
+      });
+    }
+  }, [buyerProfile, user]);
 
   // Trust Calculations
   const isOtpVerified = !!user?.user_metadata?.is_otp_verified;
