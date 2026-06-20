@@ -257,6 +257,43 @@ export default function AdminDashboard() {
     fetchCrops();
   }, [supabase]);
 
+  // Fetch registered users/profiles from Supabase on mount
+  React.useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const { data, error } = await supabase.from('profiles').select('*');
+        if (!error && data) {
+          const dbUsers: AdminUser[] = data.map((p: any) => ({
+            id: p.id,
+            name: p.full_name || 'Anonymous User',
+            email: p.email || '',
+            phone: p.phone || '',
+            role: p.role || 'farmer',
+            location: [p.taluka, p.district, p.state].filter(Boolean).join(', ') || p.address || 'Unknown',
+            verificationLevel: p.role === 'admin' ? 'full' : 'otp',
+            trustScore: p.role === 'admin' ? 100 : 65,
+            joinedAt: p.created_at ? p.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
+            lastActive: 'Active recently',
+            isActive: true,
+            flagCount: 0,
+          }));
+
+          setUsers(prev => {
+            const merged = [
+              ...dbUsers,
+              ...SEED_USERS.filter(su => !dbUsers.some(dbu => dbu.id === su.id))
+            ];
+            return merged;
+          });
+        }
+      } catch (e) {
+        console.warn('Admin fetch users failed:', e);
+      }
+    };
+    fetchUsers();
+  }, [supabase]);
+
+
   // ── Users State ──
   const [users, setUsers] = useState<AdminUser[]>(SEED_USERS);
   const [userSearch, setUserSearch] = useState('');
