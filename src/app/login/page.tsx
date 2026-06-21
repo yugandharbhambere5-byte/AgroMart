@@ -47,45 +47,43 @@ export default function LoginPage() {
     }
 
     try {
-      const signInPayload: any = {
-        password: password.trim()
+      const mockUserId = 'mock-' + role + '-' + Math.random().toString(36).substring(2, 11);
+      const isSuperadmin = role === 'admin';
+      
+      const mockUser = {
+        id: mockUserId,
+        email: authMethod === 'email' ? targetValue : null,
+        phone: authMethod === 'phone' ? targetValue : null,
+        user_metadata: {
+          role: isSuperadmin ? 'admin' : role,
+          full_name: isSuperadmin ? 'Superadmin User' : role === 'buyer' ? 'Mauli Ginning' : 'Kanha Patil',
+          fullName: isSuperadmin ? 'Superadmin User' : role === 'buyer' ? 'Mauli Ginning' : 'Kanha Patil',
+        }
       };
-      if (contactField === 'email') {
-        signInPayload.email = targetValue;
-      } else {
-        signInPayload.phone = targetValue;
-      }
 
-      const { data, error } = await supabase.auth.signInWithPassword(signInPayload);
-      if (error) throw error;
-
-      // On successful login, fetch user profile to find their role
-      const user = data.user;
-      let userRole = role; // default fallback
-
-      if (user) {
-        // Query profiles table
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('agro-mart-mock-user', JSON.stringify(mockUser));
+        document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(mockUser))}; path=/`;
         
-        if (profileData) {
-          userRole = profileData.role || userRole;
-        } else if (user.user_metadata?.role) {
-          userRole = user.user_metadata.role;
+        // Save to mock users list to make it discoverable
+        const storedUsers = localStorage.getItem('agromart_mock_users');
+        const users = storedUsers ? JSON.parse(storedUsers) : [];
+        if (!users.some((u: any) => u.email === mockUser.email || u.phone === mockUser.phone)) {
+          users.push({
+            ...mockUser,
+            password: password.trim()
+          });
+          localStorage.setItem('agromart_mock_users', JSON.stringify(users));
         }
       }
 
-      if (typeof window !== 'undefined' && user) {
-        document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(user))}; path=/`;
-      }
-
-      window.location.href = `/dashboard/${userRole}`;
+      setSuccessMsg(language === 'mr' ? 'लॉगिन यशस्वी! रीडायरेक्ट करत आहे...' : 'Login successful! Redirecting...');
+      setTimeout(() => {
+        window.location.href = `/dashboard/${isSuperadmin ? 'admin' : role}`;
+      }, 1000);
     } catch (err: any) {
       console.error('Sign In Error:', err);
-      setErrorMsg(err.message || 'Failed to sign in. Please verify your credentials.');
+      setErrorMsg(err.message || 'Failed to sign in.');
     } finally {
       setLoading(false);
     }
@@ -206,16 +204,16 @@ export default function LoginPage() {
         <div className="text-center mb-6 flex flex-col gap-2">
           <h1 className="text-2xl sm:text-3xl font-black text-foreground">
             {isForgotPassword 
-              ? (language === 'mr' ? 'अॅडमिन पासवर्ड रिसेट' : language === 'hi' ? 'एडमिन पासवर्ड रीसेट' : 'Reset Admin Password')
+              ? (language === 'mr' ? 'सुपरअॅडमिन पासवर्ड रिसेट' : language === 'hi' ? 'सुपरएडमिन पासवर्ड रीसेट' : 'Reset Superadmin Password')
               : t.auth.loginTitle}
           </h1>
           <p className="text-sm font-semibold text-earth-550 dark:text-earth-400">
             {isForgotPassword
               ? (resetStep === 'request'
-                  ? (language === 'mr' ? 'पासवर्ड रिसेट करण्यासाठी तुमचा नोंदणीकृत ईमेल प्रविष्ट करा.' : language === 'hi' ? 'पासवर्ड रीसेट करने के लिए अपना पंजीकृत ईमेल दर्ज करें।' : 'Enter your registered admin email to receive a password reset OTP.')
+                  ? (language === 'mr' ? 'पासवर्ड रिसेट करण्यासाठी तुमचा नोंदणीकृत ईमेल प्रविष्ट करा.' : language === 'hi' ? 'पासवर्ड रीसेट करने के लिए अपना पंजीकृत ईमेल दर्ज करें।' : 'Enter your registered superadmin email to receive a password reset OTP.')
                   : (language === 'mr' ? `आम्ही ${resetEmail} वर OTP पाठवला आहे.` : language === 'hi' ? `हमने ${resetEmail} पर OTP भेजा है।` : `We sent an OTP to ${resetEmail}.`))
               : role === 'admin' 
-                ? (language === 'mr' ? 'अॅडमिन क्रेडेंशियल्स वापरून सुरक्षितपणे लॉग इन करा.' : language === 'hi' ? 'एडमिन क्रेडेंशियल्स का उपयोग करके सुरक्षित रूप से लॉग इन करें।' : 'Sign in securely using admin credentials.')
+                ? (language === 'mr' ? 'सुपरअॅडमिन क्रेडेंशियल्स वापरून सुरक्षितपणे लॉग इन करा.' : language === 'hi' ? 'सुपरएडमिन क्रेडेंशियल्स का उपयोग करके सुरक्षित रूप से लॉग इन करें।' : 'Sign in securely using superadmin credentials.')
                 : t.auth.loginSubtitle}
           </p>
         </div>
@@ -261,12 +259,12 @@ export default function LoginPage() {
                 }`}
               >
                 <ShieldAlert className="w-4 h-4" />
-                <span>Admin</span>
+                <span>Superadmin</span>
               </button>
             </div>
             {role === 'admin' && (
               <p className="text-[11px] font-bold text-red-500 pl-1 flex items-center gap-1 animate-pulse">
-                🔒 Admin access — restricted to authorised personnel only.
+                🔒 Superadmin access — restricted to authorised personnel only.
               </p>
             )}
           </div>
@@ -634,14 +632,14 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Admin quick access */}
+        {/* Superadmin quick access */}
         <div className="mt-4 text-center">
           <Link
             href="/dashboard/admin"
             className="inline-flex items-center gap-1.5 text-[11px] font-black text-earth-400 hover:text-red-500 transition-colors"
           >
             <ShieldAlert className="w-3.5 h-3.5" />
-            Go directly to Admin Panel
+            Go directly to Superadmin Panel
           </Link>
         </div>
 
