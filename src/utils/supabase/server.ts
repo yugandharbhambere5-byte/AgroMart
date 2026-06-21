@@ -3,10 +3,11 @@ import { cookies } from 'next/headers';
 
 export async function createClient(): Promise<ReturnType<typeof createServerClient>> {
   const cookieStore = await cookies();
+  const useCustomDb = cookieStore.get('agromart_use_custom_db')?.value === 'true';
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (url?.includes('placeholder') || anonKey?.includes('placeholder')) {
+  if (!useCustomDb || !url || url.includes('placeholder') || !anonKey || anonKey.includes('placeholder')) {
     const mockCookie = cookieStore.get('agro-mart-mock-user')?.value;
     let user = null;
     if (mockCookie) {

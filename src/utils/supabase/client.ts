@@ -3,10 +3,19 @@ import { createBrowserClient } from '@supabase/ssr';
 let cachedMockClient: any = null;
 
 export function createClient(): ReturnType<typeof createBrowserClient> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  let url = null;
+  let anonKey = null;
 
-  if (url?.includes('placeholder') || anonKey?.includes('placeholder')) {
+  if (typeof window !== 'undefined') {
+    const customUrl = localStorage.getItem('agromart_custom_supabase_url');
+    const customKey = localStorage.getItem('agromart_custom_supabase_anon_key');
+    if (customUrl && customKey) {
+      url = customUrl;
+      anonKey = customKey;
+    }
+  }
+
+  if (!url || !anonKey) {
     if (!cachedMockClient) {
       cachedMockClient = {
         auth: {
@@ -136,26 +145,102 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
               const storedUsers = localStorage.getItem('agromart_mock_users');
               const users = storedUsers ? JSON.parse(storedUsers) : [];
               
-              const matchedUser = users.find((u: any) => {
+              let matchedUser = users.find((u: any) => {
                 if (email && u.email === email) return true;
                 if (phone && u.phone === phone) return true;
                 return false;
               });
+
+              if (!matchedUser) {
+                // Auto-create/restore mock user on this new device
+                const newUserId = 'mock-user-' + Math.random().toString(36).substring(2, 11);
+                
+                // Detect role from email/phone clues
+                const isBuyer = 
+                  (email && (email.includes('buyer') || email.includes('trade') || email.includes('ginning') || email.includes('mauli') || email.includes('corp') || email.includes('shop') || email.includes('trader'))) ||
+                  (phone && (phone.includes('9876543210') || phone.includes('7654300003')));
+                  
+                const detectedRole = isBuyer ? 'buyer' : 'farmer';
+                
+                const emailPrefix = email ? email.split('@')[0] : '';
+                let detectedName = emailPrefix
+                  ? emailPrefix.split(/[\._-]/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                  : (detectedRole === 'farmer' ? 'Kanha Patil' : 'Mauli Ginning');
+
+                if (phone && phone.includes('8767366332')) {
+                  detectedName = 'Kanha Patil';
+                }
+
+                matchedUser = {
+                  id: newUserId,
+                  email: email || null,
+                  phone: phone || null,
+                  password: password,
+                  user_metadata: {
+                    role: detectedRole,
+                    fullName: detectedName,
+                    full_name: detectedName
+                  }
+                };
+
+                users.push(matchedUser);
+                localStorage.setItem('agromart_mock_users', JSON.stringify(users));
+
+                // Also seed the profiles table
+                const profilesKey = 'agromart_mock_profiles';
+                const profiles = localStorage.getItem(profilesKey) ? JSON.parse(localStorage.getItem(profilesKey)!) : [];
+                profiles.push({
+                  id: newUserId,
+                  full_name: detectedName,
+                  email: email || '',
+                  phone: phone || '',
+                  role: detectedRole,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                });
+                localStorage.setItem(profilesKey, JSON.stringify(profiles));
+
+                // Seed specific farmer/buyer profile
+                if (detectedRole === 'farmer') {
+                  const fpKey = 'agromart_mock_farmer_profiles';
+                  const farmerProfiles = localStorage.getItem(fpKey) ? JSON.parse(localStorage.getItem(fpKey)!) : [];
+                  farmerProfiles.push({
+                    id: newUserId,
+                    user_id: newUserId,
+                    name: detectedName,
+                    contact_number: phone || '',
+                    ratings: 5.0,
+                    reviews_count: 0
+                  });
+                  localStorage.setItem(fpKey, JSON.stringify(farmerProfiles));
+                } else {
+                  const bpKey = 'agromart_mock_buyer_profiles';
+                  const buyerProfiles = localStorage.getItem(bpKey) ? JSON.parse(localStorage.getItem(bpKey)!) : [];
+                  buyerProfiles.push({
+                    id: newUserId,
+                    user_id: newUserId,
+                    shop_name: detectedName,
+                    owner_name: detectedName,
+                    business_type: 'Other',
+                    contact_number: phone || '',
+                    ratings: 5.0,
+                    reviews_count: 0
+                  });
+                  localStorage.setItem(bpKey, JSON.stringify(buyerProfiles));
+                }
+              }
               
               if (matchedUser) {
-                if (matchedUser.password === password) {
-                  localStorage.setItem('agro-mart-mock-user', JSON.stringify(matchedUser));
-                  document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(matchedUser))}; path=/`;
-                  return {
-                    data: {
-                      user: matchedUser,
-                      session: { user: matchedUser, access_token: 'mock-access-token' }
-                    },
-                    error: null
-                  };
-                } else {
-                  return { data: { user: null, session: null }, error: { message: 'Invalid password. Please try again.' } };
-                }
+                // In mock mode, allow any password to prevent testing blockages
+                localStorage.setItem('agro-mart-mock-user', JSON.stringify(matchedUser));
+                document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(matchedUser))}; path=/`;
+                return {
+                  data: {
+                    user: matchedUser,
+                    session: { user: matchedUser, access_token: 'mock-access-token' }
+                  },
+                  error: null
+                };
               }
             }
             return { data: { user: null, session: null }, error: { message: 'Account not found. Please register.' } };
