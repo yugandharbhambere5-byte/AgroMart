@@ -322,7 +322,7 @@ export function FarmerProfileModal({
                       <span className="font-extrabold text-sm text-foreground">{item.name}</span>
                       <span className="text-[10px] font-bold text-earth-500">Qty: {item.quantity} {item.unit}</span>
                     </div>
-                    <span className="font-black text-emerald-600 dark:text-emerald-500 text-base">₹{item.price.toLocaleString('en-IN')}<span className="text-[10px] font-bold text-earth-500">/{item.unit.toLowerCase().replace(/s$/, '')}</span></span>
+                    <span className="font-black text-emerald-600 dark:text-emerald-500 text-base">₹{item.price.toLocaleString('en-IN')}<span className="text-[10px] font-bold text-earth-500">/{String(item.unit).toLowerCase().replace(/s$/, '')}</span></span>
                   </div>
                 ))}
               </div>
