@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/ThemeProvider';
 import { Sun, Moon, Menu, X, ShoppingCart, User, Sprout, ArrowRight, Globe, TrendingUp, LogOut } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';

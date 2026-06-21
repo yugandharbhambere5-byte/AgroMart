@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/components/ThemeProvider';
 import { MapPin, ZoomIn, ZoomOut, Navigation, HelpCircle } from 'lucide-react';
 
 export interface MapMarker {

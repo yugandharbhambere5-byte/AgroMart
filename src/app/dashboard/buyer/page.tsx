@@ -948,6 +948,7 @@ export default function BuyerDashboard() {
 
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<'marketplace' | 'offers' | 'saved' | 'trends' | 'chat' | 'recommendations' | 'demands' | 'profile' | 'transactions' | 'support'>('marketplace');
+  const [mounted, setMounted] = useState(false);
 
   // Verification States
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
@@ -1279,6 +1280,7 @@ export default function BuyerDashboard() {
   };
 
   useEffect(() => {
+    setMounted(true);
     // Check active session and load user metadata
     const checkUserSession = async () => {
       try {
@@ -2044,6 +2046,17 @@ export default function BuyerDashboard() {
 
   const displayShopName = buyerProfile?.shopName || user?.user_metadata?.shopName || user?.user_metadata?.fullName || user?.user_metadata?.full_name || 'Buyer';
   const trustLevelLabel = trustScore === 100 ? t.verification.verifiedBuyer : t.verification.verifiedBadge;
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-10 h-10 animate-spin text-primary-500" />
+          <span className="text-sm font-bold text-earth-500">Loading AgroMart Sourcing Dashboard...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-0 animate-fade-in-up relative w-full">
