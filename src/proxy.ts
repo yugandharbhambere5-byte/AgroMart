@@ -10,7 +10,9 @@ export async function updateSession(request: NextRequest) {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   let user = null;
 
-  if (urlEnv?.includes('placeholder') || anonKey?.includes('placeholder')) {
+  const useCustomDb = request.cookies.get('agromart_use_custom_db')?.value === 'true';
+
+  if (!useCustomDb || !urlEnv || urlEnv.includes('placeholder') || !anonKey || anonKey.includes('placeholder')) {
     const mockCookie = request.cookies.get('agro-mart-mock-user')?.value;
     if (mockCookie) {
       try {

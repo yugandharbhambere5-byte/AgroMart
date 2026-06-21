@@ -947,7 +947,7 @@ export default function BuyerDashboard() {
   };
 
   // Navigation Tabs
-  const [activeTab, setActiveTab] = useState<'marketplace' | 'offers' | 'saved' | 'trends' | 'chat' | 'recommendations' | 'demands' | 'profile' | 'transactions' | 'support'>('marketplace');
+  const [activeTab, setActiveTab] = useState<'overview' | 'marketplace' | 'offers' | 'saved' | 'trends' | 'chat' | 'recommendations' | 'demands' | 'profile' | 'transactions' | 'support'>('overview');
   const [mounted, setMounted] = useState(false);
 
   // Verification States
@@ -1093,6 +1093,7 @@ export default function BuyerDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const tabsList = [
+    { id: 'overview', icon: LayoutDashboard, label: language === 'mr' ? 'आढावा' : language === 'hi' ? 'अवलोकन' : 'Overview', showNotification: false },
     { id: 'marketplace', icon: ShoppingCart, label: t.dashboard.buyer.tabMarketplace, showNotification: false },
     { id: 'offers', icon: Send, label: t.dashboard.buyer.tabOffers, showNotification: sentOffers.filter(o => o.status === 'Pending').length > 0 },
     { id: 'chat', icon: MessageSquare, label: t.dashboard.buyer.tabChat, showNotification: threads.some(thread => thread.unreadForBuyer), isChatDot: true },
@@ -2281,6 +2282,177 @@ export default function BuyerDashboard() {
         </div>
       </div>
 
+
+      {/* TAB 0: Dashboard Overview */}
+      {activeTab === 'overview' && (
+        <div className="flex flex-col gap-8 animate-fade-in">
+          {/* Metrics Panel */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+            {[
+              { 
+                label: language === 'mr' ? 'एकूण खरेदी' : language === 'hi' ? 'कुल खरीद' : 'Total Purchases', 
+                value: `₹${(185000).toLocaleString('en-IN')}`, 
+                icon: IndianRupee, 
+                color: 'primary', 
+                sub: language === 'mr' ? '+१५.४% या आठवड्यात' : language === 'hi' ? '+15.4% इस सप्ताह' : '+15.4% this week' 
+              },
+              { 
+                label: language === 'mr' ? 'सक्रिय बोली' : language === 'hi' ? 'सक्रिय बोलियां' : 'Active Bids', 
+                value: `${sentOffers.filter(o => o.status === 'Pending').length} Offers`, 
+                icon: Send, 
+                color: 'primary', 
+                sub: language === 'mr' ? 'शेतकऱ्यांच्या प्रतिसादाची प्रतीक्षा' : language === 'hi' ? 'किसानों की प्रतिक्रिया की प्रतीक्षा' : 'Awaiting farmer response' 
+              },
+              { 
+                label: language === 'mr' ? 'जतन केलेले शेतमाल' : language === 'hi' ? 'सहेजी गई फसलें' : 'Saved Crops', 
+                value: `${savedIds.length} Crops`, 
+                icon: Heart, 
+                color: 'primary', 
+                sub: language === 'mr' ? 'माझ्या आवडीच्या यादीत' : language === 'hi' ? 'मेरी पसंदीदा सूची में' : 'In my watchlist' 
+              },
+              { 
+                label: language === 'mr' ? 'खरेदी त्रिज्या' : language === 'hi' ? 'खरीद दायरा' : 'Sourcing Radius', 
+                value: radiusFilter === 'All' ? (language === 'mr' ? 'सर्व सीमा' : 'All') : `${radiusFilter} KM`, 
+                icon: MapPin, 
+                color: 'primary', 
+                sub: language === 'mr' ? 'अकोला केंद्र' : 'Akola Hub' 
+              },
+            ].map((m, i) => (
+              <div key={i} className="p-6 rounded-2xl border border-border bg-card flex flex-col gap-4 hover-lift">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-earth-500 uppercase tracking-wider">{m.label}</span>
+                  <div className="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                    <m.icon className="w-5 h-5" />
+                  </div>
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-foreground">{m.value}</div>
+                  <span className="text-[10px] font-bold text-emerald-500 flex items-center gap-0.5 mt-1">
+                    <ArrowDownRight className="w-3.5 h-3.5 rotate-270" />{m.sub}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Charts & Trends */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-8 p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
+              <div>
+                <h3 className="text-lg font-black text-foreground">
+                  {language === 'mr' ? 'खरेदी खर्च अहवाल' : language === 'hi' ? 'खरीद व्यय रिपोर्ट' : 'Procurement Spend Report'}
+                </h3>
+                <p className="text-xs font-semibold text-earth-500">
+                  {language === 'mr' ? 'मासिक खरेदी खर्च आलेख' : language === 'hi' ? 'मासिक खरीद व्यय ग्राफ' : 'Monthly procurement spending ledger'}
+                </p>
+              </div>
+              <div className="relative h-56 w-full bg-earth-50/50 dark:bg-earth-950/20 rounded-2xl overflow-hidden border border-border/40">
+                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 500 180" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M 0 180 L 0 120 L 83 100 L 166 130 L 249 90 L 332 70 L 415 50 L 500 40 L 500 180 Z" fill="url(#spendGrad)" />
+                  <path d="M 0 120 L 83 100 L 166 130 L 249 90 L 332 70 L 415 50 L 500 40" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div className="flex justify-between px-2 text-[10px] font-black uppercase text-earth-400">
+                {['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((m, i) => <span key={i}>{m}</span>)}
+              </div>
+            </div>
+
+            <div className="lg:col-span-4 p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
+              <div>
+                <h3 className="text-lg font-black text-foreground">
+                  {language === 'mr' ? 'खरेदी केलेले पिके' : language === 'hi' ? 'खरीदी गई फसलें' : 'Procured Categories'}
+                </h3>
+                <p className="text-xs font-semibold text-earth-500">
+                  {language === 'mr' ? 'पिकांच्या श्रेणीनुसार वितरण' : language === 'hi' ? 'फसल श्रेणियों का वितरण' : 'Crop category distribution'}
+                </p>
+              </div>
+              <div className="relative flex-grow flex items-end justify-around h-56 bg-earth-50/50 dark:bg-earth-950/20 rounded-2xl p-4 border border-border/40">
+                {[
+                  { label: language === 'mr' ? 'धान्य' : 'Grains', h: 120, color: 'bg-primary-500' }, 
+                  { label: language === 'mr' ? 'भाज्या' : 'Vegetables', h: 140, color: 'bg-harvest-500' }, 
+                  { label: language === 'mr' ? 'फळे' : 'Fruits', h: 80, color: 'bg-primary-400' }
+                ].map(b => (
+                  <div key={b.label} className="flex flex-col items-center gap-2">
+                    <div className={`w-8 ${b.color} rounded-t-lg`} style={{ height: `${b.h}px` }} />
+                    <span className="text-[10px] font-black text-foreground">{b.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions & Recent Offers */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Quick Actions */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
+              <div>
+                <h3 className="text-lg font-black text-foreground">
+                  {language === 'mr' ? 'जलद कृती' : language === 'hi' ? 'त्वरित कार्रवाई' : 'Quick Sourcing Actions'}
+                </h3>
+                <p className="text-xs font-semibold text-earth-500">Fast access to key buying modules</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  onClick={() => setActiveTab('marketplace')}
+                  className="p-5 rounded-2xl border border-border hover:border-primary-500 bg-background hover:bg-primary-50/10 text-left transition-all cursor-pointer group flex flex-col gap-2 w-full"
+                >
+                  <ShoppingCart className="w-6 h-6 text-primary-500 group-hover:scale-110 transition-transform" />
+                  <h4 className="font-extrabold text-foreground text-sm">
+                    {language === 'mr' ? 'बाजारपेठ ब्राउझ करा' : 'Browse Marketplace'}
+                  </h4>
+                  <p className="text-xs text-earth-500">View fresh crops listed by local growers</p>
+                </button>
+                <button
+                  onClick={() => setActiveTab('demands')}
+                  className="p-5 rounded-2xl border border-border hover:border-primary-500 bg-background hover:bg-primary-50/10 text-left transition-all cursor-pointer group flex flex-col gap-2 w-full"
+                >
+                  <Compass className="w-6 h-6 text-primary-500 group-hover:scale-110 transition-transform" />
+                  <h4 className="font-extrabold text-foreground text-sm">
+                    {language === 'mr' ? 'नवीन मागणी नोंदवा' : 'Post Requirement'}
+                  </h4>
+                  <p className="text-xs text-earth-500">Request specific crops, volume and target rates</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Recent Sent Bids/Offers */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-card border border-border flex flex-col gap-6">
+              <div>
+                <h3 className="text-lg font-black text-foreground">
+                  {language === 'mr' ? 'अलीकडील बोली / ऑफर' : language === 'hi' ? 'हालिया बोलियां' : 'Recent Sent Offers'}
+                </h3>
+                <p className="text-xs font-semibold text-earth-500">Status of your negotiations with farmers</p>
+              </div>
+              <div className="flex flex-col gap-3.5">
+                {sentOffers.slice(0, 3).map((offer) => (
+                  <div key={offer.id} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-background hover:border-primary-500/20 transition-all text-xs font-bold">
+                    <div>
+                      <h4 className="font-extrabold text-foreground text-sm">{offer.cropName}</h4>
+                      <p className="text-earth-500 font-semibold mt-0.5">{language === 'mr' ? 'शेतकरी:' : 'Grower:'} {offer.farmerName}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        offer.status === 'Accepted' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                        : offer.status === 'Rejected' ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+                        : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
+                      }`}>
+                        {offer.status}
+                      </span>
+                      <p className="text-foreground mt-1 text-[11px]">₹{offer.offeredPrice.toLocaleString()}/{offer.unit}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: Marketplace Browse */}
       {activeTab === 'marketplace' && (
