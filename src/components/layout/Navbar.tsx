@@ -7,6 +7,7 @@ import { Sun, Moon, Menu, X, ShoppingCart, User, Sprout, ArrowRight, Globe, Tren
 import { createClient } from '@/utils/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { useTranslation, Language } from '@/context/LanguageContext';
+import InfoTicker from './InfoTicker';
 
 export function Navbar() {
   const { theme, setTheme } = useTheme();
@@ -79,11 +80,12 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b navbar-bg-scrolled border-border shadow-md ${
-        scrolled ? 'py-3' : 'py-4'
-      }`}
+      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b navbar-bg-scrolled border-border shadow-md"
     >
-      <div className="w-full max-w-none px-4 sm:px-6 lg:px-12">
+      <InfoTicker />
+      <div className={`w-full max-w-none px-4 sm:px-6 lg:px-12 transition-all duration-300 ${
+        scrolled ? 'py-3' : 'py-4'
+      }`}>
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1.5 sm:gap-2.5 group shrink-0">

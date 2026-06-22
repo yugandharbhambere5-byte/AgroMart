@@ -85,7 +85,7 @@ export function Hero() {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-32 pb-24 overflow-hidden" style={{ paddingTop: '120px' }}>
+    <section className="relative min-h-screen flex items-center justify-center pt-48 pb-24 overflow-hidden" style={{ paddingTop: '200px' }}>
       {/* Full-width Background Looping Video with Poster Fallback */}
       <video
         autoPlay
