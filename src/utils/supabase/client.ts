@@ -124,6 +124,7 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
               
               const isHardcodedAdmin = 
                 (email === 'admin@agromart.com' && password === correctPassword) ||
+                (email === 'admin@agromart' && password === correctPassword) ||
                 (email === 'yugandharbhambere5@gmail.com' && password === 'Admin@123');
 
               if (isHardcodedAdmin) {
@@ -152,86 +153,15 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
               });
 
               if (!matchedUser) {
-                // Auto-create/restore mock user on this new device
-                const newUserId = 'mock-user-' + Math.random().toString(36).substring(2, 11);
-                
-                // Detect role from email/phone clues
-                const isBuyer = 
-                  (email && (email.includes('buyer') || email.includes('trade') || email.includes('ginning') || email.includes('mauli') || email.includes('corp') || email.includes('shop') || email.includes('trader'))) ||
-                  (phone && (phone.includes('9876543210') || phone.includes('7654300003')));
-                  
-                const detectedRole = isBuyer ? 'buyer' : 'farmer';
-                
-                const emailPrefix = email ? email.split('@')[0] : '';
-                let detectedName = emailPrefix
-                  ? emailPrefix.split(/[\._-]/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                  : (detectedRole === 'farmer' ? 'Kanha Patil' : 'Mauli Ginning');
-
-                if (phone && phone.includes('8767366332')) {
-                  detectedName = 'Kanha Patil';
-                }
-
-                matchedUser = {
-                  id: newUserId,
-                  email: email || null,
-                  phone: phone || null,
-                  password: password,
-                  user_metadata: {
-                    role: detectedRole,
-                    fullName: detectedName,
-                    full_name: detectedName
-                  }
-                };
-
-                users.push(matchedUser);
-                localStorage.setItem('agromart_mock_users', JSON.stringify(users));
-
-                // Also seed the profiles table
-                const profilesKey = 'agromart_mock_profiles';
-                const profiles = localStorage.getItem(profilesKey) ? JSON.parse(localStorage.getItem(profilesKey)!) : [];
-                profiles.push({
-                  id: newUserId,
-                  full_name: detectedName,
-                  email: email || '',
-                  phone: phone || '',
-                  role: detectedRole,
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString()
-                });
-                localStorage.setItem(profilesKey, JSON.stringify(profiles));
-
-                // Seed specific farmer/buyer profile
-                if (detectedRole === 'farmer') {
-                  const fpKey = 'agromart_mock_farmer_profiles';
-                  const farmerProfiles = localStorage.getItem(fpKey) ? JSON.parse(localStorage.getItem(fpKey)!) : [];
-                  farmerProfiles.push({
-                    id: newUserId,
-                    user_id: newUserId,
-                    name: detectedName,
-                    contact_number: phone || '',
-                    ratings: 5.0,
-                    reviews_count: 0
-                  });
-                  localStorage.setItem(fpKey, JSON.stringify(farmerProfiles));
-                } else {
-                  const bpKey = 'agromart_mock_buyer_profiles';
-                  const buyerProfiles = localStorage.getItem(bpKey) ? JSON.parse(localStorage.getItem(bpKey)!) : [];
-                  buyerProfiles.push({
-                    id: newUserId,
-                    user_id: newUserId,
-                    shop_name: detectedName,
-                    owner_name: detectedName,
-                    business_type: 'Other',
-                    contact_number: phone || '',
-                    ratings: 5.0,
-                    reviews_count: 0
-                  });
-                  localStorage.setItem(bpKey, JSON.stringify(buyerProfiles));
-                }
+                return { data: { user: null, session: null }, error: { message: 'Account not found. Please register.' } };
               }
               
               if (matchedUser) {
-                // In mock mode, allow any password to prevent testing blockages
+                // Enforce real password check
+                if (matchedUser.password && matchedUser.password !== password) {
+                  return { data: { user: null, session: null }, error: { message: 'Incorrect password. Please try again.' } };
+                }
+
                 localStorage.setItem('agro-mart-mock-user', JSON.stringify(matchedUser));
                 document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(matchedUser))}; path=/`;
                 return {

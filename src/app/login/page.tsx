@@ -26,13 +26,28 @@ export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
 
+  const handleResetMockData = () => {
+    if (typeof window !== 'undefined') {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('agromart') || key.startsWith('agro-mart'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      document.cookie = 'agro-mart-mock-user=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      alert('Mock database reset completed! You can now register new accounts.');
+      window.location.reload();
+    }
+  };
+
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
 
-    const targetValue = authMethod === 'email' ? email.trim() : `${countryCode}${phone.trim()}`;
-    const contactField = authMethod === 'email' ? 'email' : 'phone';
+    const targetValue = authMethod === 'email' ? email.trim() : phone.trim();
 
     if (authMethod === 'email' ? !email.trim() : !phone.trim()) {
       setErrorMsg(authMethod === 'email' ? 'Please enter your email.' : 'Please enter your phone number.');
@@ -47,39 +62,39 @@ export default function LoginPage() {
     }
 
     try {
-      const mockUserId = 'mock-' + role + '-' + Math.random().toString(36).substring(2, 11);
-      const isSuperadmin = role === 'admin';
-      
-      const mockUser = {
-        id: mockUserId,
-        email: authMethod === 'email' ? targetValue : null,
-        phone: authMethod === 'phone' ? targetValue : null,
-        user_metadata: {
-          role: isSuperadmin ? 'admin' : role,
-          full_name: isSuperadmin ? 'Superadmin User' : role === 'buyer' ? 'Mauli Ginning' : 'Kanha Patil',
-          fullName: isSuperadmin ? 'Superadmin User' : role === 'buyer' ? 'Mauli Ginning' : 'Kanha Patil',
-        }
-      };
+      // Call Supabase Authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: authMethod === 'email' ? targetValue : undefined,
+        phone: authMethod === 'phone' ? `${countryCode}${targetValue}` : undefined,
+        password: password.trim()
+      });
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('agro-mart-mock-user', JSON.stringify(mockUser));
-        document.cookie = `agro-mart-mock-user=${encodeURIComponent(JSON.stringify(mockUser))}; path=/`;
-        
-        // Save to mock users list to make it discoverable
-        const storedUsers = localStorage.getItem('agromart_mock_users');
-        const users = storedUsers ? JSON.parse(storedUsers) : [];
-        if (!users.some((u: any) => u.email === mockUser.email || u.phone === mockUser.phone)) {
-          users.push({
-            ...mockUser,
-            password: password.trim()
-          });
-          localStorage.setItem('agromart_mock_users', JSON.stringify(users));
+      if (error) throw error;
+
+      const loggedUser = data?.user;
+      if (!loggedUser) {
+        throw new Error('Authentication failed. No user returned.');
+      }
+
+      // Determine correct role dashboard path
+      let userRole = role; // fallback
+      if (loggedUser.user_metadata?.role) {
+        userRole = loggedUser.user_metadata.role;
+      } else {
+        // Fetch role from profiles table
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', loggedUser.id)
+          .single();
+        if (profileData?.role) {
+          userRole = profileData.role;
         }
       }
 
       setSuccessMsg(language === 'mr' ? 'लॉगिन यशस्वी! रीडायरेक्ट करत आहे...' : 'Login successful! Redirecting...');
       setTimeout(() => {
-        window.location.href = `/dashboard/${isSuperadmin ? 'admin' : role}`;
+        window.location.href = `/dashboard/${userRole === 'admin' ? 'admin' : userRole}`;
       }, 1000);
     } catch (err: any) {
       console.error('Sign In Error:', err);
@@ -641,6 +656,17 @@ export default function LoginPage() {
             <ShieldAlert className="w-3.5 h-3.5" />
             Go directly to Superadmin Panel
           </Link>
+        </div>
+
+        {/* Reset Mock Database */}
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={handleResetMockData}
+            className="px-4 py-2.5 rounded-xl border border-red-500/30 text-red-500 bg-red-500/5 hover:bg-red-500/10 text-xs font-black uppercase tracking-wider transition-all cursor-pointer w-full"
+          >
+            🗑️ Reset Database / Clear Mock Users
+          </button>
         </div>
 
       </div>

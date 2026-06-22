@@ -97,6 +97,8 @@ export interface ChatThread {
   demandId?: string;
   revealContactFarmer?: boolean;
   revealContactBuyer?: boolean;
+  buyerId?: string;
+  farmerId?: string;
 }
 
 export interface CropDemand {
@@ -1105,27 +1107,71 @@ export default function BuyerDashboard() {
     { id: 'support', icon: HelpCircle, label: language === 'mr' ? 'मदत व तक्रार' : language === 'hi' ? 'मदद और सहायता' : 'Help & Support', showNotification: false },
   ] as const;
 
+  // Load chats from Supabase
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('agromart_chats');
-      if (stored) {
-        setThreads(JSON.parse(stored));
-      } else {
-        localStorage.setItem('agromart_chats', JSON.stringify(initialChatsSeed));
-        setThreads(initialChatsSeed);
-      }
-    }
-  }, []);
+    if (!user) return;
+    const fetchChatsAndMessages = async () => {
+      // 1. Fetch chats where buyer_id is user.id
+      const { data: chatsData, error: chatsError } = await supabase
+        .from('chats')
+        .select('*')
+        .eq('buyer_id', user.id);
 
-  useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'agromart_chats' && e.newValue) {
-        setThreads(JSON.parse(e.newValue));
+      if (chatsError) {
+        console.error('Error fetching chats:', chatsError);
+        return;
       }
+
+      if (!chatsData) return;
+
+      // 2. For each chat, fetch its messages
+      const threadsList = await Promise.all(chatsData.map(async (chat: any) => {
+        const { data: messagesData } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('chat_id', chat.id)
+          .order('created_at', { ascending: true });
+
+        // Map messagesData to UI Message format
+        const uiMessages = (messagesData || []).map((m: any) => ({
+          id: m.id,
+          senderRole: m.sender_role,
+          text: m.text,
+          timestamp: m.created_at || new Date().toISOString(),
+          discussionType: m.discussion_type
+        }));
+
+        // Retrieve farmer profile to display farmerName
+        const { data: farmerProfile } = await supabase
+          .from('farmer_profiles')
+          .select('name')
+          .eq('id', chat.farmer_id)
+          .single();
+
+        return {
+          id: chat.id,
+          cropId: chat.crop_id,
+          cropName: chat.crop_name,
+          buyerId: chat.buyer_id,
+          farmerId: chat.farmer_id,
+          buyerName: user.user_metadata?.fullName || 'Buyer',
+          farmerName: farmerProfile?.name || chat.farmer_name || 'Farmer',
+          lastUpdated: chat.updated_at || chat.created_at,
+          unreadForBuyer: chat.unread_for_buyer,
+          unreadForFarmer: chat.unread_for_farmer,
+          messages: uiMessages
+        };
+      }));
+
+      // Sort by lastUpdated descending
+      threadsList.sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
+      setThreads(threadsList);
     };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+
+    fetchChatsAndMessages();
+    const interval = setInterval(fetchChatsAndMessages, 3000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1151,45 +1197,66 @@ export default function BuyerDashboard() {
 
 
 
-  const startChatWithFarmer = (crop: ActiveListing) => {
+  const startChatWithFarmer = async (crop: ActiveListing) => {
+    if (!user) return;
+    
+    // Check if chat already exists in active threads list
     const existing = threads.find(t => t.cropId === crop.id);
     if (existing) {
       setActiveThreadId(existing.id);
-      const updated = threads.map(t => t.id === existing.id ? { ...t, unreadForBuyer: false } : t);
-      setThreads(updated);
-      localStorage.setItem('agromart_chats', JSON.stringify(updated));
-    } else {
-      const newThread: ChatThread = {
-        id: `t-${Date.now()}`,
-        cropId: crop.id,
-        cropName: crop.name,
-        buyerName: 'Premium Agro Buyers',
-        farmerName: crop.farmer_name || 'Verified Farmer',
-        lastUpdated: new Date().toISOString(),
-        unreadForBuyer: false,
-        unreadForFarmer: true,
-        messages: [
-          {
-            id: `m-${Date.now()}`,
-            senderRole: 'farmer',
-            text: `Hello! I listed ${crop.name} at ₹${crop.expected_price.toLocaleString('en-IN')} / ${crop.unit.toLowerCase().replace(/s$/, '')}. Let me know if you would like to discuss price negotiations, volume availability, or cold chain logistics delivery!`,
-            timestamp: new Date().toISOString(),
-            discussionType: 'general'
-          }
-        ]
-      };
-      const updated = [newThread, ...threads];
-      setThreads(updated);
-      localStorage.setItem('agromart_chats', JSON.stringify(updated));
-      setActiveThreadId(newThread.id);
+      setActiveTab('chat');
+      
+      // Mark read
+      await supabase
+        .from('chats')
+        .update({ unread_for_buyer: false })
+        .eq('id', existing.id);
+      return;
     }
-    setActiveTab('chat');
+
+    const farmerId = crop.farmer_id || 'mock-farmer';
+
+    // Create a new chat in the database
+    const { data: newChat, error: chatErr } = await supabase
+      .from('chats')
+      .insert({
+        crop_id: crop.id,
+        crop_name: crop.name,
+        buyer_id: user.id,
+        farmer_id: farmerId,
+        unread_for_buyer: false,
+        unread_for_farmer: true
+      })
+      .select()
+      .single();
+
+    if (chatErr) {
+      console.error('Error starting chat:', chatErr);
+      return;
+    }
+
+    if (newChat) {
+      // Send initial welcome message
+      await supabase
+        .from('messages')
+        .insert({
+          chat_id: newChat.id,
+          sender_id: farmerId, // Initial greeting from farmer
+          sender_role: 'farmer',
+          text: `Hello! I listed ${crop.name} at ₹${crop.expected_price.toLocaleString('en-IN')} / ${crop.unit.toLowerCase().replace(/s$/, '')}. Let me know if you would like to discuss price negotiations, volume availability, or cold chain logistics delivery!`,
+          discussion_type: 'general'
+        });
+
+      setActiveThreadId(newChat.id);
+      setActiveTab('chat');
+    }
   };
 
   const startChatWithFarmerName = (farmerName: string) => {
     const matchingCrop = crops.find(c => c.farmer_name === farmerName) || {
       id: 'crop-1',
       name: 'Organic Durum Wheat',
+      farmer_id: 'mock-farmer-id',
       farmer_name: farmerName,
       expected_price: 24500,
       unit: 'Tons',
@@ -1203,34 +1270,38 @@ export default function BuyerDashboard() {
     startChatWithFarmer(matchingCrop as any);
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim() || !activeThreadId) return;
+    if (!chatInput.trim() || !activeThreadId || !user) return;
 
-    const newMsg: Message = {
-      id: `m-${Date.now()}`,
-      senderRole: 'buyer',
-      text: chatInput.trim(),
-      timestamp: new Date().toISOString(),
-      discussionType: chatCategory
-    };
-
-    const updated = threads.map(t => {
-      if (t.id === activeThreadId) {
-        return {
-          ...t,
-          messages: [...t.messages, newMsg],
-          lastUpdated: new Date().toISOString(),
-          unreadForFarmer: true,
-          unreadForBuyer: false
-        };
-      }
-      return t;
-    });
-
-    setThreads(updated);
-    localStorage.setItem('agromart_chats', JSON.stringify(updated));
+    const messageText = chatInput.trim();
     setChatInput('');
+
+    // Insert message into the database
+    const { error: msgErr } = await supabase
+      .from('messages')
+      .insert({
+        chat_id: activeThreadId,
+        sender_id: user.id,
+        sender_role: 'buyer',
+        text: messageText,
+        discussion_type: chatCategory
+      });
+
+    if (msgErr) {
+      console.error('Error sending message:', msgErr);
+      return;
+    }
+
+    // Update chats table update_at & unread statuses
+    await supabase
+      .from('chats')
+      .update({
+        unread_for_farmer: true,
+        unread_for_buyer: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', activeThreadId);
   };
 
   const handleAgreeToShareContact = (threadId: string, role: 'farmer' | 'buyer') => {
