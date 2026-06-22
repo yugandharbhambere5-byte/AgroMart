@@ -32,6 +32,7 @@ import { UpcomingBookings } from '@/components/scheduling/UpcomingBookings';
 import { BuyerProfileModal } from '@/components/profile/BuyerProfileModal';
 import { BuyerProfile } from '@/types/buyer';
 import SecureCallModal from '@/components/voice/SecureCallModal';
+import InfoTicker from '@/components/layout/InfoTicker';
 
 interface ActiveListing {
   id: string;
@@ -1986,6 +1987,7 @@ export default function FarmerDashboard() {
   // ─── JSX ─────────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-0 animate-fade-in-up relative w-full">
+      <InfoTicker />
 
       <div className="lg:flex lg:gap-0 items-stretch min-h-[calc(100vh-4rem)] w-full">
         

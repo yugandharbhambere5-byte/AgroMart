@@ -251,3 +251,19 @@ h1, h2, h3, h4, h5, h6 {
 .navbar-bg-scrolled {
   background-color: var(--card);
 }
+
+/* News Marquee / Scrolling Ticker Animations */
+@keyframes marquee-scroll {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 45s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
