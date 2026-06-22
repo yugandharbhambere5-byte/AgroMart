@@ -1,0 +1,1473 @@
+{
+  "project": "AgroMart Smart Farmer Marketplace Platform",
+  "build_status": "SUCCESSFUL (Compiled in 20.2s, TypeScript checks finished in 32.2s)",
+  "total_eslint_errors": 251,
+  "total_eslint_warnings": 189,
+  "files_with_errors": [
+    {
+      "file": "download_video.js",
+      "error_count": 3,
+      "errors": [
+        {
+          "line": 1,
+          "rule": "@typescript-eslint/no-require-imports",
+          "message": "A `require()` style import is forbidden."
+        },
+        {
+          "line": 2,
+          "rule": "@typescript-eslint/no-require-imports",
+          "message": "A `require()` style import is forbidden."
+        },
+        {
+          "line": 3,
+          "rule": "@typescript-eslint/no-require-imports",
+          "message": "A `require()` style import is forbidden."
+        }
+      ]
+    },
+    {
+      "file": "src/app/admin/forgot-password/page.tsx",
+      "error_count": 6,
+      "errors": [
+        {
+          "line": 43,
+          "rule": "prefer-const",
+          "message": "'admins' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 44,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 89,
+          "rule": "prefer-const",
+          "message": "'admins' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 90,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 173,
+          "rule": "prefer-const",
+          "message": "'admins' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 174,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/app/admin/login/page.tsx",
+      "error_count": 2,
+      "errors": [
+        {
+          "line": 22,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\admin\\login\\page.tsx:22:7\n  20 |   useEffect(() => {\n  21 |     if (emailParam) {\n> 22 |       setEmail(emailParam);\n     |       ^^^^^^^^ Avoid calling setState() directly within an effect\n  23 |     }\n  24 |   }, [emailParam]);\n  25 |"
+        },
+        {
+          "line": 65,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/app/admin/register/page.tsx",
+      "error_count": 2,
+      "errors": [
+        {
+          "line": 50,
+          "rule": "prefer-const",
+          "message": "'admins' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 52,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/app/admin/verify-email/page.tsx",
+      "error_count": 5,
+      "errors": [
+        {
+          "line": 26,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\admin\\verify-email\\page.tsx:26:7\n  24 |   useEffect(() => {\n  25 |     if (emailParam) {\n> 26 |       setEmail(emailParam);\n     |       ^^^^^^^^ Avoid calling setState() directly within an effect\n  27 |     }\n  28 |   }, [emailParam]);\n  29 |"
+        },
+        {
+          "line": 57,
+          "rule": "prefer-const",
+          "message": "'admins' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 58,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 156,
+          "rule": "prefer-const",
+          "message": "'admins' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 157,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/app/dashboard/admin/page.tsx",
+      "error_count": 17,
+      "errors": [
+        {
+          "line": 179,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 227,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 245,
+          "rule": "react-hooks/immutability",
+          "message": "Error: Cannot access variable before it is declared\n\n`setListings` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\admin\\page.tsx:245:11\n  243 |           }));\n  244 |           \n> 245 |           setListings(prev => {\n      |           ^^^^^^^^^^^ `setListings` accessed before it is declared\n  246 |             const merged = [\n  247 |               ...dbListings,\n  248 |               ...SEED_LISTINGS.filter(sl => !dbListings.some(dbl => dbl.id === sl.id))\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\admin\\page.tsx:306:20\n  304 |\n  305 |   // ── Listings State ──\n> 306 |   const [listings, setListings] = useState<AdminListing[]>(SEED_LISTINGS);\n      |                    ^^^^^^^^^^^ `setListings` is declared here\n  307 |   const [listingSearch, setListingSearch] = useState('');\n  308 |   const [listingStatusFilter, setListingStatusFilter] = useState<'all' | ListingStatus>('all');\n  309 |   const [listingCatFilter, setListingCatFilter] = useState('all');"
+        },
+        {
+          "line": 266,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 281,
+          "rule": "react-hooks/immutability",
+          "message": "Error: Cannot access variable before it is declared\n\n`setUsers` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\admin\\page.tsx:281:11\n  279 |           }));\n  280 |\n> 281 |           setUsers(prev => {\n      |           ^^^^^^^^ `setUsers` accessed before it is declared\n  282 |             const merged = [\n  283 |               ...dbUsers,\n  284 |               ...SEED_USERS.filter(su => !dbUsers.some(dbu => dbu.id === su.id))\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\admin\\page.tsx:298:17\n  296 |\n  297 |   // ── Users State ──\n> 298 |   const [users, setUsers] = useState<AdminUser[]>(SEED_USERS);\n      |                 ^^^^^^^^ `setUsers` is declared here\n  299 |   const [userSearch, setUserSearch] = useState('');\n  300 |   const [userRoleFilter, setUserRoleFilter] = useState<'all' | UserRole>('all');\n  301 |   const [userVerifFilter, setUserVerifFilter] = useState<'all' | VerificationLevel>('all');"
+        },
+        {
+          "line": 330,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\admin\\page.tsx:330:32\n  328 |     const logStr = localStorage.getItem('agromart_notifications_log');\n  329 |     const logs = logStr ? JSON.parse(logStr) : [];\n> 330 |     const n = { id: `n-admin-${Date.now()}`, type, text, time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }), read: false, role };\n      |                                ^^^^^^^^^^ Cannot call impure function\n  331 |     localStorage.setItem('agromart_notifications_log', JSON.stringify([n, ...logs]));\n  332 |     window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_notifications_log', newValue: JSON.stringify([n, ...logs]) }));\n  333 |   };"
+        },
+        {
+          "line": 424,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\admin\\page.tsx:424:16\n  422 |     if (!newRate.crop || !newRate.todayRate) { alert('Fill in all required fields.'); return; }\n  423 |     const rate: MarketRateAdmin = {\n> 424 |       id: `r-${Date.now()}`,\n      |                ^^^^^^^^^^ Cannot call impure function\n  425 |       crop: newRate.crop!,\n  426 |       category: newRate.category ?? 'Grains',\n  427 |       unit: newRate.unit ?? '/Quintal',"
+        },
+        {
+          "line": 458,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 459,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 631,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 821,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 828,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1051,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1059,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1114,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 1114,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 1156,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/app/dashboard/buyer/page.tsx",
+      "error_count": 45,
+      "errors": [
+        {
+          "line": 133,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 778,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 786,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:786:7\n  784 |         }\n  785 |       }\n> 786 |       setNotifications(uniqueLogs.filter((notif: any) => notif.role === 'buyer'));\n      |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  787 |     }\n  788 |   }, []);\n  789 |"
+        },
+        {
+          "line": 786,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 797,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 808,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 810,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 814,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 825,
+          "rule": "react-hooks/immutability",
+          "message": "Error: Cannot access variable before it is declared\n\n`setCrops` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:825:7\n  823 |   useEffect(() => {\n  824 |     const timer = setInterval(() => {\n> 825 |       setCrops(prev => {\n      |       ^^^^^^^^ `setCrops` accessed before it is declared\n  826 |         let changed = false;\n  827 |         const now = Date.now();\n  828 |         const upd = prev.map(l => {\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1007:17\n  1005 |\n  1006 |   // Data States\n> 1007 |   const [crops, setCrops] = useState<ActiveListing[]>(mockCrops);\n       |                 ^^^^^^^^ `setCrops` is declared here\n  1008 |   const isFarmerVerified = (farmerName: string, cropId?: string) => {\n  1009 |     if (['Ramesh Patil', 'Suresh Deshmukh', 'Anil Shinde', 'Vijay Kakade'].includes(farmerName)) {\n  1010 |       return true;"
+        },
+        {
+          "line": 868,
+          "rule": "react-hooks/immutability",
+          "message": "Error: Cannot access variable before it is declared\n\n`setIsMobileMenuOpen` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:868:7\n  866 |   useEffect(() => {\n  867 |     const handleToggle = () => {\n> 868 |       setIsMobileMenuOpen(prev => !prev);\n      |       ^^^^^^^^^^^^^^^^^^^ `setIsMobileMenuOpen` accessed before it is declared\n  869 |       setIsSidebarOpen(prev => !prev);\n  870 |     };\n  871 |     window.addEventListener('toggle-mobile-menu', handleToggle);\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1092:28\n  1090 |   const [chatCategory, setChatCategory] = useState<'price' | 'quantity' | 'delivery' | 'general'>('general');\n  1091 |\n> 1092 |   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);\n       |                            ^^^^^^^^^^^^^^^^^^^ `setIsMobileMenuOpen` is declared here\n  1093 |   const [isSidebarOpen, setIsSidebarOpen] = useState(false);\n  1094 |\n  1095 |   const tabsList = ["
+        },
+        {
+          "line": 869,
+          "rule": "react-hooks/immutability",
+          "message": "Error: Cannot access variable before it is declared\n\n`setIsSidebarOpen` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:869:7\n  867 |     const handleToggle = () => {\n  868 |       setIsMobileMenuOpen(prev => !prev);\n> 869 |       setIsSidebarOpen(prev => !prev);\n      |       ^^^^^^^^^^^^^^^^ `setIsSidebarOpen` accessed before it is declared\n  870 |     };\n  871 |     window.addEventListener('toggle-mobile-menu', handleToggle);\n  872 |     return () => window.removeEventListener('toggle-mobile-menu', handleToggle);\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1093:25\n  1091 |\n  1092 |   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);\n> 1093 |   const [isSidebarOpen, setIsSidebarOpen] = useState(false);\n       |                         ^^^^^^^^^^^^^^^^ `setIsSidebarOpen` is declared here\n  1094 |\n  1095 |   const tabsList = [\n  1096 |     { id: 'overview', icon: LayoutDashboard, label: language === 'mr' ? 'आढावा' : language === 'hi' ? 'अवलोकन' : 'Overview', showNotification: false },"
+        },
+        {
+          "line": 880,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:880:27\n  878 |     const currentHigh = listing.highest_bid || listing.expected_price;\n  879 |     if (amount <= currentHigh) {\n> 880 |       triggerToast(`err-${Date.now()}`, 'error', `Bid must be higher than ₹${currentHigh.toLocaleString()}`);\n      |                           ^^^^^^^^^^ Cannot call impure function\n  881 |       return;\n  882 |     }\n  883 |"
+        },
+        {
+          "line": 885,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:885:17\n  883 |\n  884 |     const newBid: AuctionBid = {\n> 885 |       id: `ab-${Date.now()}`,\n      |                 ^^^^^^^^^^ Cannot call impure function\n  886 |       buyer_id: user?.id || 'mock-buyer-1',\n  887 |       buyer_name: user?.user_metadata?.fullName || 'Premium Agro Buyers',\n  888 |       amount,"
+        },
+        {
+          "line": 915,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:915:25\n  913 |     window.dispatchEvent(new StorageEvent('storage', { key: 'agromart_auction_bids', newValue: JSON.stringify(updated) }));\n  914 |\n> 915 |     triggerToast(`bid-${Date.now()}`, 'success', `Successfully bid ₹${amount.toLocaleString()} for ${listing.name}`);\n      |                         ^^^^^^^^^^ Cannot call impure function\n  916 |     pushNotification('new_offer', `You placed a bid of ₹${amount.toLocaleString()} for ${listing.name}.`, 'buyer');\n  917 |   };\n  918 |"
+        },
+        {
+          "line": 923,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 930,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 938,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 945,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 985,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 989,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1016,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1112,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1112:9\n  1110 |       const stored = localStorage.getItem('agromart_chats');\n  1111 |       if (stored) {\n> 1112 |         setThreads(JSON.parse(stored));\n       |         ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1113 |       } else {\n  1114 |         localStorage.setItem('agromart_chats', JSON.stringify(initialChatsSeed));\n  1115 |         setThreads(initialChatsSeed);"
+        },
+        {
+          "line": 1134,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1134:9\n  1132 |       const stored = localStorage.getItem('agromart_crop_demands');\n  1133 |       if (stored) {\n> 1134 |         setDemands(JSON.parse(stored));\n       |         ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1135 |       } else {\n  1136 |         localStorage.setItem('agromart_crop_demands', JSON.stringify(initialDemandsSeed));\n  1137 |         setDemands(initialDemandsSeed);"
+        },
+        {
+          "line": 1163,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1163:18\n  1161 |     } else {\n  1162 |       const newThread: ChatThread = {\n> 1163 |         id: `t-${Date.now()}`,\n       |                  ^^^^^^^^^^ Cannot call impure function\n  1164 |         cropId: crop.id,\n  1165 |         cropName: crop.name,\n  1166 |         buyerName: 'Premium Agro Buyers',"
+        },
+        {
+          "line": 1173,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1173:22\n  1171 |         messages: [\n  1172 |           {\n> 1173 |             id: `m-${Date.now()}`,\n       |                      ^^^^^^^^^^ Cannot call impure function\n  1174 |             senderRole: 'farmer',\n  1175 |             text: `Hello! I listed ${crop.name} at ₹${crop.expected_price.toLocaleString('en-IN')} / ${crop.unit.toLowerCase().replace(/s$/, '')}. Let me know if you would like to discuss price negotiations, volume availability, or cold chain logistics delivery!`,\n  1176 |             timestamp: new Date().toISOString(),"
+        },
+        {
+          "line": 1203,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1284,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1284:5\n  1282 |\n  1283 |   useEffect(() => {\n> 1284 |     setMounted(true);\n       |     ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1285 |     // Check active session and load user metadata\n  1286 |     const checkUserSession = async () => {\n  1287 |       try {"
+        },
+        {
+          "line": 1306,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1306,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1315,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1324,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1359,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1364,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1389,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1389:7\n  1387 |     const buyerShopName = buyerProfile?.shopName || user.user_metadata?.shopName || user.user_metadata?.fullName || 'Premium Agro Buyers';\n  1388 |     if (buyerShopName && buyerShopName !== 'Premium Agro Buyers') {\n> 1389 |       setThreads(prev => {\n       |       ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1390 |         let changed = false;\n  1391 |         const updated = prev.map(t => {\n  1392 |           if (t.buyerName === 'Premium Agro Buyers' || t.buyerName === 'Mahesh Agro Traders') {"
+        },
+        {
+          "line": 1423,
+          "rule": "prefer-const",
+          "message": "'data' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 1503,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1520,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1528,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:1528:7\n  1526 |   useEffect(() => {\n  1527 |     if (user?.id) {\n> 1528 |       fetchProfileFromSupabase(user.id).catch((e) => {\n       |       ^^^^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1529 |         console.warn('Initial profile load from Supabase failed, trying localStorage:', e);\n  1530 |         const storageKey = `agromart_buyer_profile_${user.id}`;\n  1531 |         const stored = localStorage.getItem(storageKey);"
+        },
+        {
+          "line": 1548,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1631,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 2184,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 2676,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:2676:78\n  2674 |                         <span className=\"text-[10px] font-black flex items-center gap-1\" suppressHydrationWarning>\n  2675 |                           <Timer className=\"w-3 h-3\" />\n> 2676 |                           {new Date(crop.auction_end_time || '').getTime() > Date.now() \n       |                                                                              ^^^^^^^^^^ Cannot call impure function\n  2677 |                             ? new Date(crop.auction_end_time || '').toLocaleTimeString()\n  2678 |                             : 'Closed'}\n  2679 |                         </span>"
+        },
+        {
+          "line": 2753,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\buyer\\page.tsx:2753:77\n  2751 |                       <div className=\"flex gap-1.5 w-full mt-auto flex-wrap\">\n  2752 |                         {crop.is_auction ? (\n> 2753 |                           new Date(crop.auction_end_time || '').getTime() > Date.now() ? (\n       |                                                                             ^^^^^^^^^^ Cannot call impure function\n  2754 |                             <div className=\"w-full flex gap-1.5\">\n  2755 |                               <input \n  2756 |                                 type=\"number\""
+        },
+        {
+          "line": 3316,
+          "rule": "react/no-unescaped-entities",
+          "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+        },
+        {
+          "line": 4077,
+          "rule": "react/no-unescaped-entities",
+          "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+        }
+      ]
+    },
+    {
+      "file": "src/app/dashboard/farmer/page.tsx",
+      "error_count": 53,
+      "errors": [
+        {
+          "line": 113,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 315,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 388,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 421,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:421:34\n  419 |       status: 'Available', views: 85, offers: 2,\n  420 |       is_auction: true,\n> 421 |       auction_end_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),\n      |                                  ^^^^^^^^^^ Cannot call impure function\n  422 |       bids: [\n  423 |         { id: 'ab1', buyer_id: 'b-1', buyer_name: 'AgriCorp', amount: 4500, time: new Date(Date.now() - 5*60000).toISOString(), status: 'pending' },\n  424 |         { id: 'ab2', buyer_id: 'b-2', buyer_name: 'SoyProcessors Ltd', amount: 4650, time: new Date(Date.now() - 2*60000).toISOString(), status: 'pending' },"
+        },
+        {
+          "line": 423,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:423:92\n  421 |       auction_end_time: new Date(Date.now() + 15 * 60 * 1000).toISOString(),\n  422 |       bids: [\n> 423 |         { id: 'ab1', buyer_id: 'b-1', buyer_name: 'AgriCorp', amount: 4500, time: new Date(Date.now() - 5*60000).toISOString(), status: 'pending' },\n      |                                                                                            ^^^^^^^^^^ Cannot call impure function\n  424 |         { id: 'ab2', buyer_id: 'b-2', buyer_name: 'SoyProcessors Ltd', amount: 4650, time: new Date(Date.now() - 2*60000).toISOString(), status: 'pending' },\n  425 |       ],\n  426 |       highest_bid: 4650,"
+        },
+        {
+          "line": 424,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:424:101\n  422 |       bids: [\n  423 |         { id: 'ab1', buyer_id: 'b-1', buyer_name: 'AgriCorp', amount: 4500, time: new Date(Date.now() - 5*60000).toISOString(), status: 'pending' },\n> 424 |         { id: 'ab2', buyer_id: 'b-2', buyer_name: 'SoyProcessors Ltd', amount: 4650, time: new Date(Date.now() - 2*60000).toISOString(), status: 'pending' },\n      |                                                                                                     ^^^^^^^^^^ Cannot call impure function\n  425 |       ],\n  426 |       highest_bid: 4650,\n  427 |     },"
+        },
+        {
+          "line": 496,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:496:7\n  494 |   useEffect(() => {\n  495 |     if (!isAddModalOpen || !cropName.trim()) {\n> 496 |       setMatchedRateVal(null);\n      |       ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  497 |       setAllowedMinPrice(null);\n  498 |       setAllowedMaxPrice(null);\n  499 |       setIsRateAvailable(true);"
+        },
+        {
+          "line": 528,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 550,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 601,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:601:7\n  599 |     const cleanPrice = devanagariToEnglish(cropPrice).trim();\n  600 |     if (!cleanPrice) {\n> 601 |       setFormErrors(prev => ({ ...prev, price: getPositiveNumberError(language) }));\n      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  602 |       return;\n  603 |     }\n  604 |     const priceNum = Number(cleanPrice);"
+        },
+        {
+          "line": 652,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:652:7\n  650 |     const cleanQty = devanagariToEnglish(cropQty).trim();\n  651 |     if (!cleanQty) {\n> 652 |       setFormErrors(prev => ({ ...prev, qty: getPositiveNumberError(language) }));\n      |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  653 |       return;\n  654 |     }\n  655 |     const qtyNum = Number(cleanQty);"
+        },
+        {
+          "line": 695,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 793,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 802,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 818,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 828,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 835,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 843,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 853,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 860,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 868,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 878,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 885,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 902,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 918,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 919,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 924,
+          "rule": "react-hooks/preserve-manual-memoization",
+          "message": "Compilation Skipped: Existing memoization could not be preserved\n\nReact Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:924:7\n  922 |       return 0;\n  923 |     });\n> 924 |   }, [buyersList, mktSearch, mktBuyerType, mktDistance, mktVerifiedOnly, mktSortBy]);\n      |       ^^^^^^^^^^ This dependency may be modified later\n  925 |\n  926 |   const handleSendOfferSubmit = (e: React.FormEvent) => {\n  927 |     e.preventDefault();"
+        },
+        {
+          "line": 934,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:934:20\n  932 |     \n  933 |     const offerPayload = {\n> 934 |       id: `offer-${Date.now()}`,\n      |                    ^^^^^^^^^^ Cannot call impure function\n  935 |       farmerId: user?.id || 'mock-farmer',\n  936 |       farmerName: user?.user_metadata?.fullName || 'Mock Farmer',\n  937 |       buyerId: offerTargetBuyer?.id,"
+        },
+        {
+          "line": 974,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:974:16\n  972 |     \n  973 |     const newThread: ChatThread = {\n> 974 |       id: `t-${Date.now()}`,\n      |                ^^^^^^^^^^ Cannot call impure function\n  975 |       cropId: 'inquiry',\n  976 |       cropName: 'Inquiry',\n  977 |       buyerName,"
+        },
+        {
+          "line": 981,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:981:22\n  979 |       messages: [\n  980 |         {\n> 981 |           id: `msg-${Date.now()}`,\n      |                      ^^^^^^^^^^ Cannot call impure function\n  982 |           senderRole: 'farmer',\n  983 |           text: `Hello ${buyerName}, I saw your buying rates on the Virtual Market. I would like to discuss selling my harvest.`,\n  984 |           timestamp: new Date().toISOString()"
+        },
+        {
+          "line": 1051,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1057,
+          "rule": "react-hooks/preserve-manual-memoization",
+          "message": "Compilation Skipped: Existing memoization could not be preserved\n\nReact Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:1057:7\n  1055 |     if (!registeredExists) return threads;\n  1056 |     return threads.filter(t => t.buyerName !== 'Premium Agro Buyers' && t.buyerName !== 'Mahesh Agro Traders');\n> 1057 |   }, [threads, buyersList]);\n       |       ^^^^^^^ This dependency may be modified later\n  1058 |\n  1059 |   const visibleDemands = useMemo(() => {\n  1060 |     const registeredExists = buyersList.some((b: any) => "
+        },
+        {
+          "line": 1057,
+          "rule": "react-hooks/preserve-manual-memoization",
+          "message": "Compilation Skipped: Existing memoization could not be preserved\n\nReact Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:1057:16\n  1055 |     if (!registeredExists) return threads;\n  1056 |     return threads.filter(t => t.buyerName !== 'Premium Agro Buyers' && t.buyerName !== 'Mahesh Agro Traders');\n> 1057 |   }, [threads, buyersList]);\n       |                ^^^^^^^^^^ This dependency may be modified later\n  1058 |\n  1059 |   const visibleDemands = useMemo(() => {\n  1060 |     const registeredExists = buyersList.some((b: any) => "
+        },
+        {
+          "line": 1060,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1066,
+          "rule": "react-hooks/preserve-manual-memoization",
+          "message": "Compilation Skipped: Existing memoization could not be preserved\n\nReact Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This dependency may be mutated later, which could cause the value to change unexpectedly.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:1066:16\n  1064 |     if (!registeredExists) return demands;\n  1065 |     return demands.filter(d => d.buyer_name !== 'Premium Agro Buyers' && d.buyer_name !== 'Mahesh Agro Traders');\n> 1066 |   }, [demands, buyersList]);\n       |                ^^^^^^^^^^ This dependency may be modified later\n  1067 |\n  1068 |   const trustScore = (isOtpVerified ? 30 : 0) + (isGstVerified ? 35 : 0) + (isKycVerified ? 35 : 0);\n  1069 |"
+        },
+        {
+          "line": 1122,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1130,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1130,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1354,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1364,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:1364:13\n  1362 |     const stored = localStorage.getItem('agromart_crop_demands') || localStorage.getItem('agromart_demands');\n  1363 |     if (stored) {\n> 1364 |       try { setDemands(JSON.parse(stored)); } catch { setDemands(initialDemandsSeed); }\n       |             ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  1365 |     } else {\n  1366 |       setDemands(initialDemandsSeed);\n  1367 |       try { localStorage.setItem('agromart_crop_demands', JSON.stringify(initialDemandsSeed)); } catch {}"
+        },
+        {
+          "line": 1590,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1591,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 1607,
+          "rule": "react-hooks/immutability",
+          "message": "Error: This value cannot be modified\n\nThis modifies a variable that React considers immutable.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:1607:9\n  1605 |       const bid = buyerBids.find(b => b.id === bidId);\n  1606 |       if (bid) {\n> 1607 |         cropDetails = { name: cropNameStr, quantity: parseInt(bid.qty) || 1, unit: 'Tons' };\n       |         ^^^^^^^^^^^ `cropDetails` cannot be modified\n  1608 |         acceptedBidDetails = { buyer_id: 'mock-buyer', buyer_name: bid.buyerName };\n  1609 |       }\n  1610 |       setBuyerBids(prev => prev.filter(b => b.id !== bidId));"
+        },
+        {
+          "line": 1608,
+          "rule": "react-hooks/immutability",
+          "message": "Error: This value cannot be modified\n\nThis modifies a variable that React considers immutable.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:1608:9\n  1606 |       if (bid) {\n  1607 |         cropDetails = { name: cropNameStr, quantity: parseInt(bid.qty) || 1, unit: 'Tons' };\n> 1608 |         acceptedBidDetails = { buyer_id: 'mock-buyer', buyer_name: bid.buyerName };\n       |         ^^^^^^^^^^^^^^^^^^ `acceptedBidDetails` cannot be modified\n  1609 |       }\n  1610 |       setBuyerBids(prev => prev.filter(b => b.id !== bidId));\n  1611 |       setTotalOffers(prev => Math.max(0, prev - 1));"
+        },
+        {
+          "line": 1622,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:1622:20\n  1620 |     if (cropDetails && acceptedBidDetails) {\n  1621 |       const newTxn: Transaction = {\n> 1622 |         id: `txn-${Date.now()}`,\n       |                    ^^^^^^^^^^ Cannot call impure function\n  1623 |         cropId: cropDetails.id || `crop-${Date.now()}`,\n  1624 |         cropName: cropDetails.name,\n  1625 |         farmerId: user?.id || 'mock-farmer',"
+        },
+        {
+          "line": 1623,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:1623:43\n  1621 |       const newTxn: Transaction = {\n  1622 |         id: `txn-${Date.now()}`,\n> 1623 |         cropId: cropDetails.id || `crop-${Date.now()}`,\n       |                                           ^^^^^^^^^^ Cannot call impure function\n  1624 |         cropName: cropDetails.name,\n  1625 |         farmerId: user?.id || 'mock-farmer',\n  1626 |         farmerName: user?.user_metadata?.fullName || 'Mock Farmer',"
+        },
+        {
+          "line": 1699,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 2095,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 2316,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 2339,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:2339:82\n  2337 |                             <Timer className=\"w-4 h-4 animate-pulse\" />\n  2338 |                             <span suppressHydrationWarning>\n> 2339 |                               {new Date(list.auction_end_time || '').getTime() > Date.now() \n       |                                                                                  ^^^^^^^^^^ Cannot call impure function\n  2340 |                                 ? `Ends: ${new Date(list.auction_end_time || '').toLocaleTimeString()}`\n  2341 |                                 : 'Auction Closed'}\n  2342 |                             </span>"
+        },
+        {
+          "line": 2378,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\dashboard\\farmer\\page.tsx:2378:76\n  2376 |                           </div>\n  2377 |                         )}\n> 2378 |                         {new Date(list.auction_end_time || '').getTime() > Date.now() && (\n       |                                                                            ^^^^^^^^^^ Cannot call impure function\n  2379 |                           <button \n  2380 |                             onClick={() => {\n  2381 |                               setListings(prev => prev.map(l => l.id === list.id ? { ...l, auction_end_time: new Date().toISOString() } : l));"
+        },
+        {
+          "line": 2688,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 3621,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/app/login/page.tsx",
+      "error_count": 4,
+      "errors": [
+        {
+          "line": 71,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 84,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 110,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 165,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/app/register/page.tsx",
+      "error_count": 3,
+      "errors": [
+        {
+          "line": 72,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\register\\page.tsx:72:7\n  70 |     const roleParam = searchParams.get('role');\n  71 |     if (roleParam === 'farmer' || roleParam === 'buyer') {\n> 72 |       setRole(roleParam);\n     |       ^^^^^^^ Avoid calling setState() directly within an effect\n  73 |     }\n  74 |     if (language) {\n  75 |       setPreferredLang(language);"
+        },
+        {
+          "line": 256,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 361,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/app/terms/page.tsx",
+      "error_count": 5,
+      "errors": [
+        {
+          "line": 41,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 41,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 41,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 41,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 82,
+          "rule": "react/no-unescaped-entities",
+          "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+        }
+      ]
+    },
+    {
+      "file": "src/app/verify/page.tsx",
+      "error_count": 4,
+      "errors": [
+        {
+          "line": 30,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\app\\verify\\page.tsx:30:7\n  28 |   useEffect(() => {\n  29 |     if (!targetContact) {\n> 30 |       setErrorMsg('No verification target specified. Redirecting to login...');\n     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  31 |       setTimeout(() => router.push('/login'), 2000);\n  32 |       return;\n  33 |     }"
+        },
+        {
+          "line": 54,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 80,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 108,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/LanguageSelectionModal.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 15,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\LanguageSelectionModal.tsx:15:9\n  13 |       const saved = localStorage.getItem('agromart_language');\n  14 |       if (!saved) {\n> 15 |         setIsOpen(true);\n     |         ^^^^^^^^^ Avoid calling setState() directly within an effect\n  16 |       }\n  17 |     }\n  18 |   }, []);"
+        }
+      ]
+    },
+    {
+      "file": "src/components/MapComponent.tsx",
+      "error_count": 11,
+      "errors": [
+        {
+          "line": 40,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 41,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 42,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 43,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 44,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 45,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 52,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 53,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 54,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\MapComponent.tsx:54:7\n  52 |     if ((window as any).L) {\n  53 |       leafletRef.current = (window as any).L;\n> 54 |       setLeafletReady(true);\n     |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  55 |       return;\n  56 |     }\n  57 |"
+        },
+        {
+          "line": 71,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 120,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/RegisterSW.tsx",
+      "error_count": 2,
+      "errors": [
+        {
+          "line": 13,
+          "rule": "prefer-const",
+          "message": "'registration' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 18,
+          "rule": "prefer-const",
+          "message": "'key' is never reassigned. Use 'const' instead."
+        }
+      ]
+    },
+    {
+      "file": "src/components/ThemeProvider.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 22,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\ThemeProvider.tsx:22:7\n  20 |     const savedTheme = localStorage.getItem('theme') as Theme | null;\n  21 |     if (savedTheme) {\n> 22 |       setThemeState(savedTheme);\n     |       ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  23 |     }\n  24 |   }, []);\n  25 |"
+        }
+      ]
+    },
+    {
+      "file": "src/components/alerts/EmergencyAlerts.tsx",
+      "error_count": 4,
+      "errors": [
+        {
+          "line": 272,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 291,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\alerts\\EmergencyAlerts.tsx:291:16\n  289 |     if (typeof window === 'undefined') return;\n  290 |     const saved = localStorage.getItem('agromart_alert_read');\n> 291 |     if (saved) setReadIds(new Set(JSON.parse(saved)));\n      |                ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  292 |     const dismissed = localStorage.getItem('agromart_alert_dismissed');\n  293 |     if (dismissed) setDismissedIds(new Set(JSON.parse(dismissed)));\n  294 |   }, []);"
+        },
+        {
+          "line": 357,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 576,
+          "rule": "react-hooks/purity",
+          "message": "Error: Cannot call impure function during render\n\n`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\alerts\\EmergencyAlerts.tsx:576:91\n  574 |               const Icon = ALERT_ICONS[alert.type];\n  575 |               const sc = SEVERITY_CONFIG[alert.severity];\n> 576 |               const isExpiring = alert.expiresAt && new Date(alert.expiresAt).getTime() - Date.now() < 3 * 60 * 60 * 1000;\n      |                                                                                           ^^^^^^^^^^ Cannot call impure function\n  577 |\n  578 |               return (\n  579 |                 <div"
+        }
+      ]
+    },
+    {
+      "file": "src/components/education/AdminEducationManager.tsx",
+      "error_count": 2,
+      "errors": [
+        {
+          "line": 39,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\education\\AdminEducationManager.tsx:39:9\n  37 |       const stored = localStorage.getItem('agromart_education_articles');\n  38 |       if (stored) {\n> 39 |         setArticles(JSON.parse(stored));\n     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  40 |       } else {\n  41 |         localStorage.setItem('agromart_education_articles', JSON.stringify(SEED_ARTICLES));\n  42 |         setArticles(SEED_ARTICLES);"
+        },
+        {
+          "line": 185,
+          "rule": "prefer-const",
+          "message": "'list' is never reassigned. Use 'const' instead."
+        }
+      ]
+    },
+    {
+      "file": "src/components/education/FarmerEducationCenter.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 290,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\education\\FarmerEducationCenter.tsx:290:9\n  288 |       const saved = localStorage.getItem(savedKey);\n  289 |       if (saved) {\n> 290 |         setSavedArticleIds(JSON.parse(saved));\n      |         ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  291 |       }\n  292 |     }\n  293 |   }, [userId]);"
+        }
+      ]
+    },
+    {
+      "file": "src/components/home/Hero.tsx",
+      "error_count": 5,
+      "errors": [
+        {
+          "line": 15,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 18,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 18,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 37,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 45,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/layout/LiveBackground.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 44,
+          "rule": "prefer-const",
+          "message": "'particles' is never reassigned. Use 'const' instead."
+        }
+      ]
+    },
+    {
+      "file": "src/components/layout/Navbar.tsx",
+      "error_count": 3,
+      "errors": [
+        {
+          "line": 22,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\layout\\Navbar.tsx:22:5\n  20 |\n  21 |   useEffect(() => {\n> 22 |     setMounted(true);\n     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  23 |     \n  24 |     // Check active session\n  25 |     const checkUser = async () => {"
+        },
+        {
+          "line": 32,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 32,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/market/AIInsightsDashboard.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 131,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/market/BestSellingSuggestions.tsx",
+      "error_count": 5,
+      "errors": [
+        {
+          "line": 118,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 121,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 319,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\BestSellingSuggestions.tsx:319:7\n  317 |     if (rates && rates.length > 0) {\n  318 |       const merged = mergeRatesWithSuggestions(rates, language);\n> 319 |       setSuggestionData(merged);\n      |       ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  320 |       if (merged.length > 0) {\n  321 |         const exists = merged.some(m => m.cropKey === selectedCropKey);\n  322 |         if (!exists) {"
+        },
+        {
+          "line": 377,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 380,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\BestSellingSuggestions.tsx:380:13\n  378 |               d.status === 'Open' && d.crop_name.toLowerCase().includes(cropNameLower.substring(0, 5))\n  379 |             ).length;\n> 380 |             setDemandCount(count);\n      |             ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  381 |           }\n  382 |         } catch {}\n  383 |       }"
+        }
+      ]
+    },
+    {
+      "file": "src/components/market/CropDetailModal.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 30,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/market/LiveMarketRates.tsx",
+      "error_count": 13,
+      "errors": [
+        {
+          "line": 409,
+          "rule": "react/no-unescaped-entities",
+          "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+        },
+        {
+          "line": 418,
+          "rule": "react/no-unescaped-entities",
+          "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+        },
+        {
+          "line": 562,
+          "rule": "react/no-unescaped-entities",
+          "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+        },
+        {
+          "line": 567,
+          "rule": "react/no-unescaped-entities",
+          "message": "`'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`."
+        },
+        {
+          "line": 630,
+          "rule": "prefer-const",
+          "message": "'valA' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 633,
+          "rule": "prefer-const",
+          "message": "'valB' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 658,
+          "rule": "react-hooks/static-components",
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:658:21\n  656 |           <tr>\n  657 |             <th className=\"text-left px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500 cursor-pointer hover:text-primary-600\" onClick={() => handleSort('crop')}>\n> 658 |               Crop <SortIcon col=\"crop\" />\n      |                     ^^^^^^^^ This component is created during render\n  659 |             </th>\n  660 |             <th className=\"text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500 cursor-pointer hover:text-primary-600\" onClick={() => handleSort('todayRate')}>\n  661 |               Today <SortIcon col=\"todayRate\" />\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:645:20\n  643 |   };\n  644 |\n> 645 |   const SortIcon = ({ col }: { col: typeof sortKey }) => (\n      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 646 |     <span className=\"ml-1 inline-flex flex-col\">\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 647 |       <ChevronUp className={`w-2.5 h-2.5 -mb-0.5 ${sortKey === col && sortDir === 'asc' ? 'text-primary-500' : 'text-earth-300'}`} />\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 648 |       <ChevronDown className={`w-2.5 h-2.5 ${sortKey === col && sortDir === 'desc' ? 'text-primary-500' : 'text-earth-300'}`} />\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 649 |     </span>\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 650 |   );\n      | ^^^^ The component is created during render here\n  651 |\n  652 |   return (\n  653 |     <div className=\"overflow-x-auto rounded-2xl border border-border\">"
+        },
+        {
+          "line": 661,
+          "rule": "react-hooks/static-components",
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:661:22\n  659 |             </th>\n  660 |             <th className=\"text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500 cursor-pointer hover:text-primary-600\" onClick={() => handleSort('todayRate')}>\n> 661 |               Today <SortIcon col=\"todayRate\" />\n      |                      ^^^^^^^^ This component is created during render\n  662 |             </th>\n  663 |             <th className=\"text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500\">Yesterday</th>\n  664 |             <th className=\"text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500 cursor-pointer hover:text-primary-600\" onClick={() => handleSort('change')}>\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:645:20\n  643 |   };\n  644 |\n> 645 |   const SortIcon = ({ col }: { col: typeof sortKey }) => (\n      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 646 |     <span className=\"ml-1 inline-flex flex-col\">\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 647 |       <ChevronUp className={`w-2.5 h-2.5 -mb-0.5 ${sortKey === col && sortDir === 'asc' ? 'text-primary-500' : 'text-earth-300'}`} />\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 648 |       <ChevronDown className={`w-2.5 h-2.5 ${sortKey === col && sortDir === 'desc' ? 'text-primary-500' : 'text-earth-300'}`} />\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 649 |     </span>\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 650 |   );\n      | ^^^^ The component is created during render here\n  651 |\n  652 |   return (\n  653 |     <div className=\"overflow-x-auto rounded-2xl border border-border\">"
+        },
+        {
+          "line": 665,
+          "rule": "react-hooks/static-components",
+          "message": "Error: Cannot create components during render\n\nComponents created during render will reset their state each time they are created. Declare components outside of render.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:665:23\n  663 |             <th className=\"text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500\">Yesterday</th>\n  664 |             <th className=\"text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500 cursor-pointer hover:text-primary-600\" onClick={() => handleSort('change')}>\n> 665 |               Change <SortIcon col=\"change\" />\n      |                       ^^^^^^^^ This component is created during render\n  666 |             </th>\n  667 |             <th className=\"text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500\">High</th>\n  668 |             <th className=\"text-right px-4 py-3 text-[10px] font-black uppercase tracking-wider text-earth-500\">Low</th>\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:645:20\n  643 |   };\n  644 |\n> 645 |   const SortIcon = ({ col }: { col: typeof sortKey }) => (\n      |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 646 |     <span className=\"ml-1 inline-flex flex-col\">\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 647 |       <ChevronUp className={`w-2.5 h-2.5 -mb-0.5 ${sortKey === col && sortDir === 'asc' ? 'text-primary-500' : 'text-earth-300'}`} />\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 648 |       <ChevronDown className={`w-2.5 h-2.5 ${sortKey === col && sortDir === 'desc' ? 'text-primary-500' : 'text-earth-300'}`} />\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 649 |     </span>\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 650 |   );\n      | ^^^^ The component is created during render here\n  651 |\n  652 |   return (\n  653 |     <div className=\"overflow-x-auto rounded-2xl border border-border\">"
+        },
+        {
+          "line": 757,
+          "rule": "react-hooks/immutability",
+          "message": "Error: Cannot access variable before it is declared\n\n`simulateRateUpdates` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:757:7\n  755 |   useEffect(() => {\n  756 |     const timer = setInterval(() => {\n> 757 |       simulateRateUpdates();\n      |       ^^^^^^^^^^^^^^^^^^^ `simulateRateUpdates` accessed before it is declared\n  758 |     }, 180000);\n  759 |     return () => clearInterval(timer);\n  760 |   }, []);\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:941:3\n  939 |   }, [search, language]);\n  940 |\n> 941 |   const simulateRateUpdates = useCallback(() => {\n      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 942 |     setRates(prev => prev.map(r => {\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 943 |       const fluctuation = (Math.random() - 0.48) * 0.015; // slight upward bias\n      …\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 955 |     setLastRefreshed(new Date());\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 956 |   }, []);\n      | ^^^^^^^^^^ `simulateRateUpdates` is declared here\n  957 |\n  958 |   const handleManualRefresh = () => {\n  959 |     setIsRefreshing(true);"
+        },
+        {
+          "line": 769,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:769:11\n  767 |         try {\n  768 |           const user = JSON.parse(storedUser);\n> 769 |           setIsAdmin(user?.user_metadata?.role === 'admin');\n      |           ^^^^^^^^^^ Avoid calling setState() directly within an effect\n  770 |         } catch {}\n  771 |       }\n  772 |       // Also load any saved custom rates"
+        },
+        {
+          "line": 797,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:797:5\n  795 |     const query = search.trim().toLowerCase();\n  796 |\n> 797 |     setRates(prev => {\n      |     ^^^^^^^^ Avoid calling setState() directly within an effect\n  798 |       // 1. Check if the query is a location/mandi search\n  799 |       const isMandiSearch = Object.keys(MANDI_TRANSLATIONS).some(k => query.includes(k)) ||\n  800 |         ["
+        },
+        {
+          "line": 941,
+          "rule": "react-hooks/preserve-manual-memoization",
+          "message": "Compilation Skipped: Existing memoization could not be preserved\n\nReact Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This value was memoized in source but not in compilation output.\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\market\\LiveMarketRates.tsx:941:43\n  939 |   }, [search, language]);\n  940 |\n> 941 |   const simulateRateUpdates = useCallback(() => {\n      |                                           ^^^^^^^\n> 942 |     setRates(prev => prev.map(r => {\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 943 |       const fluctuation = (Math.random() - 0.48) * 0.015; // slight upward bias\n      …\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 955 |     setLastRefreshed(new Date());\n      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n> 956 |   }, []);\n      | ^^^^ Could not preserve existing memoization\n  957 |\n  958 |   const handleManualRefresh = () => {\n  959 |     setIsRefreshing(true);"
+        }
+      ]
+    },
+    {
+      "file": "src/components/profile/BuyerProfileEditModal.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 209,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/scheduling/ScheduleModal.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 38,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\scheduling\\ScheduleModal.tsx:38:7\n  36 |   useEffect(() => {\n  37 |     if (!date) {\n> 38 |       setBookedSlots([]);\n     |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  39 |       return;\n  40 |     }\n  41 |"
+        }
+      ]
+    },
+    {
+      "file": "src/components/scheduling/UpcomingBookings.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 37,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\scheduling\\UpcomingBookings.tsx:37:5\n  35 |\n  36 |   useEffect(() => {\n> 37 |     loadBookings();\n     |     ^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  38 |\n  39 |     const handleStorage = (e: StorageEvent) => {\n  40 |       if (e.key === 'agromart_bookings') {"
+        }
+      ]
+    },
+    {
+      "file": "src/components/search/SmartSearch.tsx",
+      "error_count": 5,
+      "errors": [
+        {
+          "line": 21,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 27,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 27,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 61,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 68,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/support/AdminSupportManager.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 155,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    },
+    {
+      "file": "src/components/voice/SecureCallModal.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 20,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\components\\voice\\SecureCallModal.tsx:20:5\n  18 |     if (!isOpen) return;\n  19 |\n> 20 |     setCallStatus('connecting');\n     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  21 |     setDuration(0);\n  22 |\n  23 |     // Simulated calling state transitions"
+        }
+      ]
+    },
+    {
+      "file": "src/components/voice/VoiceAssistant.tsx",
+      "error_count": 10,
+      "errors": [
+        {
+          "line": 174,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 175,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 238,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 238,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 247,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 272,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 582,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 582,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 603,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        },
+        {
+          "line": 603,
+          "rule": "react/no-unescaped-entities",
+          "message": "`\"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`."
+        }
+      ]
+    },
+    {
+      "file": "src/context/LanguageContext.tsx",
+      "error_count": 1,
+      "errors": [
+        {
+          "line": 31,
+          "rule": "react-hooks/set-state-in-effect",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders\n\nEffects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:\n* Update external systems with the latest state from React.\n* Subscribe for updates from some external system, calling setState in a callback function when external state changes.\n\nCalling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).\n\nD:\\Agrozone\\Smart Farmer Marketplace Platform\\src\\context\\LanguageContext.tsx:31:9\n  29 |       const saved = localStorage.getItem('agromart_language') as Language;\n  30 |       if (saved && (saved === 'en' || saved === 'mr' || saved === 'hi')) {\n> 31 |         setLanguageState(saved);\n     |         ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect\n  32 |         document.documentElement.lang = saved;\n  33 |       }\n  34 |     }"
+        }
+      ]
+    },
+    {
+      "file": "src/utils/supabase/client.ts",
+      "error_count": 30,
+      "errors": [
+        {
+          "line": 3,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 22,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 26,
+          "rule": "prefer-const",
+          "message": "'users' is never reassigned. Use 'const' instead."
+        },
+        {
+          "line": 28,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 31,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 148,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 248,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 253,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 275,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 345,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 368,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 388,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 388,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 420,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 428,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 431,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 442,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 446,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 448,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 452,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 458,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 464,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 467,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 477,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 480,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 482,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 484,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 485,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 500,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        },
+        {
+          "line": 502,
+          "rule": "@typescript-eslint/no-explicit-any",
+          "message": "Unexpected any. Specify a different type."
+        }
+      ]
+    }
+  ]
+}
