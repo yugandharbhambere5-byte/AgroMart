@@ -402,8 +402,14 @@ export function createClient(): ReturnType<typeof createBrowserClient> {
                 added.push(newRow);
               });
               setStorageData(list);
+              
+              const chain = {
+                single: () => Promise.resolve({ data: added[0] || null, error: null }),
+                then: (onfulfilled: any) => Promise.resolve({ data: added, error: null }).then(onfulfilled)
+              };
+
               return {
-                select: () => Promise.resolve({ data: added, error: null }),
+                select: (fields?: string) => chain,
                 then: (onfulfilled: any) => Promise.resolve({ data: added, error: null }).then(onfulfilled)
               };
             },

@@ -988,6 +988,7 @@ export default function BuyerDashboard() {
   const [userLocation, setUserLocation] = useState('');
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
   const [buyerProfile, setBuyerProfile] = useState<BuyerProfile | null>(null);
+  const displayFullName = buyerProfile?.ownerName || user?.user_metadata?.fullName || user?.user_metadata?.full_name || 'Buyer';
   const [farmersList, setFarmersList] = useState<any[]>(mockFarmers);
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -2319,30 +2320,42 @@ export default function BuyerDashboard() {
         </div>
       )}
       
-      {/* Header & Sign Out */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-8">
-        <div className="flex items-center gap-4">
+      {/* Header Banner */}
+      <div 
+        className="relative overflow-hidden rounded-3xl border border-emerald-500/30 p-6 sm:p-8 shadow-lg shadow-emerald-600/20 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 text-white transition-all hover:shadow-xl hover:shadow-emerald-600/30 duration-300"
+        style={{
+          background: 'radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 0), linear-gradient(135deg, #059669 0%, #10b981 50%, #047857 100%)',
+          backgroundSize: '20px 20px, auto'
+        }}
+      >
+        {/* Abstract decorative shapes in background */}
+        <div className="absolute right-0 top-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none -mb-10" />
+
+        <div className="flex items-center gap-4 relative z-10">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-foreground flex flex-wrap items-center gap-3">
-              <span>{t.dashboard.buyer.title}</span>
+            <h1 className="text-3xl font-black tracking-tight text-white animate-fade-in flex flex-wrap items-center gap-3">
+              <span>{language === 'mr' ? `नमस्कार, ${displayFullName}! 👋` :
+                language === 'hi' ? `नमस्ते, ${displayFullName}! 👋` :
+                  `Welcome back, ${displayFullName}! 👋`}</span>
               {trustScore > 0 && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wide">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-white/15 text-white border border-white/20 uppercase tracking-wide">
                   <ShieldCheck className="w-4 h-4" />
                   <span>{trustLevelLabel}</span>
                 </span>
               )}
             </h1>
-            <p className="text-sm font-semibold text-earth-555 dark:text-earth-400 mt-1">
+            <p className="text-sm font-semibold text-primary-100 mt-2 max-w-xl">
               {t.dashboard.buyer.subtitle}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-start md:self-auto">
+        <div className="flex items-center gap-3 self-start md:self-auto relative z-10">
           {/* Notification Bell Badge */}
           <button
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className="p-3 rounded-xl bg-earth-100 hover:bg-primary-100 dark:bg-earth-900 dark:hover:bg-primary-900/30 text-earth-700 dark:text-earth-300 relative cursor-pointer focus:ring-2 focus:ring-primary-500"
+            className="p-3 rounded-xl bg-white/10 hover:bg-white/20 text-white relative cursor-pointer border border-white/15 transition-colors focus:ring-2 focus:ring-white"
             aria-label="Toggle notifications"
           >
             <Bell className="w-5.5 h-5.5" />

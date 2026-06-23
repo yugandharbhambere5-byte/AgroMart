@@ -665,27 +665,42 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border pb-8">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/20">
+          {/* Header Banner */}
+          <div 
+            className="relative overflow-hidden rounded-3xl border border-rose-500/30 p-6 sm:p-8 shadow-lg shadow-rose-600/20 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 text-white w-full transition-all hover:shadow-xl hover:shadow-rose-600/30 duration-300"
+            style={{
+              background: 'radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 0), linear-gradient(135deg, #b91c1c 0%, #e11d48 50%, #be123c 100%)',
+              backgroundSize: '20px 20px, auto'
+            }}
+          >
+            {/* Abstract decorative shapes in background */}
+            <div className="absolute right-0 top-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+            <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-rose-400/20 rounded-full blur-2xl pointer-events-none -mb-10" />
+
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center border border-white/20 shadow-inner">
                 <ShieldCheck className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-foreground">Admin Control Panel</h1>
-                <p className="text-sm font-semibold text-earth-500 mt-0.5">Manage users, listings, reports, and market rates</p>
+                <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
+                  <span>Admin Control Center</span>
+                </h1>
+                <p className="text-sm font-semibold text-rose-100 mt-2">
+                  Manage users, listings, reports, and market rates
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 self-start md:self-auto">
+
+            <div className="flex items-center gap-3 self-start md:self-auto relative z-10">
               {openReports > 0 && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 text-xs font-black">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/20 bg-white/10 text-white text-xs font-black">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   {openReports} open reports
                 </div>
               )}
               <button
                 onClick={handleSignOut}
-                className="flex lg:hidden items-center gap-2 px-4 py-2.5 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-500 text-sm font-extrabold transition-all cursor-pointer"
+                className="flex lg:hidden items-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 text-white text-sm font-extrabold transition-all cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />Sign Out
               </button>

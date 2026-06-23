@@ -276,12 +276,23 @@ const autoCategory = (name: string): string => {
   return '';
 };
 
-// ─── Main Component ─────────────────────────────────────────────────────────
+const unitMap: Record<string, Record<string, string>> = {
+  en: { Tons: 'Tons', Ton: 'Ton', Kgs: 'Kgs', Kg: 'Kg', Quintals: 'Quintals', Quintal: 'Quintal', Bags: 'Bags', Bag: 'Bag' },
+  mr: { Tons: 'टण', Ton: 'टण', Kgs: 'किलो', Kg: 'किलो', Quintals: 'क्विंटल', Quintal: 'क्विंटल', Bags: 'पोती', Bag: 'पोते' },
+  hi: { Tons: 'टन', Ton: 'टन', Kgs: 'किलो', Kg: 'किलो', Quintals: 'क्विंटल', Quintal: 'क्विंटल', Bags: 'बोरी', Bag: 'बोरी' }
+};
 
 export default function FarmerDashboard() {
   const router = useRouter();
   const supabase = createClient();
   const { language, t } = useTranslation();
+
+  const localizeDigits = (val: string | number): string => {
+    const str = String(val);
+    if (language !== 'mr') return str;
+    const mrDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+    return str.replace(/[0-9]/g, (w) => mrDigits[parseInt(w)]);
+  };
 
   // ── Navigation ──
   const [activeTab, setActiveTab] = useState<'overview' | 'marketplace' | 'demands' | 'chat' | 'crop_health' | 'finance' | 'schemes' | 'profile' | 'transactions' | 'education' | 'support' | 'ai_insights'>('overview');
@@ -2197,14 +2208,26 @@ export default function FarmerDashboard() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-8">
-        <div className="flex items-center gap-4">
+      {/* Header Banner */}
+      <div 
+        className="relative overflow-hidden rounded-3xl border border-emerald-500/30 p-6 sm:p-8 shadow-lg shadow-emerald-600/20 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6 text-white transition-all hover:shadow-xl hover:shadow-emerald-600/30 duration-300"
+        style={{
+          background: 'radial-gradient(rgba(255, 255, 255, 0.15) 1.5px, transparent 0), linear-gradient(135deg, #059669 0%, #10b981 50%, #047857 100%)',
+          backgroundSize: '20px 20px, auto'
+        }}
+      >
+        {/* Abstract decorative shapes in background */}
+        <div className="absolute right-0 top-0 w-80 h-80 bg-white/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute left-1/3 bottom-0 w-48 h-48 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none -mb-10" />
+        
+        <div className="flex items-center gap-4 relative z-10">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-foreground">
-              {language === 'mr' ? 'शेतकरी डॅशबोर्ड' : language === 'hi' ? 'किसान डैशबोर्ड' : 'Farmer Dashboard'}
+            <h1 className="text-3xl font-black tracking-tight text-white animate-fade-in">
+              {language === 'mr' ? `नमस्कार, ${displayFullName}! 👋` :
+                language === 'hi' ? `नमस्ते, ${displayFullName}! 👋` :
+                  `Welcome back, ${displayFullName}! 👋`}
             </h1>
-            <p className="text-sm font-semibold text-earth-500 mt-1">
+            <p className="text-sm font-semibold text-primary-100 mt-2 max-w-xl">
               {language === 'mr' ? 'पीक यादी व्यवस्थापित करा, बाजारभाव पहा आणि मागण्यांना प्रतिसाद द्या.' :
                 language === 'hi' ? 'फसल सूची प्रबंधित करें, बाजार भाव देखें और मांगों का जवाब दें।' :
                   'Manage crop listings, check market rates, and respond to buyer demands.'}
@@ -2212,14 +2235,10 @@ export default function FarmerDashboard() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-start md:self-auto">
+        <div className="flex items-center gap-3 self-start md:self-auto relative z-10">
           {/* Trust Badge */}
           {trustScore > 0 && (
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-black ${
-              trustScore >= 70 ? 'border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600' :
-              trustScore >= 30 ? 'border-harvest-500/30 bg-harvest-50 dark:bg-harvest-950/30 text-harvest-600' :
-              'border-red-500/30 bg-red-50 dark:bg-red-950/30 text-red-500'
-            }`}>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/25 bg-white/15 text-white text-xs font-black">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>{trustLevelLabel}</span>
             </div>
@@ -2232,7 +2251,7 @@ export default function FarmerDashboard() {
           <button
             id="farmer-notif-btn"
             onClick={() => setIsNotifOpen(o => !o)}
-            className="p-3 rounded-xl bg-earth-100 hover:bg-primary-100 dark:bg-earth-900 dark:hover:bg-primary-900/30 text-earth-700 dark:text-earth-300 relative cursor-pointer"
+            className="p-3 rounded-xl bg-white/10 hover:bg-white/20 text-white relative cursor-pointer border border-white/15 transition-colors"
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
@@ -2251,10 +2270,10 @@ export default function FarmerDashboard() {
           {/* Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             {[
-              { label: language === 'mr' ? 'एकूण कमाई' : language === 'hi' ? 'कुल कमाई' : 'Total Earnings', value: `₹${earnings.toLocaleString('en-IN')}`, icon: IndianRupee, color: 'primary', sub: '+12.4% this week' },
-              { label: language === 'mr' ? 'सक्रिय ऑफर' : language === 'hi' ? 'सक्रिय ऑफर' : 'Active Offers', value: `${totalOffers} bids`, icon: ShoppingCart, color: 'primary', sub: 'Awaiting selection' },
-              { label: language === 'mr' ? 'पीक दृश्ये' : language === 'hi' ? 'फसल दृश्य' : 'Crop Views', value: '2,400', icon: Eye, color: 'primary', sub: 'Potatoes most viewed' },
-              { label: language === 'mr' ? 'मागणी ट्रेंड' : language === 'hi' ? 'मांग ट्रेंड' : 'Demand Trends', value: 'High', icon: TrendingUp, color: 'primary', sub: 'Tomatoes +18%' },
+              { label: language === 'mr' ? 'एकूण कमाई' : language === 'hi' ? 'कुल कमाई' : 'Total Earnings', value: localizeDigits(`₹${earnings.toLocaleString('en-IN')}`), icon: IndianRupee, color: 'primary', sub: localizeDigits(language === 'mr' ? 'या आठवड्यात +१२.४%' : '+12.4% this week') },
+              { label: language === 'mr' ? 'सक्रिय ऑफर' : language === 'hi' ? 'सक्रिय ऑफर' : 'Active Offers', value: localizeDigits(`${totalOffers} bids`), icon: ShoppingCart, color: 'primary', sub: language === 'mr' ? 'निवडीची प्रतीक्षा आहे' : 'Awaiting selection' },
+              { label: language === 'mr' ? 'पीक दृश्ये' : language === 'hi' ? 'फसल दृश्य' : 'Crop Views', value: localizeDigits('2,400'), icon: Eye, color: 'primary', sub: language === 'mr' ? 'बटाट्याला सर्वाधिक पसंती' : 'Potatoes most viewed' },
+              { label: language === 'mr' ? 'मागणी ट्रेंड' : language === 'hi' ? 'मांग ट्रेंड' : 'Demand Trends', value: language === 'mr' ? 'उच्च' : 'High', icon: TrendingUp, color: 'primary', sub: localizeDigits(language === 'mr' ? 'टोमॅटो +१८%' : 'Tomatoes +18%') },
             ].map((m, i) => (
               <div key={i} className="p-6 rounded-2xl border border-border bg-card flex flex-col gap-4 hover-lift">
                 <div className="flex items-center justify-between">
@@ -2358,17 +2377,17 @@ export default function FarmerDashboard() {
                             </span>
                           </h4>
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-earth-500 mt-1 font-bold">
-                            <span>Qty: {list.quantity} {list.unit}</span>
+                            <span>{language === 'mr' ? 'प्रमाण: ' : 'Qty: '}{localizeDigits(list.quantity)} {language === 'mr' ? (unitMap.mr[list.unit] || list.unit) : list.unit}</span>
                             <span>•</span>
-                            <span>₹{list.expected_price.toLocaleString('en-IN')}/{list.unit}</span>
+                            <span>{localizeDigits(`₹${list.expected_price.toLocaleString('en-IN')}`)}/{language === 'mr' ? (unitMap.mr[list.unit] || list.unit) : list.unit}</span>
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-4 border-t border-border sm:border-0 pt-3 sm:pt-0">
                         <div className="flex items-center gap-3 text-xs font-black text-earth-500">
-                          <span className="flex items-center gap-1"><Eye className="w-4 h-4" />{list.views ?? 0}</span>
-                          <span className="flex items-center gap-1"><MessageSquare className="w-4 h-4 text-primary-500" />{list.offers ?? 0}</span>
+                          <span className="flex items-center gap-1"><Eye className="w-4 h-4" />{localizeDigits(list.views ?? 0)}</span>
+                          <span className="flex items-center gap-1"><MessageSquare className="w-4 h-4 text-primary-500" />{localizeDigits(list.offers ?? 0)}</span>
                         </div>
                         {list.status === 'Pending Review' ? (
                           <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400 border border-amber-500/20">

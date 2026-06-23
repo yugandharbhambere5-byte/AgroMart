@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Sprout, ShieldCheck, Truck, ArrowRight, Mic, MicOff } from 'lucide-react';
 import { useTranslation } from '@/context/LanguageContext';
+import { createClient } from '@/utils/supabase/client';
 
 export function Hero() {
   const { t, language } = useTranslation();
@@ -13,6 +14,25 @@ export function Hero() {
   const [isListening, setIsListening] = useState(false);
   const router = useRouter();
   const recognitionRef = React.useRef<any>(null);
+  
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const startListening = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -112,6 +132,15 @@ export function Hero() {
           <span>{t.hero.badge}</span>
         </div>
 
+        {/* Logged in Greeting Banner */}
+        {user && (
+          <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-emerald-500/30 bg-gradient-to-r from-emerald-600/30 to-primary-600/30 text-white font-extrabold text-xs sm:text-sm shadow-md backdrop-blur-md animate-fade-in-up">
+            <span>✨ {language === 'mr' ? `नमस्कार, ${user.user_metadata?.fullName || user.user_metadata?.full_name || 'वापरकर्ता'}! आपले स्वागत आहे.` : 
+                   language === 'hi' ? `नमस्ते, ${user.user_metadata?.fullName || user.user_metadata?.full_name || 'उपयोगकर्ता'}! आपका स्वागत है।` : 
+                   `Hello, ${user.user_metadata?.fullName || user.user_metadata?.full_name || 'User'}! Welcome back.`}</span>
+          </div>
+        )}
+
         {/* Main Headline */}
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.15] sm:leading-[1.1] animate-fade-in-up-delay-1 max-w-4xl">
           {t.hero.titleLine1} <br />
@@ -183,19 +212,31 @@ export function Hero() {
 
         {/* CTA Farmer / Buyer buttons - Big and accessible */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 mt-2 w-full sm:w-auto px-2 animate-fade-in-up-delay-3">
-          <Link
-            href="/register?role=farmer"
-            className="flex items-center justify-center gap-2 px-8 py-4 sm:py-4.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base sm:text-lg shadow-lg shadow-emerald-900/30 hover:shadow-emerald-900/40 transition-all hover:-translate-y-0.5 active:translate-y-0 text-center cursor-pointer"
-          >
-            <span>{t.hero.farmerBtn}</span>
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link
-            href="#explore"
-            className="flex items-center justify-center gap-2 px-8 py-4 sm:py-4.5 rounded-2xl border-2 border-white/20 hover:border-emerald-450 bg-white/10 hover:bg-white/20 text-white font-extrabold text-base sm:text-lg transition-all text-center hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-          >
-            <span>{t.hero.buyerBtn}</span>
-          </Link>
+          {user ? (
+            <Link
+              href={`/dashboard/${user.user_metadata?.role || 'farmer'}`}
+              className="flex items-center justify-center gap-2 px-10 py-4 sm:py-4.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-primary-600 hover:from-emerald-500 hover:to-primary-500 text-white font-extrabold text-base sm:text-lg shadow-lg shadow-emerald-900/30 transition-all hover:-translate-y-0.5 active:translate-y-0 text-center cursor-pointer"
+            >
+              <span>{language === 'mr' ? 'माझ्या डॅशबोर्डवर जा' : language === 'hi' ? 'मेरे डैशबोर्ड पर जाएं' : 'Go to My Dashboard'}</span>
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/register?role=farmer"
+                className="flex items-center justify-center gap-2 px-8 py-4 sm:py-4.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base sm:text-lg shadow-lg shadow-emerald-900/30 hover:shadow-emerald-900/40 transition-all hover:-translate-y-0.5 active:translate-y-0 text-center cursor-pointer"
+              >
+                <span>{t.hero.farmerBtn}</span>
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <Link
+                href="#explore"
+                className="flex items-center justify-center gap-2 px-8 py-4 sm:py-4.5 rounded-2xl border-2 border-white/20 hover:border-emerald-450 bg-white/10 hover:bg-white/20 text-white font-extrabold text-base sm:text-lg transition-all text-center hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+              >
+                <span>{t.hero.buyerBtn}</span>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Quick trust metrics */}
