@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useTheme } from '@/components/ThemeProvider';
 import { Sun, Moon, Menu, X, ShoppingCart, User, Sprout, ArrowRight, Globe, TrendingUp, LogOut } from 'lucide-react';
@@ -15,6 +15,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [scrolled, setScrolled] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = useRef(0);
   const supabase = createClient();
   
   const { t, language, setLanguage } = useTranslation();
@@ -36,11 +38,25 @@ export function Navbar() {
 
     // Check scroll
     const handleScroll = () => {
-      if (window.scrollY > 20) {
+      const currentScrollY = window.scrollY;
+      
+      // Determine if scrolled beyond threshold
+      if (currentScrollY > 20) {
         setScrolled(true);
       } else {
         setScrolled(false);
       }
+
+      // Hide/show behavior based on scroll direction
+      if (currentScrollY <= 50) {
+        setVisible(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+      
+      lastScrollY.current = currentScrollY;
     };
     handleScroll();
     window.addEventListener('scroll', handleScroll);
@@ -80,7 +96,9 @@ export function Navbar() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b navbar-bg-scrolled border-border shadow-md"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b navbar-bg-scrolled border-border shadow-md ${
+        visible ? 'translate-y-0' : '-translate-y-full'
+      }`}
     >
       <InfoTicker />
       <div className={`w-full max-w-none px-4 sm:px-6 lg:px-12 transition-all duration-300 ${
